@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -10,7 +10,6 @@
  * Copyright (c) 2004-2008 The Regents of the University of California.
  *                         All rights reserved.
  * Copyright (c) 2006-2007 Cisco Systems, Inc.  All rights reserved.
- * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * $COPYRIGHT$
@@ -50,7 +49,7 @@ int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
         if (ompi_comm_invalid (comm))
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
                                           FUNC_NAME);
 
         if ( MPI_GROUP_NULL == group || NULL == group )
@@ -62,16 +61,7 @@ int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm) {
                                           FUNC_NAME);
     }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * An early check, so as to return early if we are using a broken
-     * communicator. This is not absolutely necessary since we will
-     * check for this, and other, error conditions during the operation.
-     */
-    if( OPAL_UNLIKELY(!ompi_comm_iface_create_check(comm, &rc)) ) {
-        OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
-    }
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     rc = ompi_comm_create ( (ompi_communicator_t*)comm, (ompi_group_t*)group,
                            (ompi_communicator_t**)newcomm );

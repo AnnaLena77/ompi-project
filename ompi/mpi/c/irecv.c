@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2018 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -10,7 +10,6 @@
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
  * Copyright (c) 2006      Cisco Systems, Inc.  All rights reserved.
- * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * $COPYRIGHT$
@@ -58,7 +57,7 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
         OMPI_CHECK_USER_BUFFER(rc, buf, type, count);
 
         if (ompi_comm_invalid(comm)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM, FUNC_NAME);
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM, FUNC_NAME);
         } else if (((tag < 0) && (tag != MPI_ANY_TAG)) || (tag > mca_pml.pml_max_tag)) {
             rc = MPI_ERR_TAG;
         } else if ((MPI_ANY_SOURCE != source) &&
@@ -76,12 +75,7 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
         return MPI_SUCCESS;
     }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * The request will be checked for process failure errors during the
-     * completion calls. So no need to check here.
-     */
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     MEMCHECKER (
         memchecker_call(&opal_memchecker_base_mem_noaccess, buf, count, type);

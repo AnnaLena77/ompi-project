@@ -44,6 +44,8 @@
 
 double MPI_Wtick(void)
 {
+    OPAL_CR_NOOP_PROGRESS();
+
     /*
      * See https://github.com/open-mpi/ompi/issues/3003
      * to get an idea what's going on here.

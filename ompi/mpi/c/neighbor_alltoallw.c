@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2018 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -92,10 +92,10 @@ int MPI_Neighbor_alltoallw(const void *sendbuf, const int sendcounts[], const MP
         err = MPI_SUCCESS;
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
         if (ompi_comm_invalid(comm) || OMPI_COMM_IS_INTER(comm)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
                                           FUNC_NAME);
         } else if (! OMPI_COMM_IS_TOPO(comm)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_TOPOLOGY,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_TOPOLOGY,
                                           FUNC_NAME);
         }
 
@@ -138,16 +138,7 @@ int MPI_Neighbor_alltoallw(const void *sendbuf, const int sendcounts[], const MP
         }
     }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * An early check, so as to return early if we are using a broken
-     * communicator. This is not absolutely necessary since we will
-     * check for this, and other, error conditions during the operation.
-     */
-    if( OPAL_UNLIKELY(!ompi_comm_iface_coll_check(comm, &err)) ) {
-        OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
-    }
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     /* Invoke the coll component to perform the back-end operation */
     err = comm->c_coll->coll_neighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes,

@@ -3,14 +3,13 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2018 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
  *                         University of Stuttgart.  All rights reserved.
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
- * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2013      Los Alamos National Security, LLC.  All rights
  *                         reserved.
  * Copyright (c) 2015      Research Organization for Information Science
@@ -75,7 +74,7 @@ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
         err = MPI_SUCCESS;
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 	if (ompi_comm_invalid(comm)) {
-	    return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
+	    return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
                                           FUNC_NAME);
         } else if (MPI_OP_NULL == op) {
             err = MPI_ERR_OP;
@@ -85,29 +84,18 @@ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
             return ret;
         } else if ((MPI_IN_PLACE == sendbuf && OMPI_COMM_IS_INTER(comm)) ||
                    MPI_IN_PLACE == recvbuf ) {
-	    return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_BUFFER,
+	    return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_BUFFER,
                                           FUNC_NAME);
         } else if( (sendbuf == recvbuf) &&
                    (MPI_BOTTOM != sendbuf) &&
                    (count > 1) ) {
-	    return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_BUFFER,
+	    return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_BUFFER,
                                           FUNC_NAME);
         } else {
             OMPI_CHECK_DATATYPE_FOR_SEND(err, datatype, count);
         }
         OMPI_ERRHANDLER_CHECK(err, comm, err, FUNC_NAME);
     }
-
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * An early check, so as to return early if we are using a broken
-     * communicator. This is not absolutely necessary since we will
-     * check for this, and other, error conditions during the operation.
-     */
-    if( OPAL_UNLIKELY(!ompi_comm_iface_coll_check(comm, &err)) ) {
-        OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
-    }
-#endif
 
     /* MPI-1, p114, says that each process must supply at least
        one element.  But at least the Pallas benchmarks call
@@ -116,6 +104,8 @@ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
     if (0 == count) {
         return MPI_SUCCESS;
     }
+
+    OPAL_CR_ENTER_LIBRARY();
 
     /* Invoke the coll component to perform the back-end operation */
 

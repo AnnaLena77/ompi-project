@@ -96,5 +96,7 @@ double MPI_Wtime(void)
 #endif
 #endif
 
+    OPAL_CR_NOOP_PROGRESS();
+
     return wtime;
 }

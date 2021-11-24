@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -44,6 +44,8 @@ int MPI_Status_f2c(const MPI_Fint *f_status, MPI_Status *c_status)
 {
     int i, *c_ints;
 
+    OPAL_CR_NOOP_PROGRESS();
+
     if (MPI_PARAM_CHECK) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
@@ -60,7 +62,7 @@ int MPI_Status_f2c(const MPI_Fint *f_status, MPI_Status *c_status)
             OMPI_IS_FORTRAN_STATUSES_IGNORE(f_status) ||
 #endif
             NULL == c_status) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD,
                                           MPI_ERR_IN_STATUS, FUNC_NAME);
         }
     }
@@ -73,9 +75,8 @@ int MPI_Status_f2c(const MPI_Fint *f_status, MPI_Status *c_status)
        We can't use OMPI_FINT_2_INT here because of some complications
        with include files.  :-( So just do the casting manually. */
     c_ints = (int*)c_status;
-    for( i = 0; i < (int)(sizeof(MPI_Status) / sizeof(int)); i++ ) {
+    for( i = 0; i < (int)(sizeof(MPI_Status) / sizeof(int)); i++ )
         c_ints[i] = (int)f_status[i];
-    }
 
     return MPI_SUCCESS;
 }

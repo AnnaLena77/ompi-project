@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -25,7 +25,6 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/info/info.h"
-#include "opal/util/string_copy.h"
 #include <string.h>
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -77,24 +76,22 @@ int MPI_Info_get_nthkey(MPI_Info info, int n, char *key)
         }
     }
 
+    OPAL_CR_ENTER_LIBRARY();
+
     /* Keys are indexed on 0, which makes the "n" parameter offset by
        1 from the value returned by get_nkeys().  So be sure to
        compare appropriately. */
 
     err = ompi_info_get_nkeys(info, &nkeys);
-    OMPI_ERRHANDLER_NOHANDLE_CHECK(err, err, FUNC_NAME);
+    OMPI_ERRHANDLER_CHECK(err, MPI_COMM_WORLD, err, FUNC_NAME);
     if (n > (nkeys - 1)) {
+        OPAL_CR_EXIT_LIBRARY();
         return OMPI_ERRHANDLER_INVOKE (MPI_COMM_WORLD, MPI_ERR_INFO_KEY,
                                        FUNC_NAME);
     }
 
     /* Everything seems alright. Call the back end key copy */
 
-    opal_cstring_t *key_str = NULL;
-    err = ompi_info_get_nthkey (info, n, &key_str);
-    if (NULL != key_str) {
-        opal_string_copy(key, key_str->string, MPI_MAX_INFO_KEY);
-        OBJ_RELEASE(key_str);
-    }
-    OMPI_ERRHANDLER_NOHANDLE_RETURN(err, err, FUNC_NAME);
+    err = ompi_info_get_nthkey (info, n, key);
+    OMPI_ERRHANDLER_RETURN(err, MPI_COMM_WORLD, err, FUNC_NAME);
 }

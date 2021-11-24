@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2018 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -87,7 +87,7 @@ int MPI_Ireduce(const void *sendbuf, void *recvbuf, int count,
         err = MPI_SUCCESS;
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
         if (ompi_comm_invalid(comm)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
                                           FUNC_NAME);
         }
 
@@ -100,8 +100,7 @@ int MPI_Ireduce(const void *sendbuf, void *recvbuf, int count,
             free(msg);
             return ret;
         } else if ((ompi_comm_rank(comm) != root && MPI_IN_PLACE == sendbuf) ||
-                   (ompi_comm_rank(comm) == root && ((MPI_IN_PLACE == recvbuf) ||
-                   ((sendbuf == recvbuf) && (0 != count))))) {
+                   (ompi_comm_rank(comm) == root && ((MPI_IN_PLACE == recvbuf) || (sendbuf == recvbuf)))) {
             err = MPI_ERR_ARG;
         } else {
             OMPI_CHECK_DATATYPE_FOR_SEND(err, datatype, count);
@@ -134,6 +133,8 @@ int MPI_Ireduce(const void *sendbuf, void *recvbuf, int count,
         *request = &ompi_request_empty;
         return MPI_SUCCESS;
     }
+
+    OPAL_CR_ENTER_LIBRARY();
 
     /* Invoke the coll component to perform the back-end operation */
     err = comm->c_coll->coll_ireduce(sendbuf, recvbuf, count,

@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -12,7 +12,7 @@
  * Copyright (c) 2008      Sun Microsystems, Inc.  All rights reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
- * Copyright (c) 2016-2019 IBM Corporation. All rights reserved.
+ * Copyright (c) 2016-2017 IBM Corporation. All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -44,11 +44,13 @@ int MPI_File_set_info(MPI_File fh, MPI_Info info)
 {
     int ret; 
 
+    OPAL_CR_NOOP_PROGRESS();
+
     if (MPI_PARAM_CHECK) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
         if (ompi_file_invalid(fh)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_FILE, FUNC_NAME);
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_FILE, FUNC_NAME);
         }
 
 	if (NULL == info || MPI_INFO_NULL == info ||
@@ -58,23 +60,7 @@ int MPI_File_set_info(MPI_File fh, MPI_Info info)
         }
     }
 
-// Some components we're still letting handle info internally, eg romio321.
-// Components that want to handle it themselves will fill in the get/set
-// info function pointers, components that don't will use NULL.
-    if (fh->f_io_selected_module.v2_0_0.io_module_file_set_info != NULL) {
-        int rc;
-        switch (fh->f_io_version) {
-        case MCA_IO_BASE_V_2_0_0:
-            rc = fh->f_io_selected_module.v2_0_0.
-              io_module_file_set_info(fh, info);
-            break;
-
-        default:
-            rc = MPI_ERR_INTERN;
-            break;
-        }
-        OMPI_ERRHANDLER_RETURN(rc, fh, rc, FUNC_NAME);
-    }
+    OPAL_CR_ENTER_LIBRARY();
 
     ret = opal_infosubscribe_change_info(&fh->super, &info->super);
 

@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -14,7 +14,6 @@
  *                         reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
- * Copyright (c) 2018      Cisco Systems, Inc.  All rights reserved
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -25,8 +24,6 @@
 #include "ompi_config.h"
 
 #include <string.h>
-
-#include "opal/util/string_copy.h"
 
 #include "ompi/mpi/c/bindings.h"
 #include "ompi/runtime/params.h"
@@ -47,20 +44,28 @@ static const char FUNC_NAME[] = "MPI_Type_set_name";
 
 int MPI_Type_set_name (MPI_Datatype type, const char *type_name)
 {
+    int length;
+
     MEMCHECKER(
         memchecker_datatype(type);
         );
 
+    OPAL_CR_NOOP_PROGRESS();
+
     if (MPI_PARAM_CHECK) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
         if (NULL == type || MPI_DATATYPE_NULL == type) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_TYPE, FUNC_NAME);
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_TYPE, FUNC_NAME);
         } else if (NULL == type_name) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_ARG, FUNC_NAME);
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_ARG, FUNC_NAME);
         }
     }
 
     memset(type->name, 0, MPI_MAX_OBJECT_NAME);
-    opal_string_copy( type->name, type_name, MPI_MAX_OBJECT_NAME);
+    length = (int)strlen( type_name );
+    if( length >= MPI_MAX_OBJECT_NAME ) {
+        length = MPI_MAX_OBJECT_NAME - 1;
+    }
+    strncpy( type->name, type_name, length );
     return MPI_SUCCESS;
 }

@@ -24,6 +24,8 @@
 #include "ompi/runtime/params.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/runtime/ompi_spc.h"
+#include "ompi/mpi/c/init.h"
+#include <pthread.h>
 
 #if OMPI_BUILD_MPI_PROFILING
 #if OPAL_HAVE_WEAK_SYMBOLS
@@ -43,11 +45,15 @@ int MPI_Finalize(void)
      */
     SPC_FINI();
 
+    OPAL_CR_FINALIZE_LIBRARY();
+
     if (MPI_PARAM_CHECK) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
     }
 
     /* Pretty simple */
 
+    //sleep(8);
+    pthread_join(MONITOR_THREAD, NULL);
     return ompi_mpi_finalize();
 }

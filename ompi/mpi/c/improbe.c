@@ -1,12 +1,9 @@
 /*
  * Copyright (c) 2011      Sandia National Laboratories. All rights reserved.
- * Copyright (c) 2012      Cisco Systems, Inc.  All rights reserved.
+ * Copyright (c) 2012 Cisco Systems, Inc.  All rights reserved.
  * Copyright (c) 2012      Oracle and/or its affiliates.  All rights reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
- * Copyright (c) 2020-2021 The University of Tennessee and The University
- *                         of Tennessee Research Foundation.  All rights
- *                         reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -61,7 +58,7 @@ int MPI_Improbe(int source, int tag, MPI_Comm comm, int *flag,
 
     if (MPI_PROC_NULL == source) {
         if (MPI_STATUS_IGNORE != status) {
-            OMPI_COPY_STATUS(status, ompi_request_empty.req_status, false);
+            *status = ompi_request_empty.req_status;
             /* Per MPI-1, the MPI_ERROR field is not defined for
                single-completion calls */
             MEMCHECKER(
@@ -73,12 +70,7 @@ int MPI_Improbe(int source, int tag, MPI_Comm comm, int *flag,
         return MPI_SUCCESS;
     }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * The request will be checked for process failure errors during the
-     * completion calls. So no need to check here.
-     */
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     rc = MCA_PML_CALL(improbe(source, tag, comm, flag, message, status));
     /* Per MPI-1, the MPI_ERROR field is not defined for

@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2018 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -14,7 +14,7 @@
  * Copyright (c) 2012      Oak Ridge National Laboratory. All rights reserved.
  * Copyright (c) 2013      Los Alamos National Security, LLC.  All rights
  *                         reserved.
- * Copyright (c) 2015-2020 Research Organization for Information Science
+ * Copyright (c) 2015-2019 Research Organization for Information Science
  *                         and Technology (RIST).  All rights reserved.
  * $COPYRIGHT$
  *
@@ -65,7 +65,7 @@ int MPI_Iallgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         /* check whether the actual send buffer is defined. */
         if (MPI_IN_PLACE == sendbuf) {
             memchecker_call(&opal_memchecker_base_isdefined,
-                            (char *)(recvbuf)+rank*recvcount*ext,
+                            (char *)(recvbuf)+rank*ext,
                             recvcount, recvtype);
         } else {
             memchecker_datatype(sendtype);
@@ -83,7 +83,7 @@ int MPI_Iallgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         err = MPI_SUCCESS;
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
         if (ompi_comm_invalid(comm)) {
-          OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM, FUNC_NAME);
+          OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM, FUNC_NAME);
         } else if (MPI_DATATYPE_NULL == recvtype || NULL == recvtype) {
           err = MPI_ERR_TYPE;
         } else if (recvcount < 0) {
@@ -96,6 +96,8 @@ int MPI_Iallgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         }
         OMPI_ERRHANDLER_CHECK(err, comm, err, FUNC_NAME);
     }
+
+    OPAL_CR_ENTER_LIBRARY();
 
     /* Invoke the coll component to perform the back-end operation */
     err = comm->c_coll->coll_iallgather(sendbuf, sendcount, sendtype,

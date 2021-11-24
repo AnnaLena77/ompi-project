@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -73,15 +73,17 @@ int MPI_Comm_join(int fd, MPI_Comm *intercomm)
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
         if ( NULL == intercomm ) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_ARG,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_ARG,
                                           FUNC_NAME);
         }
     }
 
     if (!ompi_mpi_dynamics_is_enabled(FUNC_NAME)) {
-        return OMPI_ERRHANDLER_NOHANDLE_INVOKE(OMPI_ERR_NOT_SUPPORTED,
+        return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, OMPI_ERR_NOT_SUPPORTED,
                                       FUNC_NAME);
     }
+
+    OPAL_CR_ENTER_LIBRARY();
 
     /* send my process name */
     tmp_name = *OMPI_PROC_MY_NAME;
@@ -99,6 +101,7 @@ int MPI_Comm_join(int fd, MPI_Comm *intercomm)
         } else if (OMPI_PROC_MY_NAME->vpid == rname.vpid) {
             /* joining to myself is not allowed */
             *intercomm = MPI_COMM_NULL;
+            OPAL_CR_EXIT_LIBRARY();
             return MPI_ERR_INTERN;
         } else {
             send_first = false;
@@ -136,9 +139,13 @@ int MPI_Comm_join(int fd, MPI_Comm *intercomm)
     /* use the port to connect/accept */
     rc = ompi_dpm_connect_accept (MPI_COMM_SELF, 0, port_name, send_first, &newcomp);
 
+    OPAL_CR_EXIT_LIBRARY();
+
     *intercomm = newcomp;
 
  error:
+    OPAL_CR_EXIT_LIBRARY();
+
     if (OPAL_ERR_NOT_SUPPORTED == rc) {
         opal_show_help("help-mpi-api.txt",
                        "MPI function not supported",

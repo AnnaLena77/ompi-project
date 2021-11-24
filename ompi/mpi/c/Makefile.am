@@ -9,14 +9,14 @@
 #                         University of Stuttgart.  All rights reserved.
 # Copyright (c) 2004-2005 The Regents of the University of California.
 #                         All rights reserved.
-# Copyright (c) 2009-2021 Cisco Systems, Inc.  All rights reserved.
+# Copyright (c) 2009-2014 Cisco Systems, Inc.  All rights reserved.
 # Copyright (c) 2011      Sandia National Laboratories. All rights reserved.
 # Copyright (c) 2012      Oak Rigde National Laboratory. All rights reserved.
 # Copyright (c) 2012-2013 Inria.  All rights reserved.
 # Copyright (c) 2013-2018 Los Alamos National Security, LLC. All rights
 #                         reserved.
-# Copyright (c) 2015-2020 Research Organization for Information Science
-#                         and Technology (RIST).  All rights reserved.
+# Copyright (c) 2015-2018 Research Organization for Information Science
+#                         and Technology (RIST). All rights reserved.
 # $COPYRIGHT$
 #
 # Additional copyrights may follow
@@ -67,32 +67,24 @@ libmpi_c_mpi_la_SOURCES = \
         add_error_string.c \
         allgather.c \
         iallgather.c \
-        allgather_init.c \
         allgatherv.c \
         iallgatherv.c \
-        allgatherv_init.c \
         alloc_mem.c \
         allreduce.c \
         iallreduce.c \
-        allreduce_init.c \
         alltoall.c \
         ialltoall.c \
-        alltoall_init.c \
         alltoallv.c \
         ialltoallv.c \
-        alltoallv_init.c \
         alltoallw.c \
         ialltoallw.c \
-        alltoallw_init.c \
         attr_delete.c \
         attr_get.c \
         attr_put.c \
         barrier.c \
         ibarrier.c \
-        barrier_init.c \
         bcast.c \
         ibcast.c \
-        bcast_init.c \
         bsend.c \
         bsend_init.c \
         buffer_attach.c \
@@ -148,7 +140,7 @@ libmpi_c_mpi_la_SOURCES = \
         comm_split.c \
         comm_split_type.c \
         comm_test_inter.c \
-        compare_and_swap.c \
+	compare_and_swap.c \
         dims_create.c \
         errhandler_c2f.c \
         errhandler_f2c.c \
@@ -156,9 +148,8 @@ libmpi_c_mpi_la_SOURCES = \
         error_class.c \
         error_string.c \
         exscan.c \
+	fetch_and_op.c \
         iexscan.c \
-        exscan_init.c \
-        fetch_and_op.c \
         file_c2f.c \
         file_call_errhandler.c \
         file_close.c \
@@ -225,15 +216,13 @@ libmpi_c_mpi_la_SOURCES = \
         free_mem.c \
         gather.c \
         igather.c \
-        gather_init.c \
         gatherv.c \
         igatherv.c \
-        gatherv_init.c \
         get_address.c \
         get_count.c \
         get_elements.c \
         get_elements_x.c \
-        get_accumulate.c \
+	get_accumulate.c \
         get_library_version.c \
         get_processor_name.c \
         get_version.c \
@@ -271,7 +260,6 @@ libmpi_c_mpi_la_SOURCES = \
         info_get.c \
         info_get_nkeys.c \
         info_get_nthkey.c \
-        info_get_string.c \
         info_get_valuelen.c \
         info_set.c \
         init.c \
@@ -292,19 +280,14 @@ libmpi_c_mpi_la_SOURCES = \
         mrecv.c \
         neighbor_allgather.c \
         ineighbor_allgather.c \
-        neighbor_allgather_init.c \
         neighbor_allgatherv.c \
         ineighbor_allgatherv.c \
-        neighbor_allgatherv_init.c \
         neighbor_alltoall.c \
         ineighbor_alltoall.c \
-        neighbor_alltoall_init.c \
         neighbor_alltoallv.c \
         ineighbor_alltoallv.c \
-        neighbor_alltoallv_init.c \
         neighbor_alltoallw.c \
         ineighbor_alltoallw.c \
-        neighbor_alltoallw_init.c \
         keyval_create.c \
         keyval_free.c \
         op_c2f.c \
@@ -317,48 +300,36 @@ libmpi_c_mpi_la_SOURCES = \
         pack_external_size.c \
         pack.c \
         pack_size.c \
-        parrived.c \
         pcontrol.c \
-        pready.c \
-        pready_list.c \
-        pready_range.c \
-        precv_init.c \
         probe.c \
-        psend_init.c \
         publish_name.c \
         query_thread.c \
-        raccumulate.c \
+	raccumulate.c \
         recv_init.c \
         recv.c \
         reduce.c \
-        ireduce.c \
-        reduce_init.c \
         register_datarep.c \
+        ireduce.c \
         reduce_local.c \
         reduce_scatter.c \
         ireduce_scatter.c \
-        reduce_scatter_init.c \
         reduce_scatter_block.c \
         ireduce_scatter_block.c \
-        reduce_scatter_block_init.c \
         request_c2f.c \
         request_f2c.c \
         request_free.c \
         request_get_status.c \
-        rget.c \
-        rget_accumulate.c \
-        rput.c \
+	rget.c \
+	rget_accumulate.c \
+	rput.c \
         rsend_init.c \
         rsend.c \
         scan.c \
         iscan.c \
-        scan_init.c \
         scatter.c \
         iscatter.c \
-        scatter_init.c \
         scatterv.c \
         iscatterv.c \
-        scatterv_init.c \
         send.c \
         send_init.c \
         sendrecv.c \
@@ -368,11 +339,7 @@ libmpi_c_mpi_la_SOURCES = \
         start.c \
         startall.c \
         status_c2f.c \
-        status_c2f08.c \
-        status_f082c.c \
-        status_f082f.c \
         status_f2c.c \
-        status_f2f08.c \
         status_set_cancelled.c \
         status_set_elements.c \
         status_set_elements_x.c \
@@ -429,24 +396,24 @@ libmpi_c_mpi_la_SOURCES = \
         accumulate.c \
         get.c \
         put.c \
-        win_allocate.c \
-        win_allocate_shared.c \
-        win_attach.c \
+	win_allocate.c \
+	win_allocate_shared.c \
+	win_attach.c \
         win_c2f.c \
         win_call_errhandler.c \
         win_complete.c  \
         win_create_errhandler.c \
         win_create_keyval.c \
         win_create.c \
-        win_create_dynamic.c \
+	win_create_dynamic.c \
         win_delete_attr.c \
-        win_detach.c \
+	win_detach.c \
         win_f2c.c \
         win_fence.c \
-        win_flush.c \
-        win_flush_all.c \
-        win_flush_local.c \
-        win_flush_local_all.c \
+	win_flush.c \
+	win_flush_all.c \
+	win_flush_local.c \
+	win_flush_local_all.c \
         win_free_keyval.c \
         win_free.c \
         win_get_attr.c \
@@ -455,22 +422,23 @@ libmpi_c_mpi_la_SOURCES = \
         win_get_info.c \
         win_get_name.c  \
         win_lock.c \
-        win_lock_all.c \
+	win_lock_all.c \
         win_post.c \
         win_set_attr.c \
         win_set_errhandler.c \
         win_set_info.c \
         win_set_name.c \
-        win_shared_query.c \
-        win_sync.c \
+	win_shared_query.c \
+	win_sync.c \
         win_start.c \
         win_test.c \
         win_unlock.c \
-        win_unlock_all.c \
+	win_unlock_all.c \
         win_wait.c
 
 
-if OMPI_ENABLE_MPI1_COMPAT
+# include all of the removed MPI functions in library
+# for v4.0.x regardless of state of OMPI_ENABLE_MPI1_COMPAT
 libmpi_c_mpi_la_SOURCES += \
         address.c \
         errhandler_create.c \
@@ -482,7 +450,6 @@ libmpi_c_mpi_la_SOURCES += \
         type_lb.c \
         type_struct.c \
         type_ub.c
-endif
 
 # Conditionally install the header files
 

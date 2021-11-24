@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2021 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -53,12 +53,14 @@ int MPI_Request_get_status(MPI_Request request, int *flag,
         memchecker_request(&request);
     );
 
+    OPAL_CR_NOOP_PROGRESS();
+
     if( MPI_PARAM_CHECK ) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
         if( (NULL == flag) ) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_ARG, FUNC_NAME);
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_ARG, FUNC_NAME);
         } else if (NULL == request) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_REQUEST,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_REQUEST,
                                           FUNC_NAME);
         }
     }
@@ -70,7 +72,7 @@ int MPI_Request_get_status(MPI_Request request, int *flag,
     if( (request == MPI_REQUEST_NULL) || (request->req_state == OMPI_REQUEST_INACTIVE) ) {
         *flag = true;
         if( MPI_STATUS_IGNORE != status ) {
-            OMPI_COPY_STATUS(status, ompi_status_empty, false);
+            *status = ompi_status_empty;
         }
         return MPI_SUCCESS;
     }
@@ -83,7 +85,7 @@ int MPI_Request_get_status(MPI_Request request, int *flag,
             ompi_grequest_invoke_query(request, &request->req_status);
         }
         if (MPI_STATUS_IGNORE != status) {
-            OMPI_COPY_STATUS(status, request->req_status, false);
+            *status = request->req_status;
         }
         return MPI_SUCCESS;
     }

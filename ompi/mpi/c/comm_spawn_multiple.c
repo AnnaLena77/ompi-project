@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -12,7 +12,6 @@
  *                         All rights reserved.
  * Copyright (c) 2006-2015 Cisco Systems, Inc.  All rights reserved.
  * Copyright (c) 2009      Sun Microsystems, Inc.  All rights reserved.
- * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2012-2013 Los Alamos National Security, LLC.  All rights
  *                         reserved.
  * Copyright (c) 2015      Intel, Inc. All rights reserved.
@@ -28,7 +27,6 @@
 #include <stdio.h>
 
 #include "opal/util/show_help.h"
-#include "opal/util/printf.h"
 
 #include "ompi/mpi/c/bindings.h"
 #include "ompi/runtime/params.h"
@@ -55,9 +53,9 @@ int MPI_Comm_spawn_multiple(int count, char *array_of_commands[], char **array_o
                             int array_of_errcodes[])
 {
     int i=0, rc=0, rank=0, size=0, flag;
-    ompi_communicator_t *newcomp=MPI_COMM_NULL;
+    ompi_communicator_t *newcomp=NULL;
     bool send_first=false; /* they are contacting us first */
-    char port_name[MPI_MAX_PORT_NAME]; char *port_string = NULL;
+    char port_name[MPI_MAX_PORT_NAME];
     bool non_mpi = false, cumulative = false;
 
     MEMCHECKER(
@@ -68,7 +66,7 @@ int MPI_Comm_spawn_multiple(int count, char *array_of_commands[], char **array_o
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
         if ( ompi_comm_invalid (comm)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
                                           FUNC_NAME);
         }
         if ( OMPI_COMM_IS_INTER(comm)) {
@@ -100,7 +98,7 @@ int MPI_Comm_spawn_multiple(int count, char *array_of_commands[], char **array_o
             for (i = 0; i < count; ++i) {
                 if (NULL == array_of_info[i] ||
                     ompi_info_is_freed(array_of_info[i])) {
-                    return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_INFO,
+                    return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_INFO,
                                                   FUNC_NAME);
                 }
                 /* If ompi_non_mpi is set to true on any info, it must
@@ -119,7 +117,7 @@ int MPI_Comm_spawn_multiple(int count, char *array_of_commands[], char **array_o
                 /* If this info's effective value doesn't agree with
                    the rest of them, error */
                 if (cumulative != non_mpi) {
-                    return OMPI_ERRHANDLER_NOHANDLE_INVOKE(
+                    return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD,
                                                   MPI_ERR_INFO,
                                                   FUNC_NAME);
                 }
@@ -151,15 +149,10 @@ int MPI_Comm_spawn_multiple(int count, char *array_of_commands[], char **array_o
         }
     }
 
-#if OPAL_ENABLE_FT_MPI
-    if( OPAL_UNLIKELY(!ompi_comm_iface_coll_check(comm, &rc)) ) {
-        return OMPI_ERRHANDLER_INVOKE(comm, rc, FUNC_NAME);
-    }
-#endif
-
     /* initialize the port name to avoid problems */
     memset(port_name, 0, MPI_MAX_PORT_NAME);
 
+    OPAL_CR_ENTER_LIBRARY();
 
     if ( rank == root ) {
         if (!non_mpi) {
@@ -180,25 +173,13 @@ int MPI_Comm_spawn_multiple(int count, char *array_of_commands[], char **array_o
         }
     }
 
-error:
-    if (OMPI_SUCCESS != rc) {
-        /* There was an error in one of the above stages,
-         * we still need to do the connect_accept stage so that
-         * non-root ranks do not deadlock.
-         * Add the error code to the port string for connect_accept
-         * to propagate the error code. */
-        (void)opal_asprintf(&port_string, "%s:error=%d", port_name, rc);
-    }
-    else {
-        port_string = port_name;
-    }
-
     if (non_mpi) {
         newcomp = MPI_COMM_NULL;
     } else {
-        rc = ompi_dpm_connect_accept (comm, root, port_string, send_first, &newcomp);
+        rc = ompi_dpm_connect_accept (comm, root, port_name, send_first, &newcomp);
     }
 
+error:
     if (OPAL_ERR_NOT_SUPPORTED == rc) {
         opal_show_help("help-mpi-api.txt",
                        "MPI function not supported",
@@ -207,18 +188,16 @@ error:
                        "Underlying runtime environment does not support spawn functionality");
     }
 
-    if(port_string != port_name) {
-        free(port_string);
-    }
-
     /* close the port */
     if (rank == root && !non_mpi) {
         ompi_dpm_close_port(port_name);
     }
 
+    OPAL_CR_EXIT_LIBRARY();
+
     /* set array of errorcodes */
     if (MPI_ERRCODES_IGNORE != array_of_errcodes) {
-        if (MPI_COMM_NULL != newcomp) {
+        if (NULL != newcomp) {
             size = newcomp->c_remote_group->grp_proc_count;
         } else {
             for ( i=0; i < count; i++) {

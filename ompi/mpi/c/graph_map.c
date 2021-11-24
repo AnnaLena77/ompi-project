@@ -68,6 +68,8 @@ int MPI_Graph_map(MPI_Comm comm, int nnodes, const int indx[], const int edges[]
         }
     }
 
+    OPAL_CR_ENTER_LIBRARY();
+
     if(!OMPI_COMM_IS_GRAPH(comm)) {
         /* In case the communicator has no topo-module attached to
            it, we just return the "default" value suggested by MPI:
@@ -76,6 +78,7 @@ int MPI_Graph_map(MPI_Comm comm, int nnodes, const int indx[], const int edges[]
     } else {
       err = comm->c_topo->topo.graph.graph_map(comm, nnodes, indx, edges, newrank);
     }
+    OPAL_CR_EXIT_LIBRARY();
 
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

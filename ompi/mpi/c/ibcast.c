@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012      Oak Rigde National Laboratory. All rights reserved.
- * Copyright (c) 2015-2020 Research Organization for Information Science
+ * Copyright (c) 2015-2019 Research Organization for Information Science
  *                         and Technology (RIST).  All rights reserved.
  * Copyright (c) 2017-2020 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
@@ -42,31 +42,15 @@ int MPI_Ibcast(void *buffer, int count, MPI_Datatype datatype,
 
     MEMCHECKER(
         memchecker_datatype(datatype);
+        memchecker_call(&opal_memchecker_base_isdefined, buffer, count, datatype);
         memchecker_comm(comm);
-        if (OMPI_COMM_IS_INTRA(comm)) {
-            if (ompi_comm_rank(comm) == root) {
-                /* check whether root's send buffer is defined. */
-                memchecker_call(&opal_memchecker_base_isdefined, buffer, count, datatype);
-            } else {
-                /* check whether receive buffer is addressable. */
-                memchecker_call(&opal_memchecker_base_isaddressable, buffer, count, datatype);
-            }
-        } else {
-            if (MPI_ROOT == root) {
-                /* check whether root's send buffer is defined. */
-                memchecker_call(&opal_memchecker_base_isdefined, buffer, count, datatype);
-            } else if (MPI_PROC_NULL != root) {
-                /* check whether receive buffer is addressable. */
-                memchecker_call(&opal_memchecker_base_isaddressable, buffer, count, datatype);
-            }
-        }
     );
 
     if (MPI_PARAM_CHECK) {
       err = MPI_SUCCESS;
       OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
       if (ompi_comm_invalid(comm)) {
-          return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
+          return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
                                      FUNC_NAME);
       }
 
@@ -103,6 +87,8 @@ int MPI_Ibcast(void *buffer, int count, MPI_Datatype datatype,
         *request = &ompi_request_empty;
         return MPI_SUCCESS;
     }
+
+    OPAL_CR_ENTER_LIBRARY();
 
     /* Invoke the coll component to perform the back-end operation */
 

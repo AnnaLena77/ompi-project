@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2009 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -42,6 +42,8 @@ int MPI_Get_library_version(char *version, int *resultlen)
     int len_left;
     char *ptr, tmp[MPI_MAX_LIBRARY_VERSION_STRING];
 
+    OPAL_CR_NOOP_PROGRESS();
+
     if (MPI_PARAM_CHECK) {
         /* Per MPI-3, this function can be invoked before
            MPI_INIT, so we don't invoke the normal
@@ -59,7 +61,7 @@ int MPI_Get_library_version(char *version, int *resultlen)
             int32_t state = ompi_mpi_state;
             if (state >= OMPI_MPI_STATE_INIT_COMPLETED &&
                 state < OMPI_MPI_STATE_FINALIZE_PAST_COMM_SELF_DESTRUCT) {
-                return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_ARG,
+                return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_ARG,
                                               FUNC_NAME);
             } else {
                 /* We have no MPI object here so call ompi_errhandle_invoke

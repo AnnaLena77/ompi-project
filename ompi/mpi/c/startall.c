@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -11,7 +11,6 @@
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
  * Copyright (c) 2006      Cisco Systems, Inc.  All rights reserved.
- * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2012-2016 Los Alamos National Security, LLC.  All rights
  *                         reserved.
  * Copyright (c) 2014-2017 Research Organization for Information Science
@@ -75,20 +74,15 @@ int MPI_Startall(int count, MPI_Request requests[])
                 }
             }
         }
-        OMPI_ERRHANDLER_NOHANDLE_CHECK(rc, rc, FUNC_NAME);
+        OMPI_ERRHANDLER_CHECK(rc, MPI_COMM_WORLD, rc, FUNC_NAME);
     }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * The request will be checked for process failure errors during the
-     * completion calls. So no need to check here.
-     */
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     for (i = 0, j = -1; i < count; ++i) {
         /* Per MPI it is invalid to start an active request */
         if (OMPI_REQUEST_INACTIVE != requests[i]->req_state) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_REQUEST, FUNC_NAME);
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_REQUEST, FUNC_NAME);
         }
 
         if (OMPI_REQUEST_NOOP == requests[i]->req_type) {
@@ -116,6 +110,7 @@ int MPI_Startall(int count, MPI_Request requests[])
         start_fn(i - j, requests + j);
     }
 
+    OPAL_CR_EXIT_LIBRARY();
     return ret;
 }
 

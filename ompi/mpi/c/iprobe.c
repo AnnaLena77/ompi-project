@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2021 The University of Tennessee and The University
+ * Copyright (c) 2004-2018 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -67,7 +67,7 @@ int MPI_Iprobe(int source, int tag, MPI_Comm comm, int *flag, MPI_Status *status
     if (MPI_PROC_NULL == source) {
         *flag = 1;
         if (MPI_STATUS_IGNORE != status) {
-            OMPI_COPY_STATUS(status, ompi_request_empty.req_status, false);
+            *status = ompi_request_empty.req_status;
             /*
              * Per MPI-1, the MPI_ERROR field is not defined for single-completion calls
              */
@@ -78,12 +78,7 @@ int MPI_Iprobe(int source, int tag, MPI_Comm comm, int *flag, MPI_Status *status
         return MPI_SUCCESS;
     }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * The call will check for process failure errors during the
-     * operation. So no need to check here.
-     */
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     rc = MCA_PML_CALL(iprobe(source, tag, comm, flag, status));
 

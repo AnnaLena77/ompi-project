@@ -1,10 +1,9 @@
 /*
  * Copyright (c) 2011      Sandia National Laboratories. All rights reserved.
- * Copyright (c) 2012      Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2012-2013 Cisco Systems, Inc.  All rights reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
- * Copyright (c) 2018-2021 The University of Tennessee and The University
+ * Copyright (c) 2018      The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -68,18 +67,13 @@ int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
 
     if (&ompi_message_no_proc.message == *message) {
         if (MPI_STATUS_IGNORE != status) {
-            OMPI_COPY_STATUS(status, ompi_request_empty.req_status, false);
+            *status = ompi_request_empty.req_status;
         }
         *message = MPI_MESSAGE_NULL;
         return MPI_SUCCESS;
      }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * The message and associated request will be checked by the PML, and
-     * handled approprately. SO no need to check here.
-     */
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status));
     /* Per MPI-1, the MPI_ERROR field is not defined for

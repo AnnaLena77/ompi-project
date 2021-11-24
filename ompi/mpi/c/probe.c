@@ -2,14 +2,13 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2021 The University of Tennessee and The University
+ * Copyright (c) 2004-2018 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
  *                         University of Stuttgart.  All rights reserved.
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
- * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * $COPYRIGHT$
@@ -67,7 +66,7 @@ int MPI_Probe(int source, int tag, MPI_Comm comm, MPI_Status *status)
 
     if (MPI_PROC_NULL == source) {
         if (MPI_STATUS_IGNORE != status) {
-            OMPI_COPY_STATUS(status, ompi_request_empty.req_status, false);
+            *status = ompi_request_empty.req_status;
             /*
              * Per MPI-1, the MPI_ERROR field is not defined for single-completion calls
              */
@@ -78,19 +77,7 @@ int MPI_Probe(int source, int tag, MPI_Comm comm, MPI_Status *status)
         return MPI_SUCCESS;
     }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * Check here for issues with the peer, so we do not have to duplicate the
-     * functionality in the PML.
-     */
-    if( OPAL_UNLIKELY(!ompi_comm_iface_p2p_check_proc(comm, source, &rc)) ) {
-        if (MPI_STATUS_IGNORE != status) {
-            status->MPI_SOURCE = source;
-            status->MPI_TAG    = tag;
-        }
-        OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
-    }
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     rc = MCA_PML_CALL(probe(source, tag, comm, status));
     /*

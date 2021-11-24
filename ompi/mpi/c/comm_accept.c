@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2005 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -62,7 +62,7 @@ int MPI_Comm_accept(const char *port_name, MPI_Info info, int root,
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
         if (ompi_comm_invalid (comm)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
                                           FUNC_NAME);
         }
         if ( OMPI_COMM_IS_INTER(comm)) {
@@ -78,7 +78,7 @@ int MPI_Comm_accept(const char *port_name, MPI_Info info, int root,
                                           FUNC_NAME);
         }
         if (NULL == info || ompi_info_is_freed(info)) {
-          return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_INFO,
+          return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_INFO,
                                         FUNC_NAME);
         }
     }
@@ -101,15 +101,7 @@ int MPI_Comm_accept(const char *port_name, MPI_Info info, int root,
      * if ( rank == root && MPI_INFO_NULL != info ) {
      * }
      */
-
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * We must not call ompi_comm_iface_create_check() here, because that
-     * risks leaving the connect side dangling on an unmatched operation.
-     * We will let the connect_accept logic proceed and discover the
-     * issue internally so that all sides get informed.
-     */
-#endif
+    OPAL_CR_ENTER_LIBRARY();
 
     if ( rank == root ) {
 	rc = ompi_dpm_connect_accept (comm, root, port_name, send_first,
@@ -120,6 +112,7 @@ int MPI_Comm_accept(const char *port_name, MPI_Info info, int root,
 				      &newcomp);
     }
 
+    OPAL_CR_EXIT_LIBRARY();
 
     if (OPAL_ERR_NOT_SUPPORTED == rc) {
         opal_show_help("help-mpi-api.txt",

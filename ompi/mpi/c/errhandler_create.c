@@ -42,7 +42,7 @@
 #define MPI_Errhandler_create PMPI_Errhandler_create
 #endif
 
-int MPI_Errhandler_create(MPI_Handler_function *function,
+int MPI_Errhandler_create(MPI_Comm_errhandler_function *function,
                           MPI_Errhandler *errhandler)
 {
 

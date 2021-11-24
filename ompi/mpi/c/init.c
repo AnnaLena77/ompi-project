@@ -23,6 +23,11 @@
 #include "ompi_config.h"
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <string.h>
+#include <sys/queue.h>
+#include <mysql/mysql.h>
 
 #include "opal/util/show_help.h"
 #include "ompi/runtime/ompi_spc.h"
@@ -30,6 +35,8 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
+#include "ompi/mpi/c/init.h"
+
 
 #if OMPI_BUILD_MPI_PROFILING
 #if OPAL_HAVE_WEAK_SYMBOLS
@@ -38,11 +45,81 @@
 #define MPI_Init PMPI_Init
 #endif
 
+typedef struct qentry {
+    char* type;
+    int data;
+    TAILQ_ENTRY(qentry) pointers;
+} qentry;
+
+TAILQ_HEAD(, qentry) head;
+
+void enqueue(char* type, int value){
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    item->data = value;
+    item->type = type;
+    TAILQ_INSERT_TAIL(&head, item, pointers);
+}
+
+qentry* dequeue(){
+    qentry *item;
+    item = TAILQ_FIRST(&head);
+    TAILQ_REMOVE(&head, item, pointers);
+    return item;
+}
+
+MYSQL *conn;
+MYSQL_RES *res;
+MYSQL_ROW row;
+char *server = "127.0.0.1";
+char *user = "root";
+char *password = "";
+char *database = "DataFromMPI";
+
+static void insertData(qentry **item){
+    qentry *q = *item;
+    char query[300];
+    sprintf(query, "INSERT INTO MPI_Data(type, value)VALUES('%s', %d)", q->type, q->data);
+    //printf("%s\n", query);
+    if(mysql_query(conn, query)){
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        exit(1);
+    }
+}
+
+pthread_t MONITOR_THREAD;
+
+ 
+static void* MonitorFunc(void* _arg){
+    qentry *item;
+    int finish = 0;
+    while(!finish){
+        if(TAILQ_EMPTY(&head)){
+            sleep(2);
+            if(TAILQ_EMPTY(&head)){
+                finish = 1; 
+            }
+        }
+        else {
+            item = dequeue();
+            insertData(&item);
+            //printf("%d\n", item->data);
+        }
+    }
+}
+
 static const char FUNC_NAME[] = "MPI_Init";
 
 
 int MPI_Init(int *argc, char ***argv)
-{
+{   
+    conn = mysql_init(NULL);
+    if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        exit(1);
+    }
+    
+    TAILQ_INIT(&head);
+    pthread_create(&MONITOR_THREAD, NULL, MonitorFunc, NULL);
     int err;
     int provided;
     char *env;
@@ -81,6 +158,8 @@ int MPI_Init(int *argc, char ***argv)
                                       0 ? ompi_errcode_get_mpi_code(err) :
                                       err, FUNC_NAME);
     }
+
+    OPAL_CR_INIT_LIBRARY();
 
     SPC_INIT();
 

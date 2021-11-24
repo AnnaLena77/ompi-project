@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2006 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -25,6 +25,11 @@
 #include "ompi_config.h"
 #include "mpi.h"
 #include "ompi/datatype/ompi_datatype.h"
+
+/* This library needs to be here so that we can define
+ * the OPAL_CR_* checks
+ */
+#include "opal/runtime/opal_cr.h"
 
 BEGIN_C_DECLS
 
@@ -89,15 +94,12 @@ BEGIN_C_DECLS
             if ( (DDT)->super.flags & OPAL_DATATYPE_FLAG_PREDEFINED ) { \
                 (RC) = MPI_ERR_BUFFER;                                  \
             } else {                                                    \
-                size_t ompi_chk_usr_buf_size = 0;                       \
-                ptrdiff_t ompi_chk_usr_buf_true_lb = 0;                 \
-                ptrdiff_t ompi_chk_usr_buf_true_extended = 0;           \
-                ompi_datatype_type_size((DDT), &ompi_chk_usr_buf_size); \
-                ompi_datatype_get_true_extent((DDT),                    \
-                                             &ompi_chk_usr_buf_true_lb, \
-                                       &ompi_chk_usr_buf_true_extended);\
-                if ( 0 < ompi_chk_usr_buf_size &&                       \
-                    0 == ompi_chk_usr_buf_true_extended ) {             \
+                size_t size = 0;                                        \
+                ptrdiff_t true_lb       = 0;                            \
+                ptrdiff_t true_extended = 0;                            \
+                ompi_datatype_type_size((DDT), &size);                       \
+                ompi_datatype_get_true_extent((DDT), &true_lb, &true_extended); \
+                if ( 0 < size && 0 == true_lb ) {                       \
                     (RC) = MPI_ERR_BUFFER;                              \
                 }                                                       \
             }                                                           \

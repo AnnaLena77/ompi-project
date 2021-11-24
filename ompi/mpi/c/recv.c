@@ -2,14 +2,13 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2021 The University of Tennessee and The University
+ * Copyright (c) 2004-2018 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
  *                         University of Stuttgart.  All rights reserved.
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
- * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * $COPYRIGHT$
@@ -20,6 +19,7 @@
  */
 
 #include "ompi_config.h"
+#include "ompi/mpi/c/init.h"
 
 #include "ompi/mpi/c/bindings.h"
 #include "ompi/runtime/params.h"
@@ -43,6 +43,8 @@ static const char FUNC_NAME[] = "MPI_Recv";
 int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
+    char *receiver = "receive";
+    enqueue(receiver, count*sizeof(type));
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_RECV, 1);
@@ -59,7 +61,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
         OMPI_CHECK_USER_BUFFER(rc, buf, type, count);
 
         if (ompi_comm_invalid(comm)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM, FUNC_NAME);
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM, FUNC_NAME);
         } else if (((tag < 0) && (tag != MPI_ANY_TAG)) || (tag > mca_pml.pml_max_tag)) {
             rc = MPI_ERR_TAG;
         } else if ((source != MPI_ANY_SOURCE) &&
@@ -71,28 +73,14 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
         OMPI_ERRHANDLER_CHECK(rc, comm, rc, FUNC_NAME);
     }
 
-#if OPAL_ENABLE_FT_MPI
-    /*
-     * An early check, so as to return early if we are communicating with
-     * a failed process. This is not absolutely necessary since we will
-     * check for this, and other, error conditions during the completion
-     * call in the PML.
-     */
-    if( OPAL_UNLIKELY(!ompi_comm_iface_p2p_check_proc(comm, source, &rc)) ) {
-        if (MPI_STATUS_IGNORE != status) {
-            status->MPI_SOURCE = source;
-            status->MPI_TAG    = tag;
-        }
-        OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
-    }
-#endif
-
     if (MPI_PROC_NULL == source) {
         if (MPI_STATUS_IGNORE != status) {
-            OMPI_COPY_STATUS(status, ompi_request_empty.req_status, false);
+            *status = ompi_request_empty.req_status;
         }
         return MPI_SUCCESS;
     }
+
+    OPAL_CR_ENTER_LIBRARY();
 
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);

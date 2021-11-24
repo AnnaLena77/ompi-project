@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2020 The University of Tennessee and The University
+ * Copyright (c) 2004-2016 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -10,9 +10,8 @@
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
  * Copyright (c) 2006-2013 Cisco Systems, Inc.  All rights reserved.
- * Copyright (c) 2015-2018 Research Organization for Information Science
+ * Copyright (c) 2015-2017 Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
- * Copyright (c) 2021      IBM Corporation. All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -52,15 +51,14 @@ int MPI_Unpack(const void *inbuf, int insize, int *position,
 
     MEMCHECKER(
         memchecker_datatype(datatype);
-        memchecker_call(&opal_memchecker_base_isdefined, inbuf, insize, MPI_PACKED);
-        memchecker_call(&opal_memchecker_base_isaddressable, outbuf, outcount, datatype);
+        memchecker_call(&opal_memchecker_base_isdefined, outbuf, outcount, datatype);
         memchecker_comm(comm);
     );
 
     if (MPI_PARAM_CHECK) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
         if (ompi_comm_invalid(comm)) {
-            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
+            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
                                           FUNC_NAME);
         }
 
@@ -78,32 +76,20 @@ int MPI_Unpack(const void *inbuf, int insize, int *position,
         OMPI_ERRHANDLER_CHECK(rc, comm, rc, FUNC_NAME);
     }
 
-   /*
-    * If a datatype's description contains a single element that describes
-    * a large vector that path is reasonably optimized in pack/unpack. On
-    * the other hand if the count and datatype combined describe the same
-    * vector that is processed one element at a time.
-    *
-    * So at the top level we morph the call if the count and datatype look
-    * like a good vector.
-    */
-    ompi_datatype_consolidate_t dtmod;
-    rc = ompi_datatype_consolidate_create(outcount, datatype, &dtmod,
-        OMPI_DATATYPE_CONSOLIDATE_THRESHOLD);
-    OMPI_ERRHANDLER_CHECK(rc, comm, rc, FUNC_NAME);
+    OPAL_CR_ENTER_LIBRARY();
 
     if( insize > 0 ) {
         int ret;
         OBJ_CONSTRUCT( &local_convertor, opal_convertor_t );
         /* the resulting convertor will be set the the position ZERO */
-        opal_convertor_copy_and_prepare_for_recv( ompi_mpi_local_convertor,
-                                                  &(dtmod.dt->super), dtmod.count,
-                                                  outbuf, 0, &local_convertor );
+        opal_convertor_copy_and_prepare_for_recv( ompi_mpi_local_convertor, &(datatype->super),
+                                                  outcount, outbuf, 0, &local_convertor );
 
         /* Check for truncation */
         opal_convertor_get_packed_size( &local_convertor, &size );
         if( (*position + size) > (unsigned int)insize ) {
             OBJ_DESTRUCT( &local_convertor );
+            OPAL_CR_EXIT_LIBRARY();
             return OMPI_ERRHANDLER_INVOKE(comm, MPI_ERR_TRUNCATE, FUNC_NAME);
         }
 
@@ -123,7 +109,7 @@ int MPI_Unpack(const void *inbuf, int insize, int *position,
         }
     }
 
-    rc = ompi_datatype_consolidate_free(&dtmod);
+    OPAL_CR_EXIT_LIBRARY();
 
-    OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
+    OMPI_ERRHANDLER_RETURN(rc, comm, MPI_ERR_UNKNOWN, FUNC_NAME);
 }
