@@ -1,0 +1,24 @@
+$ sudo apt install build-essential
+$ sudo apt install gcc
+
+Install mysql-client:
+$ sudo apt-get install mysql-client
+$ sudo apt-get install libmysqlclient-dev
+
+open XAMPP:
+$ sudo /opt/lampp/lampp start
+
+Configure MPI:
+$ sudo apt-get install flex
+$ sudo apt-get install pandoc
+
+
+$ autoreconf -f -i
+$ ./configure --prefix=/usr/local LIBS=-lmysqlclient
+
+Make MPI:
+$ sudo make all install
+
+Compile and run MPI-Program:
+$ mpicc mpitest.c -o mpitest
+$ mpirun -n 2 --oversubscribe ./mpitest
