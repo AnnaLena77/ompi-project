@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2005 The University of Tennessee and The University
+ * Copyright (c) 2004-2020 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -52,7 +52,7 @@ int MPI_Comm_create_group (MPI_Comm comm, MPI_Group group, int tag, MPI_Comm *ne
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
         if (ompi_comm_invalid (comm))
-            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
+            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
                                           FUNC_NAME);
 
         if (tag < 0 || tag > mca_pml.pml_max_tag)
@@ -73,7 +73,16 @@ int MPI_Comm_create_group (MPI_Comm comm, MPI_Group group, int tag, MPI_Comm *ne
         return MPI_SUCCESS;
     }
 
-    OPAL_CR_ENTER_LIBRARY();
+#if OPAL_ENABLE_FT_MPI
+    /*
+     * An early check, so as to return early if we are using a broken
+     * communicator. This is not absolutely necessary since we will
+     * check for this, and other, error conditions during the operation.
+     */
+    if( OPAL_UNLIKELY(!ompi_comm_iface_create_check(comm, &rc)) ) {
+        OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
+    }
+#endif
 
     rc = ompi_comm_create_group ((ompi_communicator_t *) comm, (ompi_group_t *) group,
                                  tag, (ompi_communicator_t **) newcomm);

@@ -1,4 +1,4 @@
-# -*- makefile.am	 -*-
+# -*- makefile.am -*-
 #
 # Copyright (c) 2004-2005 The Trustees of Indiana University and Indiana
 #                         University Research and Technology
@@ -10,14 +10,14 @@
 #                         University of Stuttgart.  All rights reserved.
 # Copyright (c) 2004-2005 The Regents of the University of California.
 #                         All rights reserved.
-# Copyright (c) 2009-2014 Cisco Systems, Inc.  All rights reserved.
+# Copyright (c) 2009-2021 Cisco Systems, Inc.  All rights reserved.
 # Copyright (c) 2011      Sandia National Laboratories. All rights reserved.
 # Copyright (c) 2012      Oak Ridge National Laboratory. All rights reserved.
 # Copyright (c) 2012-2013 Inria.  All rights reserved.
 # Copyright (c) 2013      Los Alamos National Security, LLC. All rights
 #                         reserved.
-# Copyright (c) 2015-2018 Research Organization for Information Science
-#                         and Technology (RIST). All rights reserved.
+# Copyright (c) 2015-2020 Research Organization for Information Science
+#                         and Technology (RIST).  All rights reserved.
 # $COPYRIGHT$
 #
 # Additional copyrights may follow
@@ -47,24 +47,32 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         padd_error_string.c \
         pallgather.c \
         piallgather.c \
+        pallgather_init.c \
         pallgatherv.c \
         piallgatherv.c \
+        pallgatherv_init.c \
         palloc_mem.c \
         pallreduce.c \
         piallreduce.c \
+        pallreduce_init.c \
         palltoall.c \
         pialltoall.c \
+        palltoall_init.c \
         palltoallv.c \
         pialltoallv.c \
+        palltoallv_init.c \
         palltoallw.c \
         pialltoallw.c \
+        palltoallw_init.c \
         pattr_delete.c \
         pattr_get.c \
         pattr_put.c \
         pbarrier.c \
         pibarrier.c \
+        pbarrier_init.c \
         pbcast.c \
         pibcast.c \
+        pbcast_init.c \
         pbsend.c \
         pbsend_init.c \
         pbuffer_attach.c \
@@ -120,7 +128,7 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         pcomm_split.c \
         pcomm_split_type.c \
         pcomm_test_inter.c \
-	pcompare_and_swap.c \
+        pcompare_and_swap.c \
         pdims_create.c \
         perrhandler_c2f.c \
         perrhandler_f2c.c \
@@ -128,8 +136,9 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         perror_class.c \
         perror_string.c \
         pexscan.c \
-	pfetch_and_op.c \
         piexscan.c \
+        pexscan_init.c \
+        pfetch_and_op.c \
         pfile_c2f.c \
         pfile_call_errhandler.c \
         pfile_close.c \
@@ -196,13 +205,15 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         pfree_mem.c \
         pgather.c \
         pigather.c \
+        pgather_init.c \
         pgatherv.c \
         pigatherv.c \
+        pgatherv_init.c \
         pget_address.c \
         pget_count.c \
         pget_elements.c \
         pget_elements_x.c \
-	pget_accumulate.c \
+        pget_accumulate.c \
         pget_library_version.c \
         pget_processor_name.c \
         pget_version.c \
@@ -229,8 +240,8 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         pgroup_translate_ranks.c \
         pgroup_union.c \
         pibsend.c \
-	pimprobe.c \
-	pimrecv.c \
+        pimprobe.c \
+        pimrecv.c \
         pinfo_c2f.c \
         pinfo_create.c \
         pinfo_delete.c \
@@ -240,6 +251,7 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         pinfo_get.c \
         pinfo_get_nkeys.c \
         pinfo_get_nthkey.c \
+        pinfo_get_string.c \
         pinfo_get_valuelen.c \
         pinfo_set.c \
         pinit.c \
@@ -260,14 +272,19 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         pmrecv.c \
         pneighbor_allgather.c \
         pineighbor_allgather.c \
+        pneighbor_allgather_init.c \
         pneighbor_allgatherv.c \
         pineighbor_allgatherv.c \
+        pneighbor_allgatherv_init.c \
         pneighbor_alltoall.c \
         pineighbor_alltoall.c \
+        pneighbor_alltoall_init.c \
         pneighbor_alltoallv.c \
         pineighbor_alltoallv.c \
+        pneighbor_alltoallv_init.c \
         pneighbor_alltoallw.c \
         pineighbor_alltoallw.c \
+        pneighbor_alltoallw_init.c \
         pkeyval_create.c \
         pkeyval_free.c \
         pop_c2f.c \
@@ -280,36 +297,48 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         ppack_external_size.c \
         ppack.c \
         ppack_size.c \
+        pparrived.c \
         ppcontrol.c \
+        ppready.c \
+        ppready_list.c \
+        ppready_range.c \
+        pprecv_init.c \
         pprobe.c \
+        ppsend_init.c \
         ppublish_name.c \
         pquery_thread.c \
-	praccumulate.c \
+        praccumulate.c \
         precv_init.c \
         precv.c \
         preduce.c \
-        pregister_datarep.c \
         pireduce.c \
+        preduce_init.c \
+        pregister_datarep.c \
         preduce_local.c \
         preduce_scatter.c \
         pireduce_scatter.c \
+        preduce_scatter_init.c \
         preduce_scatter_block.c \
         pireduce_scatter_block.c \
+        preduce_scatter_block_init.c \
         prequest_c2f.c \
         prequest_f2c.c \
         prequest_free.c \
         prequest_get_status.c \
-	prget.c \
-	prget_accumulate.c \
-	prput.c \
+        prget.c \
+        prget_accumulate.c \
+        prput.c \
         prsend_init.c \
         prsend.c \
         pscan.c \
         piscan.c \
+        pscan_init.c \
         pscatter.c \
         piscatter.c \
+        pscatter_init.c \
         pscatterv.c \
         piscatterv.c \
+        pscatterv_init.c \
         psend.c \
         psend_init.c \
         psendrecv.c \
@@ -319,6 +348,10 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         pstart.c \
         pstartall.c \
         pstatus_c2f.c \
+        pstatus_c2f08.c \
+        pstatus_f082c.c \
+        pstatus_f082f.c \
+        pstatus_f2f08.c \
         pstatus_f2c.c \
         pstatus_set_cancelled.c \
         pstatus_set_elements.c \
@@ -371,29 +404,29 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         pwaitall.c \
         pwaitany.c \
         pwaitsome.c \
-	pwtime.c \
-	pwtick.c \
+        pwtime.c \
+        pwtick.c \
         paccumulate.c \
         pget.c \
         pput.c \
-	pwin_allocate.c \
-	pwin_allocate_shared.c \
-	pwin_attach.c \
+        pwin_allocate.c \
+        pwin_allocate_shared.c \
+        pwin_attach.c \
         pwin_c2f.c \
         pwin_call_errhandler.c \
         pwin_complete.c  \
         pwin_create_errhandler.c \
         pwin_create_keyval.c \
         pwin_create.c \
-	pwin_create_dynamic.c \
+        pwin_create_dynamic.c \
         pwin_delete_attr.c \
-	pwin_detach.c \
+        pwin_detach.c \
         pwin_f2c.c \
         pwin_fence.c \
-	pwin_flush.c \
-	pwin_flush_all.c \
-	pwin_flush_local.c \
-	pwin_flush_local_all.c \
+        pwin_flush.c \
+        pwin_flush_all.c \
+        pwin_flush_local.c \
+        pwin_flush_local_all.c \
         pwin_free_keyval.c \
         pwin_free.c \
         pwin_get_attr.c \
@@ -402,22 +435,21 @@ nodist_libmpi_c_pmpi_la_SOURCES = \
         pwin_get_info.c  \
         pwin_get_name.c  \
         pwin_lock.c \
-	pwin_lock_all.c \
+        pwin_lock_all.c \
         pwin_post.c \
         pwin_set_attr.c \
         pwin_set_errhandler.c \
         pwin_set_info.c \
         pwin_set_name.c \
-	pwin_shared_query.c \
+        pwin_shared_query.c \
         pwin_start.c \
-	pwin_sync.c \
+        pwin_sync.c \
         pwin_test.c \
         pwin_unlock.c \
-	pwin_unlock_all.c \
+        pwin_unlock_all.c \
         pwin_wait.c
 
-# include all of the removed MPI functions in library
-# for v4.0.x regardless of state of OMPI_ENABLE_MPI1_COMPAT
+if OMPI_ENABLE_MPI1_COMPAT
 nodist_libmpi_c_pmpi_la_SOURCES += \
         paddress.c \
         perrhandler_create.c \
@@ -429,6 +461,7 @@ nodist_libmpi_c_pmpi_la_SOURCES += \
         ptype_lb.c \
         ptype_struct.c \
         ptype_ub.c
+endif
 
 #
 # Sym link in the sources from the real MPI directory
@@ -448,11 +481,3 @@ endif
 # These files were created by targets above
 
 MAINTAINERCLEANFILES = $(nodist_libmpi_c_pmpi_la_SOURCES)
-
-# Don't want these targets in here
-
-tags-recursive:
-tags:
-TAGS:
-GTAGS:
-ID:

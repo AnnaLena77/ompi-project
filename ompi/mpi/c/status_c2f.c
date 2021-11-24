@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2005 The University of Tennessee and The University
+ * Copyright (c) 2004-2020 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -57,8 +57,6 @@ int MPI_Status_c2f(const MPI_Status *c_status, MPI_Fint *f_status)
         }
     );
 
-    OPAL_CR_NOOP_PROGRESS();
-
     if (MPI_PARAM_CHECK) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
@@ -67,7 +65,7 @@ int MPI_Status_c2f(const MPI_Status *c_status, MPI_Fint *f_status)
 
         if (NULL == c_status || MPI_STATUS_IGNORE == c_status ||
             MPI_STATUSES_IGNORE == c_status || NULL == f_status) {
-            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD,
+            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(
                                           MPI_ERR_IN_STATUS, FUNC_NAME);
         }
     }
@@ -95,8 +93,9 @@ int MPI_Status_c2f(const MPI_Status *c_status, MPI_Fint *f_status)
        get truncated).  But if sizeof(int) == sizeof(INTEGER) or
        sizeof(int) < sizeof(INTEGER), everything should be kosher. */
     c_ints = (const int*)c_status;
-    for( i = 0; i < (int)(sizeof(MPI_Status) / sizeof(int)); i++ )
+    for( i = 0; i < (int)(sizeof(MPI_Status) / sizeof(int)); i++ ) {
         f_status[i] = OMPI_INT_2_FINT(c_ints[i]);
+    }
 
     return MPI_SUCCESS;
 }

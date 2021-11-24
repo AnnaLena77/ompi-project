@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2008 The University of Tennessee and The University
+ * Copyright (c) 2004-2020 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2005 High Performance Computing Center Stuttgart,
@@ -11,11 +11,12 @@
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
  * Copyright (c) 2006-2009 Sun Microsystems, Inc.  All rights reserved.
- * Copyright (c) 2008-2018 Cisco Systems, Inc.  All rights reserved
+ * Copyright (c) 2008-2021 Cisco Systems, Inc.  All rights reserved
  * Copyright (c) 2013      Los Alamos National Security, LLC.  All rights
  *                         reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
+ * Copyright (c) 2018      Amazon.com, Inc. or its affiliates.  All Rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -24,6 +25,8 @@
  */
 
 #include "ompi_config.h"
+
+#include "opal/util/printf.h"
 
 #include "ompi/mpi/c/bindings.h"
 #include "ompi/runtime/params.h"
@@ -43,8 +46,6 @@ static const char FUNC_NAME[] = "MPI_Type_create_f90_integer";
 int MPI_Type_create_f90_integer(int r, MPI_Datatype *newtype)
 
 {
-    OPAL_CR_NOOP_PROGRESS();
-
     if (MPI_PARAM_CHECK) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
 
@@ -103,23 +104,19 @@ int MPI_Type_create_f90_integer(int r, MPI_Datatype *newtype)
          */
         datatype->super.flags |= OMPI_DATATYPE_FLAG_PREDEFINED;
         /* Mark the datatype as a special F90 convenience type */
-        char *new_name;
-        asprintf(&new_name, "COMBINER %s", (*newtype)->name);
-        size_t max_len = MPI_MAX_OBJECT_NAME;
-        strncpy(datatype->name, new_name, max_len - 1);
-        datatype->name[max_len - 1] = '\0';
-        free(new_name);
+        snprintf(datatype->name, sizeof(datatype->name),
+                 "COMBINER %s", (*newtype)->name);
 
         a_i[0] = &r;
         ompi_datatype_set_args( datatype, 1, a_i, 0, NULL, 0, NULL, MPI_COMBINER_F90_INTEGER );
 
         rc = opal_hash_table_set_value_uint32( &ompi_mpi_f90_integer_hashtable, r, datatype );
         if (OMPI_SUCCESS != rc) {
-            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, rc, FUNC_NAME);
+            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(rc, FUNC_NAME);
         }
         *newtype = datatype;
         return MPI_SUCCESS;
     }
 
-    return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_ARG, FUNC_NAME);
+    return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_ARG, FUNC_NAME);
 }

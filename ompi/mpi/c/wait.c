@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2018 The University of Tennessee and The University
+ * Copyright (c) 2004-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -53,12 +53,12 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status)
         if (request == NULL) {
             rc = MPI_ERR_REQUEST;
         }
-        OMPI_ERRHANDLER_CHECK(rc, MPI_COMM_WORLD, rc, FUNC_NAME);
+        OMPI_ERRHANDLER_NOHANDLE_CHECK(rc, rc, FUNC_NAME);
     }
 
     if (MPI_REQUEST_NULL == *request) {
         if (MPI_STATUS_IGNORE != status) {
-            *status = ompi_status_empty;
+            OMPI_COPY_STATUS(status, ompi_status_empty, false);
             /*
              * Per MPI-1, the MPI_ERROR field is not defined for single-completion calls
              */
@@ -69,8 +69,6 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status)
         return MPI_SUCCESS;
     }
 
-    OPAL_CR_ENTER_LIBRARY();
-
     if (OMPI_SUCCESS == ompi_request_wait(request, status)) {
         /*
          * Per MPI-1, the MPI_ERROR field is not defined for single-completion calls
@@ -80,7 +78,6 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status)
                 opal_memchecker_base_mem_undefined(&status->MPI_ERROR, sizeof(int));
             }
         );
-        OPAL_CR_EXIT_LIBRARY();
         return MPI_SUCCESS;
     }
 
@@ -89,6 +86,5 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status)
             opal_memchecker_base_mem_undefined(&status->MPI_ERROR, sizeof(int));
         }
     );
-    OPAL_CR_EXIT_LIBRARY();
     return ompi_errhandler_request_invoke(1, request, FUNC_NAME);
 }

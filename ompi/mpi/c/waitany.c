@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2018 The University of Tennessee and The University
+ * Copyright (c) 2004-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -70,24 +70,20 @@ int MPI_Waitany(int count, MPI_Request requests[], int *indx, MPI_Status *status
             count < 0) {
             rc = MPI_ERR_ARG;
         }
-        OMPI_ERRHANDLER_CHECK(rc, MPI_COMM_WORLD, rc, FUNC_NAME);
+        OMPI_ERRHANDLER_NOHANDLE_CHECK(rc, rc, FUNC_NAME);
     }
 
     if (OPAL_UNLIKELY(0 == count)) {
         *indx = MPI_UNDEFINED;
         if (MPI_STATUS_IGNORE != status) {
-            *status = ompi_status_empty;
+            OMPI_COPY_STATUS(status, ompi_status_empty, false);
         }
         return MPI_SUCCESS;
     }
 
-    OPAL_CR_ENTER_LIBRARY();
-
     if (OMPI_SUCCESS == ompi_request_wait_any(count, requests, indx, status)) {
-        OPAL_CR_EXIT_LIBRARY();
         return MPI_SUCCESS;
     }
 
-    OPAL_CR_EXIT_LIBRARY();
     return ompi_errhandler_request_invoke(count, requests, FUNC_NAME);
 }

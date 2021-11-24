@@ -2,14 +2,14 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2005 The University of Tennessee and The University
+ * Copyright (c) 2004-2020 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
  *                         University of Stuttgart.  All rights reserved.
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
- * Copyright (c) 2008      Cisco Systems, Inc.  All rights reserved.
+ * Copyright (c) 2008-2018 Cisco Systems, Inc.  All rights reserved
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * $COPYRIGHT$
@@ -22,6 +22,8 @@
 #include "ompi_config.h"
 
 #include <string.h>
+
+#include "opal/util/string_copy.h"
 
 #include "ompi/mpi/c/bindings.h"
 #include "ompi/runtime/params.h"
@@ -47,15 +49,13 @@ int MPI_Type_get_name(MPI_Datatype type, char *type_name, int *resultlen)
         memchecker_datatype(type);
     );
 
-    OPAL_CR_NOOP_PROGRESS();
-
    if ( MPI_PARAM_CHECK ) {
       OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
       if (NULL == type || MPI_DATATYPE_NULL == type) {
-        return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_TYPE,
+        return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_TYPE,
                                       FUNC_NAME );
       } else if (NULL == type_name || NULL == resultlen) {
-        return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_ARG,
+        return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_ARG,
                                       FUNC_NAME );
       }
    }
@@ -71,6 +71,6 @@ int MPI_Type_get_name(MPI_Datatype type, char *type_name, int *resultlen)
        able to completely fit into MPI_MAX_OBJECT_NAME bytes (i.e.,
        name+\0). */
    *resultlen = (int)strlen(type->name);
-   strncpy(type_name, type->name, MPI_MAX_OBJECT_NAME);
+   opal_string_copy(type_name, type->name, MPI_MAX_OBJECT_NAME);
    return MPI_SUCCESS;
 }

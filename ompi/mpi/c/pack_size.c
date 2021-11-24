@@ -2,7 +2,7 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2005 The University of Tennessee and The University
+ * Copyright (c) 2004-2020 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
@@ -52,7 +52,7 @@ int MPI_Pack_size(int incount, MPI_Datatype datatype, MPI_Comm comm,
     if (MPI_PARAM_CHECK) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
         if (ompi_comm_invalid(comm)) {
-            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM,
+            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM,
                                           FUNC_NAME);
         } else if (NULL == size) {
             return OMPI_ERRHANDLER_INVOKE(comm, MPI_ERR_ARG, FUNC_NAME);
@@ -60,8 +60,6 @@ int MPI_Pack_size(int incount, MPI_Datatype datatype, MPI_Comm comm,
             return OMPI_ERRHANDLER_INVOKE(comm, MPI_ERR_TYPE, FUNC_NAME);
         }
     }
-
-    OPAL_CR_ENTER_LIBRARY();
 
     OBJ_CONSTRUCT( &local_convertor, opal_convertor_t );
     /* the resulting convertor will be set to the position ZERO */
@@ -71,8 +69,6 @@ int MPI_Pack_size(int incount, MPI_Datatype datatype, MPI_Comm comm,
     opal_convertor_get_packed_size( &local_convertor, &length );
     *size = (int)length;
     OBJ_DESTRUCT( &local_convertor );
-
-    OPAL_CR_EXIT_LIBRARY();
 
     return MPI_SUCCESS;
 }

@@ -3,17 +3,19 @@
  * Copyright (c) 2004-2007 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2018 The University of Tennessee and The University
+ * Copyright (c) 2004-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2008 High Performance Computing Center Stuttgart,
  *                         University of Stuttgart.  All rights reserved.
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
+ * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
  * Copyright (c) 2013      Los Alamos National Security, LLC.  All rights
  *                         reserved.
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
+ * Copyright (c) 2021      Nanook Consulting.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -48,6 +50,7 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 {
     ompi_request_t* req;
     int rc = MPI_SUCCESS;
+    int rcs = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_SENDRECV, 1);
 
@@ -66,7 +69,7 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         OMPI_CHECK_USER_BUFFER(rc, recvbuf, recvtype, recvcount);
 
         if (ompi_comm_invalid(comm)) {
-            return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM, FUNC_NAME);
+            return OMPI_ERRHANDLER_NOHANDLE_INVOKE(MPI_ERR_COMM, FUNC_NAME);
         } else if (dest != MPI_PROC_NULL && ompi_comm_peer_invalid(comm, dest)) {
             rc = MPI_ERR_RANK;
         } else if (sendtag < 0 || sendtag > mca_pml.pml_max_tag) {
@@ -79,8 +82,6 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         OMPI_ERRHANDLER_CHECK(rc, comm, rc, FUNC_NAME);
     }
 
-    OPAL_CR_ENTER_LIBRARY();
-
     if (source != MPI_PROC_NULL) { /* post recv */
         rc = MCA_PML_CALL(irecv(recvbuf, recvcount, recvtype,
                                 source, recvtag, comm, &req));
@@ -90,16 +91,42 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     if (dest != MPI_PROC_NULL) { /* send */
         rc = MCA_PML_CALL(send(sendbuf, sendcount, sendtype, dest,
                                sendtag, MCA_PML_BASE_SEND_STANDARD, comm));
-        OMPI_ERRHANDLER_CHECK(rc, comm, rc, FUNC_NAME);
+        if (OPAL_UNLIKELY(MPI_SUCCESS != rc)) {
+            rcs = rc;
+#if OPAL_ENABLE_FT_MPI
+            /* If this is a PROC_FAILED error, we still need to proceed with
+             * the receive, so that we do not propagate errors to the sender in
+             * the case src != dst, and only dst is dead. In this case the 
+             * recv is garanteed to complete (either in error if the source is 
+             * dead, or successfully if the source is live). */
+            if (OPAL_UNLIKELY(MPI_ERR_PROC_FAILED != rc))
+            /* if intentionally spills outside ifdef */
+#endif
+            ompi_request_cancel(req);
+        }
     }
 
     if (source != MPI_PROC_NULL) { /* wait for recv */
         rc = ompi_request_wait(&req, status);
+#if OPAL_ENABLE_FT_MPI
+        /* Sendrecv never returns ERR_PROC_FAILED_PENDING because it is
+         * blocking. Lets cancel that irecv to complete it NOW and promote
+         * the error to ERR_PROC_FAILED */
+        if( OPAL_UNLIKELY(MPI_ERR_PROC_FAILED_PENDING == rc) ) {
+            ompi_request_cancel(req);
+            ompi_request_wait(&req, MPI_STATUS_IGNORE);
+            rc = MPI_ERR_PROC_FAILED;
+        }
+#endif
     } else {
         if (MPI_STATUS_IGNORE != status) {
-            *status = ompi_request_empty.req_status;
+            OMPI_COPY_STATUS(status, ompi_request_empty.req_status, false);
         }
         rc = MPI_SUCCESS;
     }
+    if( OPAL_UNLIKELY(MPI_SUCCESS != rcs && MPI_SUCCESS == rc) ) {
+        rc = rcs;
+    }
+
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
