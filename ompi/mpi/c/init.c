@@ -70,9 +70,9 @@ qentry* dequeue(){
 MYSQL *conn;
 MYSQL_RES *res;
 MYSQL_ROW row;
-char *server = "127.0.0.1";
-char *user = "root";
-char *password = "";
+char *server = "192.168.42.9";
+char *user = "AnnaLena";
+char *password = "annalena";
 char *database = "DataFromMPI";
 
 static void insertData(qentry **item){
