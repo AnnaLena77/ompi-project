@@ -5,14 +5,16 @@ int sendvalue;
 int receivevalue;
 int rectsize = 400;
 
+int max = 100000;
+
 void setup(){
-  size(800, 500);
+  size(350, 500);
   sendvalue=0;
   receivevalue=0;
   
-  String name = "root";
-  String password = "";
-  String host = "127.0.0.1";
+  String name = "AnnaLena";
+  String password = "annalena";
+  String host = "192.168.42.9";
   String database = "DataFromMPI";
   msql = new MySQL(this, host, database, name, password);
   
@@ -27,7 +29,8 @@ void draw(){
   //Send-Progress-Bar
   noFill();
   rect(10,10,100,rectsize);
-  text("Send-Data", 10, 10);
+  fill(255,255,255);
+  text("Send-Data", 10, rectsize+40);
  
   fill(127, 255, 0);
   rect(10, rectsize+10 , 100, sendvalue*(-1));
@@ -36,7 +39,8 @@ void draw(){
   //Receive-Progress-Bar
   noFill();
   rect(200, 10, 100, rectsize);
-  text("Receive-Data", 200, 10);
+  fill(255,255,255);
+  text("Receive-Data", 200, rectsize+40);
   
   fill(255, 0, 0);
   rect(200, rectsize+10 , 100, receivevalue*(-1));
@@ -48,12 +52,14 @@ int getSendValue(){
   msql.query("SELECT SUM(value) FROM MPI_Data WHERE type='send'");
   msql.next();
   int value = msql.getInt(1);
-  return value/8*rectsize/10000;
+  System.out.println("send" + value);
+  return value/8*rectsize/max;
 }
 
 int getReceiveValue(){
   msql.query("SELECT SUM(value) FROM MPI_Data WHERE type='receive'");
   msql.next();
   int value = msql.getInt(1);
-  return value/8*rectsize/10000;
+  System.out.println("receive" + value);
+  return value/8*rectsize/max;
 }
