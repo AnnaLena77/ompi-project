@@ -117,6 +117,12 @@ int MPI_Init(int *argc, char ***argv)
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
     }
+    else {
+    	if(mysql_query(conn, "DELETE FROM MPI_Data")){
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        exit(1);
+    	}
+    }
     
     TAILQ_INIT(&head);
     pthread_create(&MONITOR_THREAD, NULL, MonitorFunc, NULL);

@@ -1,3 +1,5 @@
+https://feyziyev007.medium.com/how-to-install-openmpi-on-ubuntu-18-04-cluster-2fb3f03bdf61
+
 $ sudo apt install build-essential
 $ sudo apt install gcc
 
