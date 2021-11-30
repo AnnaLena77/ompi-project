@@ -27,6 +27,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <sys/queue.h>
+#include <sys/time.h>
 #include <mysql/mysql.h>
 
 #include "opal/util/show_help.h"
@@ -48,15 +49,18 @@
 typedef struct qentry {
     char* type;
     int data;
+    time_t start;
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
 
 TAILQ_HEAD(, qentry) head;
 
-void enqueue(char* type, int value){
+void enqueue(char* type, int value, time_t ctime){
+    //printf("Current Time: %ld \n", ctime);
     qentry *item = (qentry*)malloc(sizeof(qentry));
     item->data = value;
     item->type = type;
+    item->start = ctime;
     TAILQ_INSERT_TAIL(&head, item, pointers);
 }
 
@@ -79,11 +83,14 @@ static void insertData(qentry **item){
     qentry *q = *item;
     char query[300];
     sprintf(query, "INSERT INTO MPI_Data(type, value)VALUES('%s', %d)", q->type, q->data);
-    //printf("%s\n", query);
     if(mysql_query(conn, query)){
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
     }
+    time_t start = q->start;
+    time_t afterEntry = time(NULL);
+    long seconds = afterEntry - start;
+    printf("Vergangene Sekunden: %d \n", seconds);
 }
 
 pthread_t MONITOR_THREAD;

@@ -29,6 +29,7 @@
 #include "ompi/memchecker.h"
 #include "ompi/request/request.h"
 #include "ompi/runtime/ompi_spc.h"
+#include <time.h>
 
 #if OMPI_BUILD_MPI_PROFILING
 #if OPAL_HAVE_WEAK_SYMBOLS
@@ -43,8 +44,9 @@ static const char FUNC_NAME[] = "MPI_Recv";
 int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
+    time_t current_time = time(NULL);
     char *receiver = "receive";
-    enqueue(receiver, count*sizeof(type));
+    enqueue(receiver, count*sizeof(type), current_time);
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_RECV, 1);
