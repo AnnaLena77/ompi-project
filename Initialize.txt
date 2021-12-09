@@ -14,8 +14,8 @@ Configure MPI:
 $ sudo apt-get install flex
 $ sudo apt-get install pandoc
 
-
-$ autoreconf -f -i
+$ git clone https://github.com/AnnaLena77/ompi-project.git --recurse-submodules
+$ ./autogen.pl
 $ ./configure --prefix=/usr/local LIBS=-lmysqlclient
 
 Make MPI:
