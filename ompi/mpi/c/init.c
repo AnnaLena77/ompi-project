@@ -53,6 +53,11 @@ typedef struct qentry {
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
 
+typedef struct datacollection {
+    int send;
+    int receive;
+} datacollection;
+
 TAILQ_HEAD(, qentry) head;
 
 void enqueue(char* type, int value, time_t ctime){
@@ -71,44 +76,72 @@ qentry* dequeue(){
     return item;
 }
 
-MYSQL *conn;
-MYSQL_RES *res;
-MYSQL_ROW row;
-char *server = "192.168.42.9";
-char *user = "AnnaLena";
-char *password = "annalena";
-char *database = "DataFromMPI";
+//Needs to be global!
+pthread_t MONITOR_THREAD;
 
-static void insertData(qentry **item){
-    qentry *q = *item;
+static MYSQL *conn;
+static char *server = "192.168.42.9";
+static char *user = "AnnaLena";
+static char *password = "annalena";
+static char *database = "DataFromMPI";
+
+static int LIMIT = 100;
+
+static void insertData(datacollection **col){
+    //printf("hello hello from insertData\n");
     char query[300];
-    sprintf(query, "INSERT INTO MPI_Data(type, value)VALUES('%s', %d)", q->type, q->data);
+    LIMIT = 100;
+    datacollection *c = *col;
+    sprintf(query, "INSERT INTO MPI_Data(type, value)VALUES('send', %d)", c->send);
     if(mysql_query(conn, query)){
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
     }
-    time_t start = q->start;
-    time_t afterEntry = time(NULL);
-    long seconds = afterEntry - start;
-    //printf("Vergangene Sekunden: %d \n", seconds);
+    sprintf(query, "INSERT INTO MPI_Data(type, value)VALUES('receive', %d)", c->receive);
+    if(mysql_query(conn, query)){
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        exit(1);
+    }
+    c->send=0;
+    c->receive=0;
 }
 
-pthread_t MONITOR_THREAD;
+static void collectData(qentry **item, datacollection **col){
+    qentry *q = *item;
+    datacollection *c = *col;
+    
+    
+    if(q->type == "send") {
+    	c->send = c->send + q->data;
+    }
+    else if(q->type == "receive") {
+    	c->receive = c->receive + q->data;
+    }
+    else {
+    	printf("failed\n");
+    }
+    LIMIT--;
+    if(LIMIT==0){
+    	//printf("inserten!\n");
+    	insertData(&c);
+    } 
+}
 
  
 static void* MonitorFunc(void* _arg){
-    qentry *item;
+    qentry *item = malloc(sizeof(qentry));
+    datacollection *col = malloc(sizeof(datacollection));
     int finish = 0;
     while(!finish){
         if(TAILQ_EMPTY(&head)){
-            sleep(2);
+            sleep(1);
             if(TAILQ_EMPTY(&head)){
                 finish = 1; 
             }
         }
         else {
             item = dequeue();
-            insertData(&item);
+            collectData(&item, &col);
             //printf("%d\n", item->data);
         }
     }
