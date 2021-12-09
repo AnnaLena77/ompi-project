@@ -90,7 +90,7 @@ static void insertData(qentry **item){
     time_t start = q->start;
     time_t afterEntry = time(NULL);
     long seconds = afterEntry - start;
-    printf("Vergangene Sekunden: %d \n", seconds);
+    //printf("Vergangene Sekunden: %d \n", seconds);
 }
 
 pthread_t MONITOR_THREAD;
