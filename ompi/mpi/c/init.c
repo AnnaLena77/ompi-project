@@ -58,7 +58,7 @@ typedef struct datacollection {
     int receive;
 } datacollection;
 
-TAILQ_HEAD(, qentry) head;
+static TAILQ_HEAD(, qentry) head;
 
 void enqueue(char* type, int value, time_t ctime){
     //printf("Current Time: %ld \n", ctime);
@@ -77,7 +77,7 @@ qentry* dequeue(){
 }
 
 //Needs to be global!
-pthread_t MONITOR_THREAD;
+pthread_t MONITOR_THREAD = NULL;
 
 static MYSQL *conn;
 static char *server = "192.168.42.9";
