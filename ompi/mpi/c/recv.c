@@ -45,8 +45,8 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
     time_t current_time = time(NULL);
-    char *receiver = "receive";
-    enqueue(receiver, count*sizeof(type), current_time);
+    char *operation = "receive";
+    enqueue(operation, count*sizeof(type), current_time);
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_RECV, 1);

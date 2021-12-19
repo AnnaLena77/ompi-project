@@ -82,41 +82,37 @@ static char *user = "AnnaLena";
 static char *password = "annalena";
 static char *database = "DataFromMPI";
 
-static const int LIMIT = 100;
-static int count = LIMIT;
-static char *batchstring = "INSERT INTO MPI_Data(type, value)VALUES";
+static int LIMIT = 100;
 
-static void insertData(char **batchstr){
-    count = LIMIT;
-    char *batch = *batchstr;
-    batch[strlen(batch)-1]=';';
-    printf("%s\n", batch);
-    if(mysql_query(conn, batch)){
+static void insertData(){
+    //printf("hello hello from insertData\n");
+    char query[300];
+    LIMIT = 100;
+    printf("%s\n", batchstring);
+    /*sprintf(query, "INSERT INTO MPI_Data(type, value)VALUES('send', %d)", c->send);
+    if(mysql_query(conn, query)){
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
-    }
+    }*/
+   
 }
 
-static void collectData(qentry **item, char **batchstr){
+static void collectData(qentry **item, char **batchstring){
     qentry *q = *item;
-    char *data=(char*)malloc(sizeof(char)*30);
-    sprintf(data, "('%s',%d),", q->type, q->data);
-    *batchstr = realloc(*batchstr, strlen(*batchstr)+1 + strlen(data)+1);
-    strcat(*batchstr, data);
-    free(data);
-    count--;
-    if(count==0){
-	char *batch = *batchstr;
-	insertData(&batch);
-	*batchstr = realloc(*batchstr, strlen(batchstring)+1);
-	strcpy(*batchstr, batchstring);
-    }
+    char data[100];
+    sprintf(data, " (%s,%d)", q->type, q->data);
+    strcat(batchstring,data);
+    LIMIT--;
+    if(LIMIT==0){
+    	//printf("inserten!\n");
+    	insertData();
+    } 
 }
 
+ 
 static void* MonitorFunc(void* _arg){
-    qentry *item = (qentry*)malloc(sizeof(qentry));
-    char *batch=(char*) malloc(strlen(batchstring)+1);
-    strcpy(batch, batchstring);
+    qentry *item = malloc(sizeof(qentry));
+    char  *batchstring = "INSERT INTO MPI_Data(type, value)VALUES";
     int finish = 0;
     while(!finish){
         if(TAILQ_EMPTY(&head)){
@@ -127,7 +123,7 @@ static void* MonitorFunc(void* _arg){
         }
         else {
             item = dequeue();
-            collectData(&item, &batch);
+            collectData(&item);
 	    free(item);
             //printf("%d\n", item->data);
         }
@@ -138,8 +134,7 @@ static const char FUNC_NAME[] = "MPI_Init";
 
 
 int MPI_Init(int *argc, char ***argv)
-{
-    printf("test\n");   
+{   
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
         fprintf(stderr, "%s\n", mysql_error(conn));

@@ -19,7 +19,8 @@
  * Additional copyrights may follow
  *
  * $HEADER$
- */
+ */ 
+ 
 #include "ompi_config.h"
 #include <stdio.h>
 
@@ -48,8 +49,8 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
              int tag, MPI_Comm comm)
 {
     time_t current_time = time(NULL);
-    char *sender = "send";
-    enqueue(sender, count*sizeof(type), current_time);
+    char *operation = "send";
+    enqueue(operation, count*sizeof(type), current_time);
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_SEND, 1);
