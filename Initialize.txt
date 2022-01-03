@@ -15,6 +15,11 @@ $ sudo apt-get install flex
 $ sudo apt-get install pandoc
 
 $ git clone https://github.com/AnnaLena77/ompi-project.git --recurse-submodules
+
+Needed packages for autogen:
+$ sudo apt install autoconf
+$ sudo apt install libtool
+
 $ ./autogen.pl
 $ ./configure --prefix=/usr/local LIBS=-lmysqlclient
 
