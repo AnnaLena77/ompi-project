@@ -47,7 +47,7 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
 {
     time_t current_time = time(NULL);
     char *operation = "ireceive";
-    enqueue(operation, count*sizeof(type), current_time);
+    //enqueue(operation, count*sizeof(type), current_time);
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_IRECV, 1);

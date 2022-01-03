@@ -61,15 +61,18 @@ typedef struct qentry {
 
 static TAILQ_HEAD(, qentry) head;
 
-void enqueue(char* operation, char* datatype, int count, int datasize, char* communicator, int processrank, int partnerrank, time_t ctime){
+void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime){
+    //printf("Operation: %s\n", *operation);
+    //printf("Hier der Communicator: %s\n", *communicator);
+    //printf("Hier der Type: %s\n", *datatype);
     //printf("Current Time: %ld \n", ctime);
     qentry *item = (qentry*)malloc(sizeof(qentry));
-    item->operation = operation;
-    item->datatype = datatype;
+    item->operation = strdup(*operation);
+    item->datatype = strdup(*datatype);
     item->count = count;
     item->datasize = datasize;
-    item->communicator = communicator;
-    item->processreank = processrank;
+    item->communicator = strdup(*communicator);
+    item->processrank = processrank;
     item-> partnerrank = partnerrank;
     item->start = ctime;
     TAILQ_INSERT_TAIL(&head, item, pointers);
@@ -94,12 +97,13 @@ static char *database = "DataFromMPI";
 
 static const int LIMIT = 100;
 static int count = LIMIT;
-static char *batchstring = "INSERT INTO MPI_Data(operation, datasize)VALUES";
+static char *batchstring = "INSERT INTO MPI_Data(operation, datatype, count, datasize, communicator, processrank, partnerrank)VALUES";
 
 static void insertData(char **batchstr){
     count = LIMIT;
     char *batch = *batchstr;
     batch[strlen(batch)-1]=';';
+    //printf("%s\n", batch);
     if(mysql_query(conn, batch)){
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
@@ -108,8 +112,9 @@ static void insertData(char **batchstr){
 
 static void collectData(qentry **item, char **batchstr){
     qentry *q = *item;
-    char *data=(char*)malloc(sizeof(char)*30);
-    sprintf(data, "('%s',%d),", q->type, q->data);
+    //100 ist gewählter ausreichender Wert, besser genaueren Wert einfügen
+    char *data=(char*)malloc(sizeof(char)*100);
+    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d),", q->operation, q->datatype, q->count, q->datasize, q->communicator, q->processrank, q->partnerrank);
     *batchstr = realloc(*batchstr, strlen(*batchstr)+1 + strlen(data)+1);
     strcat(*batchstr, data);
     free(data);
@@ -149,7 +154,7 @@ static const char FUNC_NAME[] = "MPI_Init";
 
 int MPI_Init(int *argc, char ***argv)
 {
-    printf("test\n");   
+    //printf("test\n");   
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
         fprintf(stderr, "%s\n", mysql_error(conn));

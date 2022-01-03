@@ -51,7 +51,7 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
 {
     time_t current_time = time(NULL);
     char *operation = "ibsend";
-    enqueue(operation, count*sizeof(type), current_time);
+    //enqueue(operation, count*sizeof(type), current_time);
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_IBSEND, 1);

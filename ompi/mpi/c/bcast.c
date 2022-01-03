@@ -46,7 +46,7 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
 {
     time_t current_time = time(NULL);
     char *operation = "bsend";
-    enqueue(operation, count*sizeof(datatype), current_time);
+    //enqueue(operation, count*sizeof(datatype), current_time);
     int err;
 
     SPC_RECORD(OMPI_SPC_BCAST, 1);

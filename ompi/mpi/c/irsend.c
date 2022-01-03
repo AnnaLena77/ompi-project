@@ -51,7 +51,7 @@ int MPI_Irsend(const void *buf, int count, MPI_Datatype type, int dest,
 {
     time_t current_time = time(NULL);
     char *operation = "irsend";
-    enqueue(operation, count*sizeof(type), current_time);
+    //enqueue(operation, count*sizeof(type), current_time);
     int rc;
 
     SPC_RECORD(OMPI_SPC_IRSEND, 1);

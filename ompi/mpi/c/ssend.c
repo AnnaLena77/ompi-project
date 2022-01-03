@@ -49,7 +49,7 @@ int MPI_Ssend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
 {
     time_t current_time = time(NULL);
     char *operation = "ssend";
-    enqueue(operation, count*sizeof(type), current_time);
+    //enqueue(operation, count*sizeof(type), current_time);
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_SSEND, 1);
