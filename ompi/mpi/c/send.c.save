@@ -53,7 +53,6 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     char name[MPI_MAX_OBJECT_NAME];
     int name_length;
     MPI_Comm_get_name(comm, name, &name_length);
-    printf("Communicator:%s\n", name);
     enqueue(operation, count*sizeof(type), current_time);
     int rc = MPI_SUCCESS;
 

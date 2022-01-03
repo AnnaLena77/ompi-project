@@ -47,13 +47,8 @@
 #endif
 
 typedef struct qentry {
-    char* operation;
-    char* datatype;
-    int count;
-    int datasize;
-    char* communicator;
-    int processrank;
-    int partnerrank;
+    char* type;
+    int data;
     time_t start;
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
@@ -61,16 +56,11 @@ typedef struct qentry {
 
 static TAILQ_HEAD(, qentry) head;
 
-void enqueue(char* operation, char* datatype, int count, int datasize, char* communicator, int processrank, int partnerrank, time_t ctime){
+void enqueue(char* type, int value, time_t ctime){
     //printf("Current Time: %ld \n", ctime);
     qentry *item = (qentry*)malloc(sizeof(qentry));
-    item->operation = operation;
-    item->datatype = datatype;
-    item->count = count;
-    item->datasize = datasize;
-    item->communicator = communicator;
-    item->processreank = processrank;
-    item-> partnerrank = partnerrank;
+    item->data = value;
+    item->type = type;
     item->start = ctime;
     TAILQ_INSERT_TAIL(&head, item, pointers);
 }
@@ -94,7 +84,7 @@ static char *database = "DataFromMPI";
 
 static const int LIMIT = 100;
 static int count = LIMIT;
-static char *batchstring = "INSERT INTO MPI_Data(operation, datasize)VALUES";
+static char *batchstring = "INSERT INTO MPI_Data(type, value)VALUES";
 
 static void insertData(char **batchstr){
     count = LIMIT;
@@ -149,7 +139,6 @@ static const char FUNC_NAME[] = "MPI_Init";
 
 int MPI_Init(int *argc, char ***argv)
 {
-    printf("test\n");   
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
         fprintf(stderr, "%s\n", mysql_error(conn));
