@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
+#include <math.h>
 #include <sys/queue.h>
 #include <sys/time.h>
 #include <mysql/mysql.h>
@@ -95,7 +96,7 @@ static char *user = "AnnaLena";
 static char *password = "annalena";
 static char *database = "DataFromMPI";
 
-static const int LIMIT = 100;
+static const int LIMIT = 1000;
 static int count = LIMIT;
 static char *batchstring = "INSERT INTO MPI_Data(operation, datatype, count, datasize, communicator, processrank, partnerrank)VALUES";
 
@@ -112,8 +113,14 @@ static void insertData(char **batchstr){
 
 static void collectData(qentry **item, char **batchstr){
     qentry *q = *item;
-    //100 ist gewählter ausreichender Wert, besser genaueren Wert einfügen
-    char *data=(char*)malloc(sizeof(char)*100);
+    int countlen = (q->count==0)?1:(int)log10(q->count)+1;
+    int datasizelen = (q->datasize==0)?1:(int)log10(q->datasize)+1;
+    int processranklen = (q->processrank==0)?1:(int)log10(q->processrank)+1;
+    int partnerranklen = (q->partnerrank==0)?1:(int)log10(q->partnerrank)+1;
+    //Speicherplatz für alle Einträge als Char + 3* '' für die Chars + 6* , und Leertaste + ()
+    int datalen = strlen(q->operation) + strlen(q->datatype) + countlen + datasizelen + strlen(q->communicator) + processranklen + partnerranklen + 3*2 + 6*2 +2 +1;
+    //printf("Datalen: %d\n", datalen);
+    char *data=(char*)malloc(datalen);
     sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d),", q->operation, q->datatype, q->count, q->datasize, q->communicator, q->processrank, q->partnerrank);
     *batchstr = realloc(*batchstr, strlen(*batchstr)+1 + strlen(data)+1);
     strcat(*batchstr, data);
