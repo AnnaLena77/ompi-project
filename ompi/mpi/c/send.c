@@ -50,7 +50,15 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
 {
     time_t current_time = time(NULL);
     char *operation = "send";
-    enqueue(operation, count*sizeof(type), current_time);
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(type, type_name, &type_name_length);
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    enqueue(&operation, &type_name, count, count*sizeof(type), &comm_name, processrank, dest, current_time);
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_SEND, 1);

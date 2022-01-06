@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
-#include <math.h>
 #include <sys/queue.h>
 #include <sys/time.h>
 #include <mysql/mysql.h>
@@ -48,13 +47,8 @@
 #endif
 
 typedef struct qentry {
-    char* operation;
-    char* datatype;
-    int count;
-    int datasize;
-    char* communicator;
-    int processrank;
-    int partnerrank;
+    char* type;
+    int data;
     time_t start;
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
@@ -62,19 +56,11 @@ typedef struct qentry {
 
 static TAILQ_HEAD(, qentry) head;
 
-void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime){
-    //printf("Operation: %s\n", *operation);
-    //printf("Hier der Communicator: %s\n", *communicator);
-    //printf("Hier der Type: %s\n", *datatype);
+void enqueue(char* type, int value, time_t ctime){
     //printf("Current Time: %ld \n", ctime);
     qentry *item = (qentry*)malloc(sizeof(qentry));
-    item->operation = strdup(*operation);
-    item->datatype = strdup(*datatype);
-    item->count = count;
-    item->datasize = datasize;
-    item->communicator = strdup(*communicator);
-    item->processrank = processrank;
-    item-> partnerrank = partnerrank;
+    item->data = value;
+    item->type = type;
     item->start = ctime;
     TAILQ_INSERT_TAIL(&head, item, pointers);
 }
@@ -96,15 +82,14 @@ static char *user = "AnnaLena";
 static char *password = "annalena";
 static char *database = "DataFromMPI";
 
-static const int LIMIT = 1000;
+static const int LIMIT = 100;
 static int count = LIMIT;
-static char *batchstring = "INSERT INTO MPI_Data(operation, datatype, count, datasize, communicator, processrank, partnerrank)VALUES";
+static char *batchstring = "INSERT INTO MPI_Data(type, value)VALUES";
 
 static void insertData(char **batchstr){
     count = LIMIT;
     char *batch = *batchstr;
     batch[strlen(batch)-1]=';';
-    //printf("%s\n", batch);
     if(mysql_query(conn, batch)){
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
@@ -113,15 +98,8 @@ static void insertData(char **batchstr){
 
 static void collectData(qentry **item, char **batchstr){
     qentry *q = *item;
-    int countlen = (q->count==0)?1:(int)log10(q->count)+1;
-    int datasizelen = (q->datasize==0)?1:(int)log10(q->datasize)+1;
-    int processranklen = (q->processrank==0)?1:(int)log10(q->processrank)+1;
-    int partnerranklen = (q->partnerrank==0)?1:(int)log10(q->partnerrank)+1;
-    //Speicherplatz für alle Einträge als Char + 3* '' für die Chars + 6* , und Leertaste + ()
-    int datalen = strlen(q->operation) + strlen(q->datatype) + countlen + datasizelen + strlen(q->communicator) + processranklen + partnerranklen + 3*2 + 6*2 +2 +1;
-    //printf("Datalen: %d\n", datalen);
-    char *data=(char*)malloc(datalen);
-    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d),", q->operation, q->datatype, q->count, q->datasize, q->communicator, q->processrank, q->partnerrank);
+    char *data=(char*)malloc(sizeof(char)*30);
+    sprintf(data, "('%s',%d),", q->type, q->data);
     *batchstr = realloc(*batchstr, strlen(*batchstr)+1 + strlen(data)+1);
     strcat(*batchstr, data);
     free(data);
@@ -161,7 +139,6 @@ static const char FUNC_NAME[] = "MPI_Init";
 
 int MPI_Init(int *argc, char ***argv)
 {
-    //printf("test\n");   
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
         fprintf(stderr, "%s\n", mysql_error(conn));
