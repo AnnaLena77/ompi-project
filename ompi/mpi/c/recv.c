@@ -52,8 +52,6 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
-    //printf("Hier der Communicator: %s\n", comm_name);
-    //printf("Hier der Type: %s\n", type_name);
     //rank of actual process
     int processrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processrank);

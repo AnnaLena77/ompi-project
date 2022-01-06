@@ -45,8 +45,17 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
               int root, MPI_Comm comm)
 {
     time_t current_time = time(NULL);
-    char *operation = "bsend";
-    //enqueue(operation, count*sizeof(datatype), current_time);
+    char *operation = "bcast";
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(datatype, type_name, &type_name_length);
+    //Integer for the partnerrank-value= -1
+    //-> Function Bcast sends the message to all other processes. All other processes are partnerranks
+    int partnerrank = -1;
+    enqueue(&operation, &type_name, count, count*sizeof(datatype), &comm_name, root, partnerrank, current_time);
     int err;
 
     SPC_RECORD(OMPI_SPC_BCAST, 1);
