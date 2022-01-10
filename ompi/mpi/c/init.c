@@ -74,7 +74,7 @@ void enqueue(char** operation, char** datatype, int count, int datasize, char** 
     item->datasize = datasize;
     item->communicator = strdup(*communicator);
     item->processrank = processrank;
-    item-> partnerrank = partnerrank;
+    item->partnerrank = partnerrank;
     item->start = ctime;
     TAILQ_INSERT_TAIL(&head, item, pointers);
 }
@@ -98,7 +98,7 @@ static char *database = "DataFromMPI";
 
 static const int LIMIT = 1000;
 static int count = LIMIT;
-static char *batchstring = "INSERT INTO MPI_Data(operation, datatype, count, datasize, communicator, processrank, partnerrank)VALUES";
+static char *batchstring = "INSERT INTO MPI_Data(operation, datatype, count, datasize, communicator, processrank, partnerrank, timestamp_into_queue)VALUES";
 
 static void insertData(char **batchstr){
     count = LIMIT;
@@ -117,11 +117,15 @@ static void collectData(qentry **item, char **batchstr){
     int datasizelen = (q->datasize==0)?1:(int)log10(q->datasize)+1;
     int processranklen = (q->processrank==0)?1:(int)log10(q->processrank)+1;
     int partnerranklen = (q->partnerrank==0)?1:(int)log10(q->partnerrank)+1;
+    //Timestamp into right format
+    char *timestamp=(char*)malloc(20);
+    struct tm tm = *localtime(&q->start);
+    sprintf(timestamp, "%d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
     //Speicherplatz für alle Einträge als Char + 3* '' für die Chars + 6* , und Leertaste + ()
-    int datalen = strlen(q->operation) + strlen(q->datatype) + countlen + datasizelen + strlen(q->communicator) + processranklen + partnerranklen + 3*2 + 6*2 +2 +1;
+    int datalen = strlen(q->operation) + strlen(q->datatype) + countlen + datasizelen + strlen(q->communicator) + processranklen + partnerranklen + strlen(timestamp) + 4*2 + 7*2 +2 +1;
     //printf("Datalen: %d\n", datalen);
     char *data=(char*)malloc(datalen);
-    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d),", q->operation, q->datatype, q->count, q->datasize, q->communicator, q->processrank, q->partnerrank);
+    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d, '%s'),", q->operation, q->datatype, q->count, q->datasize, q->communicator, q->processrank, q->partnerrank, timestamp);
     *batchstr = realloc(*batchstr, strlen(*batchstr)+1 + strlen(data)+1);
     strcat(*batchstr, data);
     free(data);
@@ -169,8 +173,12 @@ int MPI_Init(int *argc, char ***argv)
     }
     else {
     	if(mysql_query(conn, "DELETE FROM MPI_Data")){
-        fprintf(stderr, "%s\n", mysql_error(conn));
-        exit(1);
+        	fprintf(stderr, "%s\n", mysql_error(conn));
+        	exit(1);
+    	}
+    	if(mysql_query(conn, "ALTER TABLE MPI_Data AUTO_INCREMENT=1")){
+    		fprintf(stderr, "%s\n", mysql_error(conn));
+        	exit(1);
     	}
     }
     
