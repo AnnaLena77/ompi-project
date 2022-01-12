@@ -21,7 +21,7 @@ $ sudo apt install autoconf
 $ sudo apt install libtool
 
 $ ./autogen.pl
-$ ./configure --prefix=/usr/local LIBS=-lmysqlclient
+$ ./configure --prefix=/usr/local LIBS=-lmysqlclient --with-pmix=internal
 
 Make MPI:
 $ sudo make all install

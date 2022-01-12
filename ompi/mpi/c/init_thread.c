@@ -33,6 +33,7 @@
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
 #include "ompi/mca/hook/base/base.h"
+#include "ompi/mpi/c/init.h"
 
 #if OMPI_BUILD_MPI_PROFILING
 #if OPAL_HAVE_WEAK_SYMBOLS
@@ -47,6 +48,7 @@ static const char FUNC_NAME[] = "MPI_Init_thread";
 int MPI_Init_thread(int *argc, char ***argv, int required,
                     int *provided)
 {
+    initialize();
     int err, safe_required = MPI_THREAD_SERIALIZED;
     char *env;
 

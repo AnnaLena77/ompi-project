@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <string.h>
 #include <math.h>
 #include <sys/queue.h>
@@ -62,6 +63,8 @@ typedef struct qentry {
 
 static TAILQ_HEAD(, qentry) head;
 
+//sem_t ENSURE_INIT;
+
 void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime){
     //printf("Operation: %s\n", *operation);
     //printf("Hier der Communicator: %s\n", *communicator);
@@ -97,6 +100,7 @@ static char *password = "annalena";
 static char *database = "DataFromMPI";
 
 static const int LIMIT = 1000;
+static int last_one = 0;
 static int count = LIMIT;
 static char *batchstring = "INSERT INTO MPI_Data(operation, datatype, count, datasize, communicator, processrank, partnerrank, timestamp_into_queue)VALUES";
 
@@ -122,19 +126,22 @@ static void collectData(qentry **item, char **batchstr){
     struct tm tm = *localtime(&q->start);
     sprintf(timestamp, "%d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
     //Speicherplatz für alle Einträge als Char + 3* '' für die Chars + 6* , und Leertaste + ()
-    int datalen = strlen(q->operation) + strlen(q->datatype) + countlen + datasizelen + strlen(q->communicator) + processranklen + partnerranklen + strlen(timestamp) + 4*2 + 7*2 +2 +1;
+    int datalen = strlen(q->operation) + strlen(q->datatype) + countlen + datasizelen + strlen(q->communicator) + processranklen + 
+                  partnerranklen + strlen(timestamp) + 4*2 + 7*2 +2 +1;
     //printf("Datalen: %d\n", datalen);
-    char *data=(char*)malloc(datalen);
-    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d, '%s'),", q->operation, q->datatype, q->count, q->datasize, q->communicator, q->processrank, q->partnerrank, timestamp);
+    char *data=(char*)malloc(datalen+1);
+    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d, '%s'),", q->operation, q->datatype, q->count, q->datasize, q->communicator, 
+            q->processrank, q->partnerrank, timestamp);
     *batchstr = realloc(*batchstr, strlen(*batchstr)+1 + strlen(data)+1);
     strcat(*batchstr, data);
     free(data);
     count--;
-    if(count==0){
+    if(count==0 || last_one){
 	char *batch = *batchstr;
 	insertData(&batch);
 	*batchstr = realloc(*batchstr, strlen(batchstring)+1);
 	strcpy(*batchstr, batchstring);
+	last_one=0;
     }
 }
 
@@ -145,6 +152,7 @@ static void* MonitorFunc(void* _arg){
     int finish = 0;
     while(!finish){
         if(TAILQ_EMPTY(&head)){
+            last_one=1;
             sleep(1);
             if(TAILQ_EMPTY(&head)){
                 finish = 1; 
@@ -162,10 +170,8 @@ static void* MonitorFunc(void* _arg){
 
 static const char FUNC_NAME[] = "MPI_Init";
 
-
-int MPI_Init(int *argc, char ***argv)
+void initialize()
 {
-    //printf("test\n");   
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
         fprintf(stderr, "%s\n", mysql_error(conn));
@@ -184,6 +190,12 @@ int MPI_Init(int *argc, char ***argv)
     
     TAILQ_INIT(&head);
     pthread_create(&MONITOR_THREAD, NULL, MonitorFunc, NULL);
+}
+
+
+int MPI_Init(int *argc, char ***argv)
+{
+    initialize();
     int err;
     int provided;
     char *env;
