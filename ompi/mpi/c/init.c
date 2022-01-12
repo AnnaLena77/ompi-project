@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <string.h>
 #include <math.h>
 #include <sys/queue.h>
@@ -61,6 +62,8 @@ typedef struct qentry {
 
 
 static TAILQ_HEAD(, qentry) head;
+
+//sem_t ENSURE_INIT;
 
 void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime){
     //printf("Operation: %s\n", *operation);
@@ -167,10 +170,8 @@ static void* MonitorFunc(void* _arg){
 
 static const char FUNC_NAME[] = "MPI_Init";
 
-
-int MPI_Init(int *argc, char ***argv)
+void initialize()
 {
-    //printf("Hallo aus der init \n");
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
         fprintf(stderr, "%s\n", mysql_error(conn));
@@ -189,6 +190,12 @@ int MPI_Init(int *argc, char ***argv)
     
     TAILQ_INIT(&head);
     pthread_create(&MONITOR_THREAD, NULL, MonitorFunc, NULL);
+}
+
+
+int MPI_Init(int *argc, char ***argv)
+{
+    initialize();
     int err;
     int provided;
     char *env;

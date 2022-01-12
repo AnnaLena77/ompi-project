@@ -48,6 +48,7 @@ static const char FUNC_NAME[] = "MPI_Send";
 int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
              int tag, MPI_Comm comm)
 {
+    //printf("Hallo aus dem send \n");
     time_t current_time = time(NULL);
     char *operation = "send";
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
