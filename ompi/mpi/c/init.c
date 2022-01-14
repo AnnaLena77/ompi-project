@@ -48,6 +48,8 @@
 #define MPI_Init PMPI_Init
 #endif
 
+//#define ENABLE_ANALYSIS 1
+
 typedef struct qentry {
     char* operation;
     char* datatype;
@@ -195,7 +197,9 @@ void initialize()
 
 int MPI_Init(int *argc, char ***argv)
 {
-    initialize();
+    #ifdef ENABLE_ANALYSIS
+    	initialize();
+    #endif
     int err;
     int provided;
     char *env;

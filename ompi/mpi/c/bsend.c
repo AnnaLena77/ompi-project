@@ -49,6 +49,7 @@ static const char FUNC_NAME[] = "MPI_Bsend";
 
 int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm)
 {
+    #ifdef ENABLE_ANALYSIS
     time_t current_time = time(NULL);
     char *operation = "bsend";
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
@@ -61,6 +62,7 @@ int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
     int processrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
     enqueue(&operation, &type_name, count, count*sizeof(type), &comm_name, processrank, dest, current_time);
+    #endif
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_BSEND, 1);
