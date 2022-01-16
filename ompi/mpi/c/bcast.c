@@ -44,6 +44,7 @@ static const char FUNC_NAME[] = "MPI_Bcast";
 int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
               int root, MPI_Comm comm)
 {
+    #ifdef ENABLE_ANALYSIS
     time_t current_time = time(NULL);
     char *operation = "bcast";
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
@@ -56,6 +57,7 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     //-> Function Bcast sends the message to all other processes. All other processes are partnerranks
     int partnerrank = -1;
     enqueue(&operation, &type_name, count, count*sizeof(datatype), &comm_name, root, partnerrank, current_time);
+    #endif
     int err;
 
     SPC_RECORD(OMPI_SPC_BCAST, 1);
