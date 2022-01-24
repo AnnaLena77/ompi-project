@@ -63,21 +63,28 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     enqueue(&operation, &type_name, count, count*sizeof(type), &comm_name, processrank, dest, current_time);
     #endif
     int rc = MPI_SUCCESS;
-
+    
+    //OMPI_SPC in ompi_spc.h
     SPC_RECORD(OMPI_SPC_SEND, 1);
-
+    
+    //MEMCHECKER = Runtime-Memory-Checker (OPAL-Framework)
+    /* The Memchecker-MCA is implemented to allow MPI-semantic checking for    your application (as well as internals of Open MPI), with the help of memory checking tools such as the Memcheck of the Valgrind-suite */
     MEMCHECKER(
         memchecker_datatype(type);
         memchecker_call(&opal_memchecker_base_isdefined, buf, count, type);
         memchecker_comm(comm);
     );
-
+    
+    //the parameters to each MPI function can be passed through a series of correctness checks
     if ( MPI_PARAM_CHECK ) {
         OMPI_ERR_INIT_FINALIZE(FUNC_NAME);
+        //Check nach Communicator
         if (ompi_comm_invalid(comm)) {
             return OMPI_ERRHANDLER_INVOKE(MPI_COMM_WORLD, MPI_ERR_COMM, FUNC_NAME);
+          //check, ob count (Anzahl gesendeter Objekte kleiner 0 ist), dann Error
         } else if (count < 0) {
             rc = MPI_ERR_COUNT;
+          //
         } else if (tag < 0 || tag > mca_pml.pml_max_tag) {
             rc = MPI_ERR_TAG;
         } else if (ompi_comm_peer_invalid(comm, dest) &&
@@ -93,6 +100,8 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     if (MPI_PROC_NULL == dest) {
         return MPI_SUCCESS;
     }
+    
+    //MCA_PML_CALL is a macro from pml.h!
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm));
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
