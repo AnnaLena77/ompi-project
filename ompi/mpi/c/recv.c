@@ -92,6 +92,9 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
         }
         return MPI_SUCCESS;
     }
+    //printf("Hier wird empfangen \n");
+    
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
+    //printf("Rcver rc: %d\n", rc);
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

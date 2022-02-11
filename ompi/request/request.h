@@ -39,6 +39,7 @@
 #include "opal/mca/threads/wait_sync.h"
 #include "ompi/constants.h"
 #include "ompi/runtime/params.h"
+#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 
@@ -446,8 +447,10 @@ static inline bool ompi_request_tag_is_collective(int tag) {
  * Wait a particular request for completion
  */
 
+//wird beim normalen MPI_Send aufgerufen
 static inline void ompi_request_wait_completion(ompi_request_t *req)
 {
+    //printf("request_wait_completion\n");
     if (opal_using_threads ()) {
         if(!REQUEST_COMPLETE(req)) {
             void *_tmp_ptr;
@@ -515,6 +518,7 @@ static inline void ompi_request_wait_completion(ompi_request_t *req)
  */
 static inline int ompi_request_complete(ompi_request_t* request, bool with_signal)
 {
+    //printf("%s\n", __BASE_FILE__);
     int rc = 0;
 
     if(NULL != request->req_complete_cb) {
@@ -538,7 +542,8 @@ static inline int ompi_request_complete(ompi_request_t* request, bool with_signa
         } else
             request->req_complete = REQUEST_COMPLETED;
     }
-
+    printf("request completed in request.h\n");
+    //test(request);
     return OMPI_SUCCESS;
 }
 
@@ -546,6 +551,7 @@ static inline int ompi_request_set_callback(ompi_request_t* request,
                                             ompi_request_complete_fn_t cb,
                                             void* cb_data)
 {
+    //printf("request_set_callback\n");
     request->req_complete_cb_data = cb_data;
     request->req_complete_cb = cb;
     /* If request is completed and the callback is not called, need to call callback */

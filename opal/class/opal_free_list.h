@@ -189,6 +189,7 @@ OPAL_DECLSPEC int opal_free_list_resize_mt(opal_free_list_t *flist, size_t size)
  */
 static inline opal_free_list_item_t *opal_free_list_get_mt(opal_free_list_t *flist)
 {
+    
     opal_free_list_item_t *item = (opal_free_list_item_t *) opal_lifo_pop_atomic(&flist->super);
 
     if (OPAL_UNLIKELY(NULL == item)) {
@@ -202,6 +203,7 @@ static inline opal_free_list_item_t *opal_free_list_get_mt(opal_free_list_t *fli
 
 static inline opal_free_list_item_t *opal_free_list_get_st(opal_free_list_t *flist)
 {
+    //printf("opal_free_list_get_st\n");
     opal_free_list_item_t *item = (opal_free_list_item_t *) opal_lifo_pop_st(&flist->super);
 
     if (OPAL_UNLIKELY(NULL == item)) {
@@ -324,6 +326,7 @@ static inline void opal_free_list_return_mt(opal_free_list_t *flist, opal_free_l
     }
 }
 
+//wird öfter ausgegeben, unterschiedlich je nach Anzahl der Send/Recvs
 static inline void opal_free_list_return_st(opal_free_list_t *flist, opal_free_list_item_t *item)
 {
     opal_list_item_t *original;

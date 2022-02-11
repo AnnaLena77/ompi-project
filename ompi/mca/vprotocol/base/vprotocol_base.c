@@ -27,6 +27,8 @@ mca_pml_v_t mca_pml_v = {-1, 0, 0};
  * Also fill the mca_vprotocol_base_include_list with components that exists
  */
 
+//1 mal pro Prozess
+
 static int mca_vprotocol_base_open(mca_base_open_flag_t flags)
 {
     if (NULL == mca_vprotocol_base_include_list) {
@@ -36,6 +38,7 @@ static int mca_vprotocol_base_open(mca_base_open_flag_t flags)
     return mca_base_framework_components_open(&ompi_vprotocol_base_framework, 0);
 }
 
+//1 Mal pro Prozess
 void mca_vprotocol_base_set_include_list(char *vprotocol_include_list)
 {
     mca_vprotocol_base_include_list = NULL;
@@ -47,6 +50,7 @@ void mca_vprotocol_base_set_include_list(char *vprotocol_include_list)
 
 /* Close and unload any vprotocol MCA component loaded.
  */
+ // 1 Mal pro Peozess
 static int mca_vprotocol_base_close(void)
 {
     if (NULL != mca_vprotocol_base_include_list) {

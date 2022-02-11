@@ -91,6 +91,8 @@ typedef enum ompi_errhandler_type_t ompi_errhandler_type_t;
 /**
  * Back-end type for MPI_Errorhandler.
  */
+ 
+ //creation Interface in line 407!
 struct ompi_errhandler_t {
     opal_object_t super;
 
@@ -401,6 +403,8 @@ struct ompi_request_t;
    * least theoretically, a sizeof(void*) may not necessarily be the
    * same as sizeof(void(*)).
    */
+   
+   //Creation Interface of ompi_errhandler_t object
   OMPI_DECLSPEC ompi_errhandler_t *ompi_errhandler_create(ompi_errhandler_type_t object_type,
 					    ompi_errhandler_generic_handler_fn_t *func,
                                             ompi_errhandler_lang_t language);

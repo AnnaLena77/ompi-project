@@ -34,6 +34,7 @@
  * to know when no pending events are expected so that it can
  * unregister the progress function.
  */
+ //no
 static inline int mca_pml_ob1_process_pending_cuda_async_copies(void)
 {
     mca_btl_base_descriptor_t *frag;
@@ -52,7 +53,7 @@ static inline int mca_pml_ob1_process_pending_cuda_async_copies(void)
     return count;
 }
 #endif /* OPAL_CUDA_SUPPORT */
-
+//no
 static opal_atomic_int32_t mca_pml_ob1_progress_needed = 0;
 int mca_pml_ob1_enable_progress(int32_t count)
 {
@@ -64,6 +65,7 @@ int mca_pml_ob1_enable_progress(int32_t count)
     return 1;
 }
 
+//no
 int mca_pml_ob1_progress(void)
 {
     int i, queue_length = opal_list_get_size(&mca_pml_ob1.send_pending);

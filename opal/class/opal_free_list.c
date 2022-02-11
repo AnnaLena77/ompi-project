@@ -35,7 +35,7 @@
 typedef struct opal_free_list_item_t opal_free_list_memory_t;
 
 OBJ_CLASS_INSTANCE(opal_free_list_item_t, opal_list_item_t, NULL, NULL);
-
+//Aufruf 25 Mal pro Prozess
 static void opal_free_list_construct(opal_free_list_t *fl)
 {
     OBJ_CONSTRUCT(&fl->fl_lock, opal_mutex_t);
@@ -108,6 +108,8 @@ static void opal_free_list_destruct(opal_free_list_t *fl)
 OBJ_CLASS_INSTANCE(opal_free_list_t, opal_lifo_t, opal_free_list_construct,
                    opal_free_list_destruct);
 
+
+//Aufruf genau 25 mal pro Prozess, egal wie viele sends und recvs
 int opal_free_list_init(opal_free_list_t *flist, size_t frag_size, size_t frag_alignment,
                         opal_class_t *frag_class, size_t payload_buffer_size,
                         size_t payload_buffer_alignment, int num_elements_to_alloc,

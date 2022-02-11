@@ -43,6 +43,7 @@
 OBJ_CLASS_INSTANCE(mca_pml_ob1_send_range_t, opal_free_list_item_t,
         NULL, NULL);
 
+//no
 void mca_pml_ob1_send_request_process_pending(mca_bml_base_btl_t *bml_btl)
 {
     int rc, i, s = opal_list_get_size(&mca_pml_ob1.send_pending);
@@ -97,6 +98,7 @@ void mca_pml_ob1_send_request_process_pending(mca_bml_base_btl_t *bml_btl)
  * for others p2p communications. Therefore, in the case of the OB1 PML it should
  * be added to the free request list.
  */
+ //no
 static int mca_pml_ob1_send_request_free(struct ompi_request_t** request)
 {
     mca_pml_ob1_send_request_t* sendreq = *(mca_pml_ob1_send_request_t**)request;
@@ -122,7 +124,7 @@ static int mca_pml_ob1_send_request_free(struct ompi_request_t** request)
     }
     return OMPI_SUCCESS;
 }
-
+//no
 static int mca_pml_ob1_send_request_cancel(struct ompi_request_t* request, int complete)
 {
 #if OPAL_ENABLE_FT_MPI
@@ -166,6 +168,7 @@ static int mca_pml_ob1_send_request_cancel(struct ompi_request_t* request, int c
     return OMPI_SUCCESS;
 }
 
+// 8 Mal aufgerufen (4 mal pro Prozess?)
 static void mca_pml_ob1_send_request_construct(mca_pml_ob1_send_request_t* req)
 {
     req->req_send.req_base.req_type = MCA_PML_REQUEST_SEND;
@@ -178,7 +181,7 @@ static void mca_pml_ob1_send_request_construct(mca_pml_ob1_send_request_t* req)
     OBJ_CONSTRUCT(&req->req_send_ranges, opal_list_t);
     OBJ_CONSTRUCT(&req->req_send_range_lock, opal_mutex_t);
 }
-
+// 8 Mal aufgerufen (4 mal pro Prozess?)
 static void mca_pml_ob1_send_request_destruct(mca_pml_ob1_send_request_t* req)
 {
     OBJ_DESTRUCT(&req->req_send_ranges);
@@ -194,7 +197,7 @@ OBJ_CLASS_INSTANCE( mca_pml_ob1_send_request_t,
 /**
  * Completion of a short message - nothing left to schedule.
  */
-
+//no
 static inline void
 mca_pml_ob1_match_completion_free_request( mca_bml_base_btl_t* bml_btl,
                                            mca_pml_ob1_send_request_t* sendreq )
@@ -210,7 +213,7 @@ mca_pml_ob1_match_completion_free_request( mca_bml_base_btl_t* bml_btl,
     /* check for pending requests */
     MCA_PML_OB1_PROGRESS_PENDING(bml_btl);
 }
-
+//no
 static void
 mca_pml_ob1_match_completion_free( struct mca_btl_base_module_t* btl,
                                    struct mca_btl_base_endpoint_t* ep,
@@ -238,7 +241,7 @@ mca_pml_ob1_match_completion_free( struct mca_btl_base_module_t* btl,
     }
     mca_pml_ob1_match_completion_free_request( bml_btl, sendreq );
 }
-
+//no
 static inline void
 mca_pml_ob1_rndv_completion_request( mca_bml_base_btl_t* bml_btl,
                                      mca_pml_ob1_send_request_t* sendreq,
@@ -266,6 +269,8 @@ mca_pml_ob1_rndv_completion_request( mca_bml_base_btl_t* bml_btl,
  *  Completion of the first fragment of a long message that
  *  requires an acknowledgement
  */
+ 
+//no
 static void
 mca_pml_ob1_rndv_completion( mca_btl_base_module_t* btl,
                              struct mca_btl_base_endpoint_t* ep,
@@ -308,7 +313,7 @@ mca_pml_ob1_rndv_completion( mca_btl_base_module_t* btl,
 /**
  * Completion of a get request.
  */
-
+//no
 static void
 mca_pml_ob1_rget_completion (mca_pml_ob1_rdma_frag_t *frag, int64_t rdma_length)
 {
@@ -990,6 +995,7 @@ void mca_pml_ob1_send_request_copy_in_out( mca_pml_ob1_send_request_t *sendreq,
     OPAL_THREAD_UNLOCK(&sendreq->req_send_range_lock);
 }
 
+//no
 static inline mca_pml_ob1_send_range_t *
 get_send_range_nolock(mca_pml_ob1_send_request_t* sendreq)
 {
@@ -1003,6 +1009,7 @@ get_send_range_nolock(mca_pml_ob1_send_request_t* sendreq)
     return (mca_pml_ob1_send_range_t*)item;
 }
 
+//no
 static inline mca_pml_ob1_send_range_t *
 get_send_range(mca_pml_ob1_send_request_t* sendreq)
 {
@@ -1015,6 +1022,7 @@ get_send_range(mca_pml_ob1_send_request_t* sendreq)
     return range;
 }
 
+//no
 static inline mca_pml_ob1_send_range_t *
 get_next_send_range(mca_pml_ob1_send_request_t* sendreq,
         mca_pml_ob1_send_range_t *range)
@@ -1035,7 +1043,7 @@ get_next_send_range(mca_pml_ob1_send_request_t* sendreq,
  *  fragments up to the threshold to overlap initial registration/setup
  *  costs of the rdma. Only one thread can be inside this function.
  */
-
+//no
 int
 mca_pml_ob1_send_request_schedule_once(mca_pml_ob1_send_request_t* sendreq)
 {

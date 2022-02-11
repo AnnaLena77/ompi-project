@@ -58,6 +58,7 @@ mca_vprotocol_base_component_2_0_0_t mca_vprotocol_pessimist_component =
 
 /** MCA level functions
   */
+//Aufruf: einmal pro Prozess
 static int mca_vprotocol_pessimist_component_register(void)
 {
     _priority = 30;
@@ -118,6 +119,7 @@ static int mca_vprotocol_pessimist_component_open(void)
     return OMPI_SUCCESS;
 }
 
+//Ausführung 1 Mal pro Prozess
 static int mca_vprotocol_pessimist_component_close(void)
 {
     V_OUTPUT_VERBOSE(500, "vprotocol_pessimist: component_close");
@@ -126,11 +128,13 @@ static int mca_vprotocol_pessimist_component_close(void)
 
 /** VPROTOCOL level functions (same as PML one)
   */
+  //no
 static mca_vprotocol_base_module_t*
 mca_vprotocol_pessimist_component_init( int* priority,
                                         bool enable_progress_threads,
                                         bool enable_mpi_threads)
 {
+    
     V_OUTPUT_VERBOSE(500, "vprotocol_pessimist: component_init");
     *priority = _priority;
 

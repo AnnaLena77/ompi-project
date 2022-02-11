@@ -103,6 +103,8 @@ static void mca_btl_tcp_endpoint_construct(mca_btl_tcp_endpoint_t *endpoint)
  * Destroy a endpoint
  *
  */
+ 
+ // Aufruf 4x
 static void mca_btl_tcp_endpoint_destruct(mca_btl_tcp_endpoint_t *endpoint)
 {
     mca_btl_tcp_endpoint_close(endpoint);
@@ -137,6 +139,7 @@ static void mca_btl_tcp_endpoint_send_handler(int sd, short flags, void *user);
  * might access freed memory. Thus, the caller should lock the endpoint prior
  * to the call.
  */
+ //no
 void mca_btl_tcp_endpoint_dump(int level, const char *fname, int lineno, const char *funcname,
                                mca_btl_base_endpoint_t *btl_endpoint, bool full_info,
                                const char *msg)
@@ -317,6 +320,7 @@ out:
  * Initialize events to be used by the endpoint instance for TCP select/poll callbacks.
  */
 
+//no
 static inline void mca_btl_tcp_endpoint_event_init(mca_btl_base_endpoint_t *btl_endpoint)
 {
 #if MCA_BTL_TCP_ENDPOINT_CACHE
@@ -343,6 +347,7 @@ static inline void mca_btl_tcp_endpoint_event_init(mca_btl_base_endpoint_t *btl_
  * queue the fragment and start the connection as required.
  */
 
+//no
 int mca_btl_tcp_endpoint_send(mca_btl_base_endpoint_t *btl_endpoint, mca_btl_tcp_frag_t *frag)
 {
     int rc = OPAL_SUCCESS;
@@ -527,6 +532,8 @@ void mca_btl_tcp_endpoint_accept(mca_btl_base_endpoint_t *btl_endpoint, struct s
  * and update the endpoint state to reflect the connection has
  * been closed.
  */
+ 
+//Aufruf 4 mal
 void mca_btl_tcp_endpoint_close(mca_btl_base_endpoint_t *btl_endpoint)
 {
     MCA_BTL_TCP_ENDPOINT_DUMP(1, btl_endpoint, false, "[close]");
@@ -1083,7 +1090,7 @@ static void mca_btl_tcp_endpoint_recv_handler(int sd, short flags, void *user)
  * A file descriptor is available/ready for send. Check the state
  * of the socket and take the appropriate action.
  */
-
+//no
 static void mca_btl_tcp_endpoint_send_handler(int sd, short flags, void *user)
 {
     mca_btl_tcp_endpoint_t *btl_endpoint = (mca_btl_tcp_endpoint_t *) user;

@@ -11,6 +11,7 @@
 #include "ompi_config.h"
 #include "vprotocol_pessimist.h"
 
+//no
 int mca_vprotocol_pessimist_add_procs(struct ompi_proc_t **procs, size_t nprocs)
 {
   /* TODO: for each proc, retrieve post send of sender based request, post recieve of list
@@ -18,7 +19,7 @@ int mca_vprotocol_pessimist_add_procs(struct ompi_proc_t **procs, size_t nprocs)
   */
   return mca_pml_v.host_pml.pml_add_procs(procs, nprocs);
 }
-
+//no
 int mca_vprotocol_pessimist_del_procs(struct ompi_proc_t **procs, size_t nprocs)
 {
   /* TODO: I don't know, now... */

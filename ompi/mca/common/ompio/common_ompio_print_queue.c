@@ -65,7 +65,6 @@ int mca_common_ompio_register_print_entry ( struct mca_common_ompio_print_queue 
 int  mca_common_ompio_unregister_print_entry ( struct mca_common_ompio_print_queue *q,
                                                mca_common_ompio_print_entry *x)
 {
-
     if (q->count <= 0){
         return OMPI_ERROR;
     }

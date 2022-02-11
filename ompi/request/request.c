@@ -49,6 +49,7 @@ ompi_request_fns_t               ompi_request_functions = {
     ompi_request_default_wait_some
 };
 
+//36 mal
 static void ompi_request_construct(ompi_request_t* req)
 {
     /* don't call _INIT, we don't to set the request to _INACTIVE and there will
@@ -64,7 +65,7 @@ static void ompi_request_construct(ompi_request_t* req)
     req->req_f_to_c_index = MPI_UNDEFINED;
     req->req_mpi_object.comm = (struct ompi_communicator_t*) NULL;
 }
-
+//36 mal
 static void ompi_request_destruct(ompi_request_t* req)
 {
     assert( MPI_UNDEFINED == req->req_f_to_c_index );
@@ -104,9 +105,9 @@ OBJ_CLASS_INSTANCE(
     ompi_request_destruct);
 
 
+//Pro Pozess einmal aufgerufen!
 int ompi_request_init(void)
 {
-
     OBJ_CONSTRUCT(&ompi_request_null, ompi_request_t);
     OBJ_CONSTRUCT(&ompi_request_f_to_c_table, opal_pointer_array_t);
     if( OPAL_SUCCESS != opal_pointer_array_init(&ompi_request_f_to_c_table,
@@ -176,7 +177,7 @@ int ompi_request_init(void)
     return OMPI_SUCCESS;
 }
 
-
+//2 mal aufgerufen
 int ompi_request_finalize(void)
 {
     OMPI_REQUEST_FINI( &ompi_request_null.request );

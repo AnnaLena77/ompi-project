@@ -31,7 +31,7 @@ OBJ_CLASS_INSTANCE(
     mca_pml_base_send_request_destruct
 );
 
-
+//Wird genau 4 Mal pro Prozess ausgeführt
 static void mca_pml_base_send_request_construct(mca_pml_base_send_request_t* request)
 {
     /* no need to reinit for every send -- never changes */

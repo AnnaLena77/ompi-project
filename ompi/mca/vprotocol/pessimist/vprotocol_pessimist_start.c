@@ -10,7 +10,7 @@
 
 #include "ompi_config.h"
 #include "vprotocol_pessimist.h"
-
+//no
 OMPI_DECLSPEC int mca_vprotocol_pessimist_start(size_t count, ompi_request_t **requests)
 {
   int ret;

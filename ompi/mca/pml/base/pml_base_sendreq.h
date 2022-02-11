@@ -33,6 +33,7 @@
 #include "ompi/mca/pml/base/pml_base_request.h"
 #include "opal/datatype/opal_convertor.h"
 #include "ompi/peruse/peruse-internal.h"
+#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 
@@ -96,6 +97,8 @@ OMPI_DECLSPEC OBJ_CLASS_DECLARATION( mca_pml_base_send_request_t );
       (request)->req_base.req_free_called = false;                        \
       (request)->req_base.req_ompi.req_status._cancelled = 0;             \
       (request)->req_bytes_packed = 0;                                    \
+                                                                          \
+                                                           \
                                                                           \
       /* initialize datatype convertor for this request */                \
       if( count > 0 ) {                                                   \

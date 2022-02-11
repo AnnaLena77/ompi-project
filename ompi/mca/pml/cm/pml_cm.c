@@ -63,6 +63,7 @@ ompi_pml_cm_t ompi_pml_cm = {
 int
 mca_pml_cm_enable(bool enable)
 {
+    //printf("cm_enable\n");
     /* BWB - FIX ME - need to have this actually do something,
        maybe? */
     opal_free_list_init (&mca_pml_base_send_requests,
@@ -92,6 +93,7 @@ mca_pml_cm_enable(bool enable)
 int
 mca_pml_cm_add_comm(ompi_communicator_t* comm)
 {
+    //printf("addComm\n");
     /* should never happen, but it was, so check */
     if (comm->c_contextid > ompi_pml_cm.super.pml_max_contextid) {
         return OMPI_ERR_OUT_OF_RESOURCE;

@@ -101,7 +101,10 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
         return MPI_SUCCESS;
     }
     
+    //printf("Hier wird gesendet\n");
+    
     //MCA_PML_CALL is a macro from pml.h!
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm));
+    //printf("Sender rc: %d\n", rc);
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

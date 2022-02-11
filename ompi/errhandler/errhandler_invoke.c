@@ -32,6 +32,7 @@
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/mpi/fortran/base/fint_2_int.h"
 
+//the more than 60 lines of code here just fall into one function: the eh_comm_fn function of the ompi_errhandler_t class (file errhandler.h)
 
 int ompi_errhandler_invoke(ompi_errhandler_t *errhandler, void *mpi_object,
                            int object_type, int err_code, const char *message)

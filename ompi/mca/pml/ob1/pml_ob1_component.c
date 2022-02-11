@@ -90,6 +90,7 @@ void *mca_pml_ob1_seg_alloc (void *ctx, size_t* size);
 
 void mca_pml_ob1_seg_free (void *ctx, void *segment);
 
+// 18 Mal aufgerufen
 static inline int mca_pml_ob1_param_register_int(
     const char* param_name,
     int default_value,
@@ -317,6 +318,7 @@ mca_pml_ob1_component_init( int* priority,
     return &mca_pml_ob1.super;
 }
 
+// von jedem Prozess 1 mal aufgerufen
 int mca_pml_ob1_component_fini(void)
 {
     int rc;
@@ -343,6 +345,7 @@ int mca_pml_ob1_component_fini(void)
     }
 
     if( NULL != mca_pml_ob1_sendreq ) {
+        //NO
         opal_free_list_return (&mca_pml_base_send_requests, (opal_free_list_item_t *) mca_pml_ob1_sendreq);
         mca_pml_ob1_sendreq = NULL;
     }

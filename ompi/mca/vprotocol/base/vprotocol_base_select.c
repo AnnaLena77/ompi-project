@@ -44,6 +44,7 @@ typedef struct opened_component_t {
 int mca_vprotocol_base_select(bool enable_progress_threads,
                               bool enable_mpi_threads)
 {
+    printf("TEST\n");
     int priority = 0, best_priority = -1;
     opal_list_item_t *item = NULL;
     mca_base_component_list_item_t *cli = NULL;

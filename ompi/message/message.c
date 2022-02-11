@@ -40,7 +40,7 @@ static void ompi_message_constructor(ompi_message_t *msg)
     msg->m_f_to_c_index = MPI_UNDEFINED;
     msg->count = 0;
 }
-
+// Aufruf jeweils einmal pro Prozess
 int
 ompi_message_init(void)
 {

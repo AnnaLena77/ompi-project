@@ -392,6 +392,7 @@ static inline int ompi_comm_rank(ompi_communicator_t* comm)
 /**
  * size of the communicator
  */
+ //Aufruf 30 mal
 static inline int ompi_comm_size(ompi_communicator_t* comm)
 {
     return comm->c_local_group->grp_proc_count;

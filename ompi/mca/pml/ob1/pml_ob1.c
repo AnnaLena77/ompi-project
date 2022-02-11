@@ -102,9 +102,12 @@ void mca_pml_ob1_error_handler( struct mca_btl_base_module_t* btl,
                                 int32_t flags, opal_proc_t* errproc,
                                 char* btlinfo );
 
+//Aufruf 1x pro Prozess
 int mca_pml_ob1_enable(bool enable)
 {
+
     if( false == enable ) {
+        printf("ob1_enable false\n");
         return OMPI_SUCCESS;
     }
 

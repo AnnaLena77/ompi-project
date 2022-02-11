@@ -500,6 +500,7 @@ int mqs_setup_process (mqs_process *process, const mqs_process_callbacks *pcb)
  */
 int mqs_process_has_queues (mqs_process *proc, char **msg)
 {
+    printf("TEST\n");
     mpi_process_info *p_info = (mpi_process_info *)mqs_get_process_info (proc);
     mpi_process_info_extra *extra = (mpi_process_info_extra*) p_info->extra;
     mqs_image * image        = mqs_get_image (proc);
@@ -526,6 +527,7 @@ int mqs_process_has_queues (mqs_process *proc, char **msg)
  */
 static int communicators_changed (mqs_process *proc)
 {
+printf("TEST\n");
     mpi_process_info *p_info = (mpi_process_info *)mqs_get_process_info (proc);
     mpi_process_info_extra *extra = (mpi_process_info_extra*) p_info->extra;
     mqs_image * image          = mqs_get_image (proc);
@@ -562,6 +564,7 @@ static int communicators_changed (mqs_process *proc)
 static communicator_t * find_communicator( mpi_process_info *p_info,
                                            int recv_ctx )
 {
+printf("TEST\n");
     mpi_process_info_extra *extra = (mpi_process_info_extra*) p_info->extra;
     communicator_t * comm = extra->communicator_list;
 
@@ -578,6 +581,7 @@ static communicator_t * find_communicator( mpi_process_info *p_info,
  */
 static int compare_comms (const void *a, const void *b)
 {
+printf("TEST\n");
     communicator_t * ca = *(communicator_t **)a;
     communicator_t * cb = *(communicator_t **)b;
 
@@ -589,6 +593,7 @@ static int compare_comms (const void *a, const void *b)
  */
 static int rebuild_communicator_list (mqs_process *proc)
 {
+printf("TEST\n");
     mpi_process_info *p_info = (mpi_process_info *)mqs_get_process_info (proc);
     mpi_process_info_extra *extra = (mpi_process_info_extra*) p_info->extra;
     mqs_image * image        = mqs_get_image (proc);
@@ -747,6 +752,7 @@ static int rebuild_communicator_list (mqs_process *proc)
  */
 int mqs_update_communicator_list (mqs_process *proc)
 {
+printf("TEST\n");
     if (communicators_changed (proc))
         return rebuild_communicator_list (proc);
     return mqs_ok;
@@ -759,6 +765,7 @@ int mqs_update_communicator_list (mqs_process *proc)
  */
 int mqs_setup_communicator_iterator (mqs_process *proc)
 {
+printf("TEST\n");
     mpi_process_info *p_info = (mpi_process_info *)mqs_get_process_info (proc);
     mpi_process_info_extra *extra = (mpi_process_info_extra*) p_info->extra;
 
@@ -778,6 +785,7 @@ int mqs_setup_communicator_iterator (mqs_process *proc)
  */
 int mqs_get_communicator (mqs_process *proc, mqs_communicator *comm)
 {
+printf("TEST\n");
     mpi_process_info *p_info = (mpi_process_info *)mqs_get_process_info (proc);
     mpi_process_info_extra *extra = (mpi_process_info_extra*) p_info->extra;
 
@@ -872,6 +880,7 @@ static int next_item_opal_list_t( mqs_process *proc, mpi_process_info *p_info,
  */
 static void opal_free_list_t_dump_position( mqs_opal_free_list_t_pos* position )
 {
+printf("TEST\n");
     printf( "position->opal_list_t_pos.current_item = 0x%llx\n", (long long)position->opal_list_t_pos.current_item );
     printf( "position->opal_list_t_pos.list         = 0x%llx\n", (long long)position->opal_list_t_pos.list );
     printf( "position->opal_list_t_pos.sentinel     = 0x%llx\n", (long long)position->opal_list_t_pos.sentinel );
@@ -986,6 +995,7 @@ static int opal_free_list_t_init_parser( mqs_process *proc, mpi_process_info *p_
 static int opal_free_list_t_next_item( mqs_process *proc, mpi_process_info *p_info,
                                        mqs_opal_free_list_t_pos* position, mqs_taddr_t* active_item )
 {
+printf("TEST\n");
     mqs_image * image          = mqs_get_image (proc);
     mpi_image_info *i_info   = (mpi_image_info *)mqs_get_image_info (image);
     mqs_taddr_t active_allocation;

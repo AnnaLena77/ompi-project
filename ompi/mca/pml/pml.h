@@ -455,6 +455,8 @@ typedef int (*mca_pml_base_module_cancelled_fn_t)(
  * @return                OMPI_SUCCESS or failure status.
  *
  */
+ 
+//Callback Funktion, die ein struct ompi_request_t als Parameter hat und ein Int zurückgibt
 typedef int (*mca_pml_base_module_free_fn_t)(
     struct ompi_request_t** request
 );
@@ -495,6 +497,7 @@ typedef int (*mca_pml_base_module_dump_fn_t)(
  *  PML instance.
  */
 
+//Mca_pml_base_module_t is defined as follows:
 struct mca_pml_base_module_2_1_0_t {
 
     /* downcalls from MCA to PML */
@@ -551,10 +554,16 @@ typedef mca_pml_base_module_2_1_0_t mca_pml_base_module_t;
 
 #else
 #define MCA_PML_CALL(a) mca_pml.pml_ ## a
+//= mca_pml.pml_send
+//variable mca_pml has type: "mca_pml_base_module_t" (aka sruct "mca_pml_base_module_2_1_0_t")
+// mca_pml_base_module_2_1_0_t has a Member "pml_send"
+//calls member callback function: mca_pml_base_module_send_fn_t
 #endif
 
+//Definition siehe oben
 OMPI_DECLSPEC extern mca_pml_base_module_t mca_pml;
 
+//Wird jeweils einmal aufgerufen für jeden Prozess
 static inline bool mca_pml_base_requires_world (void)
 {
     return !!(mca_pml.pml_flags & MCA_PML_BASE_FLAG_REQUIRE_WORLD);

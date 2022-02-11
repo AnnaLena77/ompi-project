@@ -62,6 +62,8 @@ ompi_message_alloc(void)
     return (ompi_message_t *) opal_free_list_get (&ompi_message_free_list);
 }
 
+
+//no
 static inline
 void
 ompi_message_return(ompi_message_t* msg)

@@ -30,8 +30,10 @@
 opal_free_list_t mca_pml_base_send_requests = {{{0}}};
 opal_free_list_t mca_pml_base_recv_requests = {{{0}}};
 
+//Aufruf immer 16 Mal
 static void mca_pml_base_request_construct(mca_pml_base_request_t* req)
 {
+    //printf("TEST\n");
     req->req_ompi.req_type = OMPI_REQUEST_PML;
 }
 

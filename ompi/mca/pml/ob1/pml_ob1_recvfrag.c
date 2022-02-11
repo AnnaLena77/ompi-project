@@ -634,7 +634,7 @@ void mca_pml_ob1_recv_frag_callback_match (mca_btl_base_module_t *btl,
     }
 }
 
-
+//HIER!
 void mca_pml_ob1_recv_frag_callback_rndv (mca_btl_base_module_t *btl,
                                           const mca_btl_base_receive_descriptor_t *descriptor)
 {
@@ -663,6 +663,7 @@ void mca_pml_ob1_recv_frag_callback_rget (mca_btl_base_module_t *btl,
                                 descriptor->des_segment_count, MCA_PML_OB1_HDR_TYPE_RGET);
 }
 
+//HIER!!! Kommt bei Ssend beim Senden
 void mca_pml_ob1_recv_frag_callback_ack (mca_btl_base_module_t *btl,
                                          const mca_btl_base_receive_descriptor_t *descriptor)
 {
@@ -809,6 +810,7 @@ void mca_pml_ob1_recv_frag_callback_fin(mca_btl_base_module_t *btl,
 
 #define PML_MAX_SEQ ~((mca_pml_sequence_t)0);
 
+//HIER!! 2 x
 static inline mca_pml_ob1_recv_request_t* get_posted_recv(opal_list_t *queue)
 {
     if(opal_list_get_size(queue) == 0)
@@ -886,6 +888,7 @@ static mca_pml_ob1_recv_request_t *match_incomming_no_any_source (const mca_pml_
                                                                   mca_pml_ob1_comm_t *comm,
                                                                   mca_pml_ob1_comm_proc_t *proc)
 {
+    printf("match_incomming_no_any_source\n");
     mca_pml_ob1_recv_request_t *recv_req;
     int tag = hdr->hdr_tag;
 
@@ -904,6 +907,7 @@ static mca_pml_ob1_recv_request_t *match_incomming_no_any_source (const mca_pml_
 }
 #endif
 
+//HIER!!
 static mca_pml_ob1_recv_request_t *match_one (mca_btl_base_module_t *btl,
                                               const mca_pml_ob1_match_hdr_t *hdr,
                                               const mca_btl_base_segment_t *segments,
@@ -1015,6 +1019,7 @@ static mca_pml_ob1_recv_request_t *match_one (mca_btl_base_module_t *btl,
  *   - fragments may be corrupt
  *   - this routine may be called simultaneously by more than one thread
  */
+ //HIER!!
 static int mca_pml_ob1_recv_frag_match (mca_btl_base_module_t *btl,
                                         const mca_pml_ob1_match_hdr_t *hdr,
                                         const mca_btl_base_segment_t *segments,
@@ -1119,6 +1124,8 @@ static int mca_pml_ob1_recv_frag_match (mca_btl_base_module_t *btl,
  *
  * ATTENTION: THIS FUNCTION MUST BE CALLED WITH COMMUNICATOR LOCK HELD.
  * THE LOCK WILL BE RELEASED UPON RETURN. USE WITH CARE. */
+ 
+//HIER!!
 static int
 mca_pml_ob1_recv_frag_match_proc (mca_btl_base_module_t *btl,
                                   ompi_communicator_t* comm_ptr,

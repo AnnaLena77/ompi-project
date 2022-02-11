@@ -39,7 +39,11 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
+#include "ompi/request/request.h"
+#include "ompi/mca/pml/ob1/pml_ob1_comm.h"
+#include "opal/class/opal_free_list.h"
 #include "ompi/mpi/c/init.h"
+#include "ompi/mca/pml/base/pml_base_sendreq.h"
 
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -49,7 +53,7 @@
 #define MPI_Init PMPI_Init
 #endif
 
-#define SAMPLING 10
+//#define SAMPLING 10
 
 typedef struct qentry {
     char* operation;
@@ -71,6 +75,16 @@ static TAILQ_HEAD(, qentry) head;
     static int samplecount = 1;
     static int samplerandom;
 #endif
+
+void testi(struct mca_pml_base_send_request_t* request){
+    //ompi_mpi_object_t req_object = t->req_mpi_object;
+    //ompi_communicator_t *comm = req_object.comm; 
+    //mca_pml_ob1_comm_t *comm_ob1 = (mca_pml_ob1_comm_t *)comm->c_pml_comm;
+    //opal_free_list_item_t list_item = (opal_free_list_item_t)t->super;
+    //opal_list_item_t item = (opal_list_item_t)list_item.super;
+    
+    printf("%s\n", request->req_addr);
+}
 
 void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime){
     //printf("Operation: %s\n", *operation);
@@ -233,6 +247,7 @@ int MPI_Init(int *argc, char ***argv)
     int err;
     int provided;
     char *env;
+    //There should only be the main thread in the process
     int required = MPI_THREAD_SINGLE;
 
     /* check for environment overrides for required thread level.  If
@@ -250,7 +265,7 @@ int MPI_Init(int *argc, char ***argv)
     /* Call the back-end initialization function (we need to put as
        little in this function as possible so that if it's profiled, we
        don't lose anything) */
-
+    //Defined in ompi_mpi_init.c 
     if (NULL != argc && NULL != argv) {
         err = ompi_mpi_init(*argc, *argv, required, &provided, false);
     } else {
@@ -264,6 +279,7 @@ int MPI_Init(int *argc, char ***argv)
        back-end function directly. */
 
     if (MPI_SUCCESS != err) {
+    	//Funktion aus \ompi\errhandler\errhandler_invoke.c
         return ompi_errhandler_invoke(NULL, NULL,
                                       OMPI_ERRHANDLER_TYPE_COMM,
                                       err <

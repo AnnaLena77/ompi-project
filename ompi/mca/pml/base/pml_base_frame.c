@@ -99,6 +99,7 @@ char *ompi_pml_base_bsend_allocator_name = NULL;
 static char *ompi_pml_base_wrapper = NULL;
 #endif
 
+// ein mal pro Prozess aufgerufen
 static int mca_pml_base_register(mca_base_register_flag_t flags)
 {
 #if !MCA_ompi_pml_DIRECT_CALL
@@ -174,8 +175,11 @@ static int mca_pml_base_close(void)
  * Function for finding and opening either all MCA components, or the one
  * that was specifically requested via a MCA parameter.
  */
+
+//Pro Prozess einmal aufgerufen!
 static int mca_pml_base_open(mca_base_open_flag_t flags)
 {
+    //printf("hier ist die queue\n");
     /**
      * Construct the send and receive request queues. There are 2 reasons to do it
      * here. First, as they are globals it's better to construct them in one common
@@ -183,6 +187,8 @@ static int mca_pml_base_open(mca_base_open_flag_t flags)
      * their content, they should get constructed as soon as possible once the MPI
      * process is started.
      */
+     
+     //OBJ_CONSTRUCT aus opal_object.h
     OBJ_CONSTRUCT(&mca_pml_base_send_requests, opal_free_list_t);
     OBJ_CONSTRUCT(&mca_pml_base_recv_requests, opal_free_list_t);
 

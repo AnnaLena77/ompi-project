@@ -76,16 +76,19 @@ struct mca_pml_ob1_send_range_t {
 typedef struct mca_pml_ob1_send_range_t mca_pml_ob1_send_range_t;
 OBJ_CLASS_DECLARATION(mca_pml_ob1_send_range_t);
 
+//no
 static inline bool lock_send_request(mca_pml_ob1_send_request_t *sendreq)
 {
     return OPAL_THREAD_ADD_FETCH32(&sendreq->req_lock,  1) == 1;
 }
 
+//no
 static inline bool unlock_send_request(mca_pml_ob1_send_request_t *sendreq)
 {
     return OPAL_THREAD_ADD_FETCH32(&sendreq->req_lock, -1) == 0;
 }
 
+//no
 static inline void
 add_request_to_send_pending(mca_pml_ob1_send_request_t* sendreq,
                             const mca_pml_ob1_send_pending_t type,
@@ -104,6 +107,7 @@ add_request_to_send_pending(mca_pml_ob1_send_request_t* sendreq,
     mca_pml_ob1_enable_progress(1);
 }
 
+//no
 static inline mca_pml_ob1_send_request_t*
 get_request_from_send_pending(mca_pml_ob1_send_pending_t *type)
 {
@@ -120,7 +124,7 @@ get_request_from_send_pending(mca_pml_ob1_send_pending_t *type)
 
     return sendreq;
 }
-
+//pml_ob1_isend.c
 #define MCA_PML_OB1_SEND_REQUEST_ALLOC( comm,                           \
                                         dst,                            \
                                         sendreq)                        \
@@ -134,7 +138,7 @@ get_request_from_send_pending(mca_pml_ob1_send_pending_t *type)
         }                                                               \
     }
 
-
+//pml_ob1_isend.c
 #define MCA_PML_OB1_SEND_REQUEST_INIT( sendreq,                         \
                                        buf,                             \
                                        count,                           \
@@ -160,7 +164,7 @@ get_request_from_send_pending(mca_pml_ob1_send_pending_t *type)
 
 #define MCA_PML_OB1_SEND_REQUEST_RESET(sendreq)                         \
     MCA_PML_BASE_SEND_REQUEST_RESET(&(sendreq)->req_send)
-
+//no
 static inline void mca_pml_ob1_free_rdma_resources (mca_pml_ob1_send_request_t* sendreq)
 {
     size_t r;
@@ -211,10 +215,9 @@ do {                                                                            
                                                                                      \
    ompi_request_complete( &((sendreq)->req_send.req_base.req_ompi), (with_signal) ); \
 } while(0)
-
+//no
 static inline void mca_pml_ob1_send_request_fini (mca_pml_ob1_send_request_t *sendreq)
 {
-
   /* make buffer defined when the request is completed,
      and before releasing the objects. */
      MEMCHECKER(
@@ -250,6 +253,7 @@ static inline void mca_pml_ob1_send_request_fini (mca_pml_ob1_send_request_t *se
  * should only be an internal call to the PML.
  *
  */
+ //no
 static inline void
 send_request_pml_complete(mca_pml_ob1_send_request_t *sendreq)
 {
@@ -382,7 +386,7 @@ int mca_pml_ob1_send_request_start_rndv(
     mca_bml_base_btl_t* bml_btl,
     size_t size,
     int flags);
-
+//no
 static inline int
 mca_pml_ob1_send_request_start_btl( mca_pml_ob1_send_request_t* sendreq,
                                     mca_bml_base_btl_t* bml_btl )
@@ -504,7 +508,7 @@ mca_pml_ob1_send_request_start_seq (mca_pml_ob1_send_request_t* sendreq, mca_bml
 
     return OMPI_SUCCESS;
 }
-
+//no
 static inline int
 mca_pml_ob1_send_request_start( mca_pml_ob1_send_request_t* sendreq )
 {

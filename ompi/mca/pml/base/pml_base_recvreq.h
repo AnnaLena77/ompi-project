@@ -83,6 +83,7 @@ OMPI_DECLSPEC OBJ_CLASS_DECLARATION(mca_pml_base_recv_request_t);
     /* What about req_type ? */                                          \
     (request)->req_base.req_pml_complete = false;                        \
     (request)->req_base.req_free_called = false;                         \
+                                                                         \
 }
 /**
  *

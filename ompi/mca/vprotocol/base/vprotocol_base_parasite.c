@@ -13,6 +13,7 @@
 #include "vprotocol_base_request.h"
 
 int mca_vprotocol_base_parasite(void) {
+    printf("HALLO TEST\n");
     if(mca_vprotocol.add_procs)
         mca_pml.pml_add_procs = mca_vprotocol.add_procs;
     if(mca_vprotocol.del_procs)
