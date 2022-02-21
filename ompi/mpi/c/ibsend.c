@@ -49,17 +49,36 @@ static const char FUNC_NAME[] = "MPI_Ibsend";
 int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
                int tag, MPI_Comm comm, MPI_Request *request)
 {
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    //item->start
     time_t current_time = time(NULL);
-    char *operation = "ibsend";
-    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int comm_name_length;
-    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    item->start = current_time;
+    //item->operation
+    item->operation = "ibsend";
+    //item->blocking
+    item->blocking = 0;
+    //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
+    item->datatype=type_name;
+    //item->count
+    item->count = count;
+    //item->datasize
+    item->datasize = count * sizeof(type);
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    item->communicator=comm_name;
+    //item->processrank
     int processrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
-    enqueue(&operation, &type_name, count, count*sizeof(type), &comm_name, processrank, dest, current_time);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = dest;
+    
+    
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_IBSEND, 1);
@@ -105,7 +124,7 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
     MEMCHECKER (
         memchecker_call(&opal_memchecker_base_mem_noaccess, buf, count, type);
     );
-    rc = MCA_PML_CALL(isend(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, request));
+    rc = MCA_PML_CALL(isend(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, request, item));
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
 

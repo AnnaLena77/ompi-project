@@ -105,7 +105,7 @@ int MPI_Issend(const void *buf, int count, MPI_Datatype type, int dest,
         memchecker_call(&opal_memchecker_base_mem_noaccess, buf, count, type);
     );
     rc = MCA_PML_CALL(isend(buf, count, type, dest, tag,
-                            MCA_PML_BASE_SEND_SYNCHRONOUS, comm, request));
+                            MCA_PML_BASE_SEND_SYNCHRONOUS, comm, request, NULL));
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
 

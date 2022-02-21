@@ -41,6 +41,7 @@
 #include "ompi/mca/bml/base/base.h"
 #include "ompi/proc/proc.h"
 #include "opal/mca/allocator/base/base.h"
+#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 
@@ -162,7 +163,7 @@ extern int mca_pml_ob1_isend( const void *buf,
                               int tag,
                               mca_pml_base_send_mode_t mode,
                               struct ompi_communicator_t* comm,
-                              struct ompi_request_t **request );
+                              struct ompi_request_t **request, qentry **q);
 
 extern int mca_pml_ob1_send( const void *buf,
                              size_t count,

@@ -47,19 +47,6 @@
 #define MPI_Init PMPI_Init
 #endif
 
-typedef struct qentry {
-    char* operation;
-    char* datatype;
-    int count;
-    int datasize;
-    char* communicator;
-    int processrank;
-    int partnerrank;
-    time_t start;
-    TAILQ_ENTRY(qentry) pointers;
-} qentry;
-
-
 static TAILQ_HEAD(, qentry) head;
 
 void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime){
@@ -112,6 +99,18 @@ static void insertData(char **batchstr){
     }
 }
 
+void qentryIntoQueue(qentry **q){
+    qentry *item = *q;
+    char *timestamp=(char*)malloc(20);
+    struct tm tm = *localtime(&item->start);
+    sprintf(timestamp, "%d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    printf("%s\n", timestamp);
+    char *timestamp2=(char*)malloc(20);
+    struct tm tm2 = *localtime(&item->start);
+    sprintf(timestamp2, "%d-%02d-%02d %02d:%02d:%02d", tm2.tm_year + 1900, tm2.tm_mon + 1, tm2.tm_mday, tm2.tm_hour, tm2.tm_min, tm2.tm_sec);
+    printf("%s\n", timestamp2);
+}
+
 static void collectData(qentry **item, char **batchstr){
     qentry *q = *item;
     int countlen = (q->count==0)?1:(int)log10(q->count)+1;
@@ -135,7 +134,7 @@ static void collectData(qentry **item, char **batchstr){
     count--;
     if(count==0 || last_one){
 	char *batch = *batchstr;
-	insertData(&batch);
+	//insertData(&batch);
 	*batchstr = realloc(*batchstr, strlen(batchstring)+1);
 	strcpy(*batchstr, batchstring);
 	last_one=0;
@@ -157,8 +156,8 @@ static void* MonitorFunc(void* _arg){
         }
         else {
             item = dequeue();
-            collectData(&item, &batch);
-	    free(item);
+            //collectData(&item, &batch);
+	   free(item);
             //printf("%d\n", item->data);
         }
     }
