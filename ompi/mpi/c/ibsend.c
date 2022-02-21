@@ -49,6 +49,7 @@ static const char FUNC_NAME[] = "MPI_Ibsend";
 int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
                int tag, MPI_Comm comm, MPI_Request *request)
 {
+    #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     //item->start
     time_t current_time = time(NULL);
@@ -77,8 +78,8 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
     item->processrank = processrank;
     //item->partnerrank
     item->partnerrank = dest;
-    
-    
+
+    #endif
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_IBSEND, 1);

@@ -24,7 +24,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <string.h>
 #include <math.h>
 #include <sys/queue.h>
@@ -47,13 +49,38 @@
 #define MPI_Init PMPI_Init
 #endif
 
+#define SAMPLING 10
+
+static counter=0;
 static TAILQ_HEAD(, qentry) head;
+//sem_t ENSURE_INIT;
+
+#ifdef SAMPLING
+    static int samplecount = 1;
+    static int samplerandom;
+#endif
 
 void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime){
     //printf("Operation: %s\n", *operation);
     //printf("Hier der Communicator: %s\n", *communicator);
     //printf("Hier der Type: %s\n", *datatype);
     //printf("Current Time: %ld \n", ctime);
+    #ifdef SAMPLING
+    //printf("%d\n", samplerandom);
+    if(samplecount==1){
+        samplecount = SAMPLING;
+        samplerandom=rand()%SAMPLING+1;
+        //printf("Berechnetes Samplerandom: %d\n",samplerandom);
+    }
+    else{
+        samplecount--;
+    }
+    if(samplecount!=samplerandom){
+    	 //printf("Samplecount = %d, Samplerandom = %d\n", samplecount, samplerandom);
+    	 return;
+    }
+    #endif
+    //printf("Echtes Samplerandom: %d\n",samplerandom);
     qentry *item = (qentry*)malloc(sizeof(qentry));
     item->operation = strdup(*operation);
     item->datatype = strdup(*datatype);
@@ -83,7 +110,7 @@ static char *user = "AnnaLena";
 static char *password = "annalena";
 static char *database = "DataFromMPI";
 
-static const int LIMIT = 1000;
+static const int LIMIT = 10;
 static int last_one = 0;
 static int count = LIMIT;
 static char *batchstring = "INSERT INTO MPI_Data(operation, datatype, count, datasize, communicator, processrank, partnerrank, timestamp_into_queue)VALUES";
@@ -148,7 +175,6 @@ static void* MonitorFunc(void* _arg){
     int finish = 0;
     while(!finish){
         if(TAILQ_EMPTY(&head)){
-            last_one=1;
             sleep(1);
             if(TAILQ_EMPTY(&head)){
                 finish = 1; 
@@ -156,8 +182,11 @@ static void* MonitorFunc(void* _arg){
         }
         else {
             item = dequeue();
+            if(TAILQ_EMPTY(&head)){
+            	last_one=1;
+            }
             //collectData(&item, &batch);
-	   free(item);
+	          free(item);
             //printf("%d\n", item->data);
         }
     }
@@ -166,10 +195,8 @@ static void* MonitorFunc(void* _arg){
 
 static const char FUNC_NAME[] = "MPI_Init";
 
-
-int MPI_Init(int *argc, char ***argv)
+void initialize()
 {
-    //printf("Hallo aus der init \n");
     conn = mysql_init(NULL);
     if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
         fprintf(stderr, "%s\n", mysql_error(conn));
@@ -188,6 +215,21 @@ int MPI_Init(int *argc, char ***argv)
     
     TAILQ_INIT(&head);
     pthread_create(&MONITOR_THREAD, NULL, MonitorFunc, NULL);
+}
+
+
+int MPI_Init(int *argc, char ***argv)
+{
+
+    //printf("Test 1\n");
+    #ifdef SAMPLING
+        srand(time(NULL));
+        samplerandom=rand()%100+1;
+    #endif
+    
+    #ifdef ENABLE_ANALYSIS
+    	initialize();
+    #endif
     int err;
     int provided;
     char *env;
@@ -203,6 +245,7 @@ int MPI_Init(int *argc, char ***argv)
             required = MPI_THREAD_MULTIPLE;
         }
     }
+    //printf("Test 2\n");
 
     /* Call the back-end initialization function (we need to put as
        little in this function as possible so that if it's profiled, we
@@ -213,6 +256,7 @@ int MPI_Init(int *argc, char ***argv)
     } else {
         err = ompi_mpi_init(0, NULL, required, &provided, false);
     }
+    //printf("Test 3\n");
 
     /* Since we don't have a communicator to invoke an errorhandler on
        here, don't use the fancy-schmancy ERRHANDLER macros; they're
@@ -226,8 +270,9 @@ int MPI_Init(int *argc, char ***argv)
                                       0 ? ompi_errcode_get_mpi_code(err) :
                                       err, FUNC_NAME);
     }
+    //printf("Test 4\n");
 
     SPC_INIT();
-
+    //printf("Test 5\n");
     return MPI_SUCCESS;
 }
