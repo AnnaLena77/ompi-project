@@ -59,10 +59,15 @@ mca_coll_inter_gatherv_inter(const void *sbuf, int scount,
     if (MPI_ROOT == root) { /* I am the root, receiving the data from zero. */
         ompi_datatype_create_indexed(size, rcounts, disps, rdtype, &ndtype);
         ompi_datatype_commit(&ndtype);
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, 1, ndtype, 0,
                                 MCA_COLL_BASE_TAG_GATHERV,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(rbuf, 1, ndtype, 0,
+                                MCA_COLL_BASE_TAG_GATHERV,
+                                comm, MPI_STATUS_IGNORE, NULL));
+#endif
         ompi_datatype_destroy(&ndtype);
         return err;
     }
@@ -113,9 +118,15 @@ mca_coll_inter_gatherv_inter(const void *sbuf, int scount,
 
     if (0 == rank) {
         /* First process sends data to the root */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(ptmp, total, sdtype, root,
                                 MCA_COLL_BASE_TAG_GATHERV,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err = MCA_PML_CALL(send(ptmp, total, sdtype, root,
+                                MCA_COLL_BASE_TAG_GATHERV,
+                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     }
 
   exit:

@@ -86,10 +86,15 @@ ompi_coll_base_scan_intra_linear(const void *sbuf, void *rbuf, int count,
         }
 
         /* Receive the prior answer */
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(pml_buffer, count, dtype,
                                 rank - 1, MCA_COLL_BASE_TAG_SCAN, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(pml_buffer, count, dtype,
+                                rank - 1, MCA_COLL_BASE_TAG_SCAN, comm,
+                                MPI_STATUS_IGNORE, NULL));
+#endif
         if (MPI_SUCCESS != err) {
             if (NULL != free_buffer) {
                 free(free_buffer);
@@ -111,9 +116,15 @@ ompi_coll_base_scan_intra_linear(const void *sbuf, void *rbuf, int count,
     /* Send result to next process. */
 
     if (rank < (size - 1)) {
+#ifndef ENABLE_ANALYSIS
         return MCA_PML_CALL(send(rbuf, count, dtype, rank + 1,
                                  MCA_COLL_BASE_TAG_SCAN,
                                  MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        return MCA_PML_CALL(send(rbuf, count, dtype, rank + 1,
+                                 MCA_COLL_BASE_TAG_SCAN,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     }
 
     /* All done */

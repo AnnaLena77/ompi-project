@@ -737,6 +737,7 @@ mca_fcoll_vulcan_file_read_all (ompio_file_t *fh,
                     opal_datatype_type_size(&sendtype[i]->super, &datatype_size);
 
                     if(datatype_size) {
+#ifndef ENABLE_ANALYSIS
                         ret = MCA_PML_CALL (isend(global_buf,
                                                   1,
                                                   sendtype[i],
@@ -745,6 +746,16 @@ mca_fcoll_vulcan_file_read_all (ompio_file_t *fh,
                                                   MCA_PML_BASE_SEND_STANDARD,
                                                   fh->f_comm,
                                                   &send_req[i]));
+#else	
+		     ret = MCA_PML_CALL (isend(global_buf,
+                                                  1,
+                                                  sendtype[i],
+                                                  fh->f_procs_in_group[i],
+                                                  FCOLL_VULCAN_SHUFFLE_TAG,
+                                                  MCA_PML_BASE_SEND_STANDARD,
+                                                  fh->f_comm,
+                                                  &send_req[i], NULL));
+#endif
                         if(OMPI_SUCCESS != ret){
                             goto exit;
                         }
@@ -818,6 +829,7 @@ mca_fcoll_vulcan_file_read_all (ompio_file_t *fh,
 #if OMPIO_FCOLL_WANT_TIME_BREAKDOWN
             start_rcomm_time = MPI_Wtime();
 #endif
+#ifndef ENABLE_ANALYSIS
             ret = MCA_PML_CALL(irecv((char *)recv_mem_address,
                                      1,
                                      newType,
@@ -825,6 +837,15 @@ mca_fcoll_vulcan_file_read_all (ompio_file_t *fh,
                                      FCOLL_VULCAN_SHUFFLE_TAG,
                                      fh->f_comm,
                                      &recv_req));
+#else
+	   ret = MCA_PML_CALL(irecv((char *)recv_mem_address,
+                                     1,
+                                     newType,
+                                     my_aggregator,
+                                     FCOLL_VULCAN_SHUFFLE_TAG,
+                                     fh->f_comm,
+                                     &recv_req, NULL));
+#endif
 
             if ( MPI_DATATYPE_NULL != newType ) {
                 ompi_datatype_destroy(&newType);

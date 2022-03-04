@@ -83,14 +83,24 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     }
 
     if (source != MPI_PROC_NULL) { /* post recv */
+        #ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(recvbuf, recvcount, recvtype,
                                 source, recvtag, comm, &req));
+        #else
+        rc = MCA_PML_CALL(irecv(recvbuf, recvcount, recvtype,
+                                source, recvtag, comm, &req, NULL));
+        #endif
         OMPI_ERRHANDLER_CHECK(rc, comm, rc, FUNC_NAME);
     }
 
     if (dest != MPI_PROC_NULL) { /* send */
+        #ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(send(sendbuf, sendcount, sendtype, dest,
                                sendtag, MCA_PML_BASE_SEND_STANDARD, comm));
+        #else
+        rc = MCA_PML_CALL(send(sendbuf, sendcount, sendtype, dest,
+                               sendtag, MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+        #endif
         if (OPAL_UNLIKELY(MPI_SUCCESS != rc)) {
             rcs = rc;
 #if OPAL_ENABLE_FT_MPI

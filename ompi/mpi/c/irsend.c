@@ -55,7 +55,7 @@ int MPI_Irsend(const void *buf, int count, MPI_Datatype type, int dest,
     time_t current_time = time(NULL);
     item->start = current_time;
     //item->operation
-    item->operation = "ibsend";
+    item->operation = "MPI_Irsend";
     //item->blocking
     item->blocking = 0;
     //item->datatype
@@ -125,8 +125,13 @@ int MPI_Irsend(const void *buf, int count, MPI_Datatype type, int dest,
     MEMCHECKER (
         memchecker_call(&opal_memchecker_base_mem_noaccess, buf, count, type);
     );
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(isend(buf,count,type,dest,tag,
-                            MCA_PML_BASE_SEND_READY,comm,request, NULL));
+                            MCA_PML_BASE_SEND_READY,comm,request));
+#else
+    rc = MCA_PML_CALL(isend(buf,count,type,dest,tag,
+                            MCA_PML_BASE_SEND_READY,comm,request, &item));
+#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
 

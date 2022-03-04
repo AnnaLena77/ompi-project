@@ -55,7 +55,7 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
     time_t current_time = time(NULL);
     item->start = current_time;
     //item->operation
-    item->operation = "ibsend";
+    item->operation = "MPI_Ibsend";
     //item->blocking
     item->blocking = 0;
     //item->datatype
@@ -125,7 +125,11 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
     MEMCHECKER (
         memchecker_call(&opal_memchecker_base_mem_noaccess, buf, count, type);
     );
-    rc = MCA_PML_CALL(isend(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, request, item));
+#ifndef ENABLE_ANALYSIS
+    rc = MCA_PML_CALL(isend(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, request));
+#else
+    rc = MCA_PML_CALL(isend(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, request, &item));
+#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
 

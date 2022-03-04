@@ -359,8 +359,13 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
         localrank_to_objnum[0] = obj_rank;
 
         for(i = 1;  i < num_procs_in_node; i++) {
+#ifndef ENABLE_ANALYSIS
             if (OMPI_SUCCESS != ( err = MCA_PML_CALL(irecv(&localrank_to_objnum[i], 1, MPI_INT,
                                                            lindex_to_grank[i], -111, comm_old, &reqs[i-1])))) {
+#else
+            if (OMPI_SUCCESS != ( err = MCA_PML_CALL(irecv(&localrank_to_objnum[i], 1, MPI_INT,
+                                                           lindex_to_grank[i], -111, comm_old, &reqs[i-1], NULL)))) {
+#endif
                 free(reqs); reqs = NULL;
                 goto release_and_return;
             }
@@ -372,8 +377,13 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
         }
     } else {
         /* sending my core number to my local master on the node */
+#ifndef ENABLE_ANALYSIS
         if (OMPI_SUCCESS != (err = MCA_PML_CALL(send(&obj_rank, 1, MPI_INT, lindex_to_grank[0],
                                                      -111, MCA_PML_BASE_SEND_STANDARD, comm_old)))) {
+#else
+        if (OMPI_SUCCESS != (err = MCA_PML_CALL(send(&obj_rank, 1, MPI_INT, lindex_to_grank[0],
+                                                     -111, MCA_PML_BASE_SEND_STANDARD, comm_old, NULL)))) {
+#endif
             free(reqs); reqs = NULL;
             goto release_and_return;
         }
@@ -437,8 +447,13 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
                     reqs = (MPI_Request *)calloc(num_nodes-1, sizeof(MPI_Request));
                     objs_per_node[0] = num_objs_in_node;
                     for(i = 1; i < num_nodes ; i++)
+#ifndef ENABLE_ANALYSIS
                         if (OMPI_SUCCESS != ( err = MCA_PML_CALL(irecv(objs_per_node + i, 1, MPI_INT,
                                                                        nodes_roots[i], -112, comm_old, &reqs[i-1])))) {
+#else
+                        if (OMPI_SUCCESS != ( err = MCA_PML_CALL(irecv(objs_per_node + i, 1, MPI_INT,
+                                                                       nodes_roots[i], -112, comm_old, &reqs[i-1], NULL)))) {
+#endif
                             free(obj_to_rank_in_comm);
                             free(objs_per_node);
                             goto release_and_return;
@@ -459,8 +474,13 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
                     memcpy(obj_mapping, obj_to_rank_in_comm, objs_per_node[0]*sizeof(int));
                     displ = objs_per_node[0];
                     for(i = 1; i < num_nodes ; i++) {
+#ifndef ENABLE_ANALYSIS
                         if (OMPI_SUCCESS != ( err = MCA_PML_CALL(irecv(obj_mapping + displ, objs_per_node[i], MPI_INT,
                                                                        nodes_roots[i], -113, comm_old, &reqs[i-1])))) {
+#else
+                        if (OMPI_SUCCESS != ( err = MCA_PML_CALL(irecv(obj_mapping + displ, objs_per_node[i], MPI_INT,
+                                                                       nodes_roots[i], -113, comm_old, &reqs[i-1], NULL)))) {
+#endif
                             free(obj_to_rank_in_comm);
                             free(objs_per_node);
                             free(obj_mapping);
@@ -488,13 +508,23 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
 #endif
             } else {
                 if ( num_nodes > 1 ) {
+#ifndef ENABLE_ANALYSIS
                     if (OMPI_SUCCESS != (err = MCA_PML_CALL(send(&num_objs_in_node, 1, MPI_INT,
                                                                  0, -112, MCA_PML_BASE_SEND_STANDARD, comm_old)))) {
+#else
+                    if (OMPI_SUCCESS != (err = MCA_PML_CALL(send(&num_objs_in_node, 1, MPI_INT,
+                                                                 0, -112, MCA_PML_BASE_SEND_STANDARD, comm_old, NULL)))) {
+#endif
                         free(obj_to_rank_in_comm);
                         goto release_and_return;
                     }
+#ifndef ENABLE_ANALYSIS
                     if (OMPI_SUCCESS != (err = MCA_PML_CALL(send(obj_to_rank_in_comm, num_objs_in_node, MPI_INT,
                                                                  0, -113, MCA_PML_BASE_SEND_STANDARD, comm_old)))) {
+#else
+                    if (OMPI_SUCCESS != (err = MCA_PML_CALL(send(obj_to_rank_in_comm, num_objs_in_node, MPI_INT,
+                                                                 0, -113, MCA_PML_BASE_SEND_STANDARD, comm_old, NULL)))) {
+#endif
                         free(obj_to_rank_in_comm);
                         goto release_and_return;
                     }
@@ -519,15 +549,25 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
             /* gather hierarchies iff more than 1 node! */
             if ( num_nodes > 1 ) {
                 if( rank != 0 ) {
+#ifndef ENABLE_ANALYSIS
                     if (OMPI_SUCCESS != (err = MCA_PML_CALL(send(hierarchies,(TM_MAX_LEVELS+1), MPI_INT, 0,
                                                                  -114, MCA_PML_BASE_SEND_STANDARD, comm_old)))) {
+#else
+                    if (OMPI_SUCCESS != (err = MCA_PML_CALL(send(hierarchies,(TM_MAX_LEVELS+1), MPI_INT, 0,
+                                                                 -114, MCA_PML_BASE_SEND_STANDARD, comm_old, NULL)))) {
+#endif
                         free(hierarchies);
                         goto release_and_return;
                     }
                 } else {
                     for(i = 1; i < num_nodes ; i++)
+#ifndef ENABLE_ANALYSIS
                         if (OMPI_SUCCESS != ( err = MCA_PML_CALL(irecv(hierarchies+i*(TM_MAX_LEVELS+1), (TM_MAX_LEVELS+1), MPI_INT,
                                                                        nodes_roots[i], -114, comm_old, &reqs[i-1])))) {
+#else
+                        if (OMPI_SUCCESS != ( err = MCA_PML_CALL(irecv(hierarchies+i*(TM_MAX_LEVELS+1), (TM_MAX_LEVELS+1), MPI_INT,
+                                                                       nodes_roots[i], -114, comm_old, &reqs[i-1], NULL)))) {
+#endif
                             free(obj_mapping);
                             free(hierarchies);
                             goto release_and_return;

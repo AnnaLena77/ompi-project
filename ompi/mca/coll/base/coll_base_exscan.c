@@ -55,17 +55,29 @@ ompi_coll_base_exscan_intra_linear(const void *sbuf, void *rbuf, int count,
     /* If we're rank 0, then just send our sbuf to the next rank, and
      * we are done. */
     if (0 == rank) {
+#ifndef ENABLE_ANALYSIS
         return MCA_PML_CALL(send(sbuf, count, dtype, rank + 1,
                                  MCA_COLL_BASE_TAG_EXSCAN,
                                  MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        return MCA_PML_CALL(send(sbuf, count, dtype, rank + 1,
+                                 MCA_COLL_BASE_TAG_EXSCAN,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     }
 
     /* If we're the last rank, then just receive the result from the
      * prior rank, and we are done. */
     else if ((size - 1) == rank) {
+#ifndef ENABLE_ANALYSIS
         return MCA_PML_CALL(recv(rbuf, count, dtype, rank - 1,
                                  MCA_COLL_BASE_TAG_EXSCAN, comm,
                                  MPI_STATUS_IGNORE));
+#else
+        return MCA_PML_CALL(recv(rbuf, count, dtype, rank - 1,
+                                 MCA_COLL_BASE_TAG_EXSCAN, comm,
+                                 MPI_STATUS_IGNORE, NULL));
+#endif
     }
 
     /* Otherwise, get the result from the prior rank, combine it with my
@@ -84,8 +96,13 @@ ompi_coll_base_exscan_intra_linear(const void *sbuf, void *rbuf, int count,
                                               reduce_buffer, (char*)sbuf);
 
     /* Receive the reduced value from the prior rank */
+#ifndef ENABLE_ANALYSIS
     err = MCA_PML_CALL(recv(rbuf, count, dtype, rank - 1,
                             MCA_COLL_BASE_TAG_EXSCAN, comm, MPI_STATUS_IGNORE));
+#else
+    err = MCA_PML_CALL(recv(rbuf, count, dtype, rank - 1,
+                            MCA_COLL_BASE_TAG_EXSCAN, comm, MPI_STATUS_IGNORE, NULL));
+#endif
     if (MPI_SUCCESS != err) {
         goto error;
     }
@@ -95,9 +112,15 @@ ompi_coll_base_exscan_intra_linear(const void *sbuf, void *rbuf, int count,
     ompi_op_reduce(op, rbuf, reduce_buffer, count, dtype);
 
     /* Send my result off to the next rank */
+#ifndef ENABLE_ANALYSIS
     err = MCA_PML_CALL(send(reduce_buffer, count, dtype, rank + 1,
                             MCA_COLL_BASE_TAG_EXSCAN,
                             MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err = MCA_PML_CALL(send(reduce_buffer, count, dtype, rank + 1,
+                            MCA_COLL_BASE_TAG_EXSCAN,
+                            MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     /* Error */
   error:
     free(free_buffer);

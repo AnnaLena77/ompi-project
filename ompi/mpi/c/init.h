@@ -19,7 +19,12 @@ typedef struct qentry {
     int processrank;
     int partnerrank;
     time_t start;
-    time_t sent;
+    time_t initializeRequest;
+    time_t startRequest;
+    time_t requestWaitCompletion;
+    time_t requestFini;
+    time_t sent;//later
+    time_t bufferFree; //later
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
 #endif

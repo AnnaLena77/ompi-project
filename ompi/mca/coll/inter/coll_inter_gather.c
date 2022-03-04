@@ -76,9 +76,15 @@ mca_coll_inter_gather_inter(const void *sbuf, int scount,
                                                      comm->c_local_comm->c_coll->coll_gather_module);
 	if (0 == rank) {
 	    /* First process sends data to the root */
+#ifndef ENABLE_ANALYSIS
 	    err = MCA_PML_CALL(send(ptmp, scount*size_local, sdtype, root,
 				    MCA_COLL_BASE_TAG_GATHER,
 				    MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+	    err = MCA_PML_CALL(send(ptmp, scount*size_local, sdtype, root,
+				    MCA_COLL_BASE_TAG_GATHER,
+				    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
 	    if (OMPI_SUCCESS != err) {
                 return err;
             }
@@ -86,9 +92,15 @@ mca_coll_inter_gather_inter(const void *sbuf, int scount,
         free(ptmp_free);
     } else {
         /* I am the root, loop receiving the data. */
+#ifndef ENABLE_ANALYSIS
 	err = MCA_PML_CALL(recv(rbuf, rcount*size, rdtype, 0,
 				MCA_COLL_BASE_TAG_GATHER,
 				comm, MPI_STATUS_IGNORE));
+#else 
+	err = MCA_PML_CALL(recv(rbuf, rcount*size, rdtype, 0,
+				MCA_COLL_BASE_TAG_GATHER,
+				comm, MPI_STATUS_IGNORE, NULL));
+#endif
 	if (OMPI_SUCCESS != err) {
 	    return err;
 	}

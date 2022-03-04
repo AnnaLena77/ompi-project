@@ -72,7 +72,10 @@ int MPI_Imrecv(void *buf, int count, MPI_Datatype type,
      * handled approprately. So no need to check here.
      */
 #endif
-
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(imrecv(buf, count, type, message, request));
+#else
+    rc = MCA_PML_CALL(imrecv(buf, count, type, message, request, NULL));
+#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

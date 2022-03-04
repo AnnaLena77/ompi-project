@@ -1181,6 +1181,7 @@ static int shuffle_init ( int index, int cycles, int aggregator, int rank, mca_i
                     opal_datatype_type_size(&data->recvtype[i]->super, &datatype_size);
                     
                     if (datatype_size){
+#ifndef ENABLE_ANALYSIS
                         ret = MCA_PML_CALL(irecv(data->global_buf,
                                                  1,
                                                  data->recvtype[i],
@@ -1188,6 +1189,15 @@ static int shuffle_init ( int index, int cycles, int aggregator, int rank, mca_i
                                                  FCOLL_VULCAN_SHUFFLE_TAG+index,
                                                  data->comm,
                                                  &reqs[i]));
+#else
+		      ret = MCA_PML_CALL(irecv(data->global_buf,
+                                                 1,
+                                                 data->recvtype[i],
+                                                 data->procs_in_group[i],
+                                                 FCOLL_VULCAN_SHUFFLE_TAG+index,
+                                                 data->comm,
+                                                 &reqs[i], NULL));
+#endif
                         if (OMPI_SUCCESS != ret){
                             goto exit;
                         }
@@ -1258,7 +1268,7 @@ static int shuffle_init ( int index, int cycles, int aggregator, int rank, mca_i
                                           MPI_BYTE,
                                           &newType);
             ompi_datatype_commit(&newType);
-
+#ifndef ENABLE_ANALYSIS
             ret = MCA_PML_CALL(isend((char *)send_mem_address,
                                      1,
                                      newType,
@@ -1267,6 +1277,16 @@ static int shuffle_init ( int index, int cycles, int aggregator, int rank, mca_i
                                      MCA_PML_BASE_SEND_STANDARD,
                                      data->comm,
                                      &reqs[data->procs_per_group]));
+#else
+	   ret = MCA_PML_CALL(isend((char *)send_mem_address,
+                                     1,
+                                     newType,
+                                     aggregator,
+                                     FCOLL_VULCAN_SHUFFLE_TAG+index,
+                                     MCA_PML_BASE_SEND_STANDARD,
+                                     data->comm,
+                                     &reqs[data->procs_per_group], NULL));
+#endif
             if ( MPI_DATATYPE_NULL != newType ) {
                 ompi_datatype_destroy(&newType);
             }

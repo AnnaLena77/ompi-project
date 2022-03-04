@@ -63,9 +63,15 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 	if(0 == rank) {
 	    /* local root recieves the counts from the root */
 	    counts = (int *)malloc(sizeof(int) * size_local);
+#ifndef ENABLE_ANALYSIS
 	    err = MCA_PML_CALL(recv(counts, size_local, MPI_INT,
 				    root, MCA_COLL_BASE_TAG_SCATTERV,
 				    comm, MPI_STATUS_IGNORE));
+#else
+	    err = MCA_PML_CALL(recv(counts, size_local, MPI_INT,
+				    root, MCA_COLL_BASE_TAG_SCATTERV,
+				    comm, MPI_STATUS_IGNORE, NULL));
+#endif
 	    if (OMPI_SUCCESS != err) {
 		return err;
 	    }
@@ -82,9 +88,15 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 		}
                 ptmp = ptmp_free - gap;
 	    }
+#ifndef ENABLE_ANALYSIS
 	    err = MCA_PML_CALL(recv(ptmp, total, rdtype,
 				    root, MCA_COLL_BASE_TAG_SCATTERV,
 				    comm, MPI_STATUS_IGNORE));
+#else
+	    err = MCA_PML_CALL(recv(ptmp, total, rdtype,
+				    root, MCA_COLL_BASE_TAG_SCATTERV,
+				    comm, MPI_STATUS_IGNORE, NULL));
+#endif
 	    if (OMPI_SUCCESS != err) {
 		return err;
 	    }
@@ -115,19 +127,30 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 	}
 
     } else {
+#ifndef ENABLE_ANALYSIS
 	err = MCA_PML_CALL(send(scounts, size, MPI_INT, 0,
 				MCA_COLL_BASE_TAG_SCATTERV,
 				MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+	err = MCA_PML_CALL(send(scounts, size, MPI_INT, 0,
+				MCA_COLL_BASE_TAG_SCATTERV,
+				MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
 	if (OMPI_SUCCESS != err) {
 	    return err;
 	}
 
 	ompi_datatype_create_indexed(size,scounts,disps,sdtype,&ndtype);
 	ompi_datatype_commit(&ndtype);
-
+#ifndef ENABLE_ANALYSIS
 	err = MCA_PML_CALL(send(sbuf, 1, ndtype, 0,
 				MCA_COLL_BASE_TAG_SCATTERV,
 				MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+	err = MCA_PML_CALL(send(sbuf, 1, ndtype, 0,
+				MCA_COLL_BASE_TAG_SCATTERV,
+				MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
 	if (OMPI_SUCCESS != err) {
 	    return err;
 	}

@@ -45,18 +45,35 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
     #ifdef ENABLE_ANALYSIS
-        time_t current_time = time(NULL);
-        char *operation = "receive";
-        char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-        int comm_name_length;
-        MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-        char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-        int type_name_length;
-        MPI_Type_get_name(type, type_name, &type_name_length);
-        //rank of actual process
-        int processrank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
-        enqueue(&operation, &type_name, count, count*sizeof(type), &comm_name, processrank, source, current_time);
+    qentry *item = NULL;
+    item = (qentry*)malloc(sizeof(qentry));
+    //item->start
+    time_t current_time = time(NULL);
+    item->start = current_time;
+    //item->operation
+    item->operation = "MPI_Recv";
+    //item->blocking
+    item->blocking = 1;
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(type, type_name, &type_name_length);
+    item->datatype=type_name;
+    //item->count
+    item->count = count;
+    //item->datasize
+    item->datasize = count * sizeof(type);
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    item->communicator=comm_name;
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = source;
     #endif
     int rc = MPI_SUCCESS;
 
@@ -92,6 +109,10 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
         }
         return MPI_SUCCESS;
     }
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
+#else
+    rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
+#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

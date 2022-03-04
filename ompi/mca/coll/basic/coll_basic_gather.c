@@ -60,9 +60,15 @@ mca_coll_basic_gather_inter(const void *sbuf, int scount,
         err = OMPI_SUCCESS;
     } else if (MPI_ROOT != root) {
         /* Everyone but root sends data and returns. */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                 MCA_COLL_BASE_TAG_GATHER,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
+                                MCA_COLL_BASE_TAG_GATHER,
+                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     } else {
         /* I am the root, loop receiving the data. */
         err = ompi_datatype_get_extent(rdtype, &lb, &extent);
@@ -72,9 +78,15 @@ mca_coll_basic_gather_inter(const void *sbuf, int scount,
 
         incr = extent * rcount;
         for (i = 0, ptmp = (char *) rbuf; i < size; ++i, ptmp += incr) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(ptmp, rcount, rdtype, i,
                                     MCA_COLL_BASE_TAG_GATHER,
                                     comm, MPI_STATUS_IGNORE));
+#else
+            err = MCA_PML_CALL(recv(ptmp, rcount, rdtype, i,
+                                    MCA_COLL_BASE_TAG_GATHER,
+                                    comm, MPI_STATUS_IGNORE, NULL));
+#endif
             if (MPI_SUCCESS != err) {
                 return err;
             }

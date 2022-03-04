@@ -128,14 +128,23 @@ static void insertData(char **batchstr){
 
 void qentryIntoQueue(qentry **q){
     qentry *item = *q;
-    char *timestamp=(char*)malloc(20);
     struct tm tm = *localtime(&item->start);
-    sprintf(timestamp, "%d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-    printf("%s\n", timestamp);
-    char *timestamp2=(char*)malloc(20);
-    struct tm tm2 = *localtime(&item->start);
-    sprintf(timestamp2, "%d-%02d-%02d %02d:%02d:%02d", tm2.tm_year + 1900, tm2.tm_mon + 1, tm2.tm_mday, tm2.tm_hour, tm2.tm_min, tm2.tm_sec);
-    printf("%s\n", timestamp2);
+    struct timeval timestamp;
+    gettimeofday(&timestamp, &item->start);
+    printf("Start: %d-%02i-%02i %02i:%02i:%02i:%06i\n", tm.tm_year+1900, tm.tm_mon +1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, timestamp.tv_usec);
+    
+    //printf("%s\n", timestamp);
+    struct tm tm2 = *localtime(&item->sent);
+    struct timeval timestamp2;
+    gettimeofday(&timestamp2, &item->sent);
+    
+    printf("Send: %d-%02i-%02i %02i:%02i:%02i:%06i\n", tm2.tm_year+1900, tm2.tm_mon +1, tm2.tm_mday, tm2.tm_hour, tm2.tm_min, tm2.tm_sec, timestamp2.tv_usec);
+    
+    time_t t = time(NULL);
+    struct tm tm3 = *localtime(&t);
+    struct timeval timestamp3;
+    gettimeofday(&timestamp3, &t);
+    printf("Into Queue: %d-%02i-%02i %02i:%02i:%02i:%06i\n", tm3.tm_year+1900, tm3.tm_mon +1, tm3.tm_mday, tm3.tm_hour, tm3.tm_min, tm3.tm_sec, timestamp3.tv_usec);
 }
 
 static void collectData(qentry **item, char **batchstr){

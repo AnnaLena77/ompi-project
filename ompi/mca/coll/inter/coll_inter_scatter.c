@@ -69,9 +69,15 @@ mca_coll_inter_scatter_inter(const void *sbuf, int scount,
 	    }
             ptmp = ptmp_free - gap;
 
+#ifndef ENABLE_ANALYSIS
 	    err = MCA_PML_CALL(recv(ptmp, rcount*size_local, rdtype,
 				    root, MCA_COLL_BASE_TAG_SCATTER,
 				    comm, MPI_STATUS_IGNORE));
+#else
+	    err = MCA_PML_CALL(recv(ptmp, rcount*size_local, rdtype,
+				    root, MCA_COLL_BASE_TAG_SCATTER,
+				    comm, MPI_STATUS_IGNORE, NULL));
+#endif
 	    if (OMPI_SUCCESS != err) {
                 return err;
             }
@@ -86,9 +92,15 @@ mca_coll_inter_scatter_inter(const void *sbuf, int scount,
 	}
     } else {
 	/* Root sends data to the first process in the remote group */
+#ifndef ENABLE_ANALYSIS
 	err = MCA_PML_CALL(send(sbuf, scount*size, sdtype, 0,
 				MCA_COLL_BASE_TAG_SCATTER,
 				MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+	err = MCA_PML_CALL(send(sbuf, scount*size, sdtype, 0,
+				MCA_COLL_BASE_TAG_SCATTER,
+				MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
 	if (OMPI_SUCCESS != err) {
 	    return err;
 	}

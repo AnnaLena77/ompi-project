@@ -32,6 +32,7 @@
 #include "ompi/peruse/peruse-internal.h"
 #include "ompi/message/message.h"
 #include "ompi/memchecker.h"
+#include "ompi/mpi/c/init.h"
 
 /**
  * Single usage request. As we allow recursive calls to recv
@@ -73,7 +74,7 @@ int mca_pml_ob1_irecv_init(void *addr,
     *request = (ompi_request_t *) recvreq;
     return OMPI_SUCCESS;
 }
-
+#ifndef ENABLE_ANALYSIS
 int mca_pml_ob1_irecv(void *addr,
                       size_t count,
                       ompi_datatype_t * datatype,
@@ -82,6 +83,16 @@ int mca_pml_ob1_irecv(void *addr,
                       struct ompi_communicator_t *comm,
                       struct ompi_request_t **request)
 {
+#else
+int mca_pml_ob1_irecv(void *addr,
+                      size_t count,
+                      ompi_datatype_t * datatype,
+                      int src,
+                      int tag,
+                      struct ompi_communicator_t *comm,
+                      struct ompi_request_t **request, struct qentry **q)
+{
+#endif
     mca_pml_ob1_recv_request_t *recvreq;
     MCA_PML_OB1_RECV_REQUEST_ALLOC(recvreq);
     if (NULL == recvreq)
@@ -101,7 +112,7 @@ int mca_pml_ob1_irecv(void *addr,
     return OMPI_SUCCESS;
 }
 
-
+#ifndef ENABLE_ANALYSIS
 int mca_pml_ob1_recv(void *addr,
                      size_t count,
                      ompi_datatype_t * datatype,
@@ -110,6 +121,16 @@ int mca_pml_ob1_recv(void *addr,
                      struct ompi_communicator_t *comm,
                      ompi_status_public_t * status)
 {
+#else
+int mca_pml_ob1_recv(void *addr,
+                     size_t count,
+                     ompi_datatype_t * datatype,
+                     int src,
+                     int tag,
+                     struct ompi_communicator_t *comm,
+                     ompi_status_public_t * status, struct qentry **q)
+{
+#endif
     mca_pml_ob1_recv_request_t *recvreq = NULL;
     int rc;
 
@@ -179,14 +200,23 @@ int mca_pml_ob1_recv(void *addr,
     return rc;
 }
 
-
+#ifndef ENABLE_ANALYSIS
 int
 mca_pml_ob1_imrecv( void *buf,
                     size_t count,
                     ompi_datatype_t *datatype,
                     struct ompi_message_t **message,
-                    struct ompi_request_t **request )
+                    struct ompi_request_t **request)
 {
+#else
+int
+mca_pml_ob1_imrecv( void *buf,
+                    size_t count,
+                    ompi_datatype_t *datatype,
+                    struct ompi_message_t **message,
+                    struct ompi_request_t **request, struct qentry **q )
+{
+#endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;
     mca_pml_ob1_hdr_t *hdr;
@@ -272,14 +302,23 @@ mca_pml_ob1_imrecv( void *buf,
     return OMPI_SUCCESS;
 }
 
-
+#ifndef ENABLE_ANALYSIS
 int
 mca_pml_ob1_mrecv( void *buf,
                    size_t count,
                    ompi_datatype_t *datatype,
                    struct ompi_message_t **message,
-                   ompi_status_public_t* status )
+                   ompi_status_public_t* status)
 {
+#else
+int
+mca_pml_ob1_mrecv( void *buf,
+                   size_t count,
+                   ompi_datatype_t *datatype,
+                   struct ompi_message_t **message,
+                   ompi_status_public_t* status, struct qentry **q )
+{
+#endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;
     mca_pml_ob1_hdr_t *hdr;

@@ -255,11 +255,19 @@ static int send_cb(ompi_request_t * req)
                              send_context->con->ireduce_tag - send_context->seg_index));
 
         ompi_request_t *send_req;
+#ifndef ENABLE_ANALYSIS 
         err = MCA_PML_CALL(isend
                            (send_context->buff, send_count, send_context->con->datatype,
                             send_context->peer,
                             context->con->ireduce_tag - send_context->seg_index,
                             MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req));
+#else
+	err = MCA_PML_CALL(isend
+                           (send_context->buff, send_count, send_context->con->datatype,
+                            send_context->peer,
+                            context->con->ireduce_tag - send_context->seg_index,
+                            MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req, NULL));
+#endif
         if (MPI_SUCCESS != err) {
             return err;
         }
@@ -338,10 +346,17 @@ static int recv_cb(ompi_request_t * req)
                              (void *) inbuf,
                              recv_context->con->ireduce_tag - recv_context->seg_index));
         ompi_request_t *recv_req;
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(temp_recv_buf, recv_count, recv_context->con->datatype,
                                  recv_context->peer,
                                  recv_context->con->ireduce_tag - recv_context->seg_index,
                                  recv_context->con->comm, &recv_req));
+#else
+	err = MCA_PML_CALL(irecv(temp_recv_buf, recv_count, recv_context->con->datatype,
+                                 recv_context->peer,
+                                 recv_context->con->ireduce_tag - recv_context->seg_index,
+                                 recv_context->con->comm, &recv_req, NULL));
+#endif
         if (MPI_SUCCESS != err) {
             return err;
         }
@@ -432,10 +447,17 @@ static int recv_cb(ompi_request_t * req)
                                  send_context->con->ireduce_tag - send_context->seg_index));
 
             ompi_request_t *send_req;
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend(send_context->buff, send_count, send_context->con->datatype,
                                      send_context->peer,
                                      send_context->con->ireduce_tag - send_context->seg_index,
                                      MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req));
+#else
+	   err = MCA_PML_CALL(isend(send_context->buff, send_count, send_context->con->datatype,
+                                     send_context->peer,
+                                     send_context->con->ireduce_tag - send_context->seg_index,
+                                     MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req, NULL));
+#endif
             if (MPI_SUCCESS != err) {
                 return err;
             }
@@ -701,9 +723,15 @@ int ompi_coll_adapt_ireduce_generic(const void *sbuf, void *rbuf, int count,
 
                 /* Create a recv request */
                 ompi_request_t *recv_req;
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(irecv
                                     (temp_recv_buf, recv_count, dtype, tree->tree_next[i],
                                     con->ireduce_tag - seg_index, comm, &recv_req));
+#else
+	       err = MCA_PML_CALL(irecv
+                                    (temp_recv_buf, recv_count, dtype, tree->tree_next[i],
+                                    con->ireduce_tag - seg_index, comm, &recv_req, NULL));
+#endif
                 if (MPI_SUCCESS != err) {
                     return err;
                 }
@@ -753,10 +781,17 @@ int ompi_coll_adapt_ireduce_generic(const void *sbuf, void *rbuf, int count,
 
             /* Create send request */
             ompi_request_t *send_req;
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend
                                 (context->buff, send_count, dtype, tree->tree_prev,
                                 con->ireduce_tag - context->seg_index,
                                 sendmode, comm, &send_req));
+#else	
+	   err = MCA_PML_CALL(isend
+                                (context->buff, send_count, dtype, tree->tree_prev,
+                                con->ireduce_tag - context->seg_index,
+                                sendmode, comm, &send_req, NULL));
+#endif
             if (MPI_SUCCESS != err) {
                 return err;
             }

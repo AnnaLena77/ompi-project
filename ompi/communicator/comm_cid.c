@@ -784,14 +784,23 @@ static int ompi_comm_allreduce_inter_leader_exchange (ompi_comm_request_t *reque
 
     /* local leader exchange their data and determine the overall result
        for both groups */
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(irecv (context->outbuf, context->count, MPI_INT, 0, OMPI_COMM_ALLREDUCE_TAG,
                              intercomm, subreqs));
+#else
+    rc = MCA_PML_CALL(irecv (context->outbuf, context->count, MPI_INT, 0, OMPI_COMM_ALLREDUCE_TAG,
+                             intercomm, subreqs, NULL));
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }
-
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(isend (context->tmpbuf, context->count, MPI_INT, 0, OMPI_COMM_ALLREDUCE_TAG,
                              MCA_PML_BASE_SEND_STANDARD, intercomm, subreqs + 1));
+#else
+    rc = MCA_PML_CALL(isend (context->tmpbuf, context->count, MPI_INT, 0, OMPI_COMM_ALLREDUCE_TAG,
+                             MCA_PML_BASE_SEND_STANDARD, intercomm, subreqs + 1, NULL));
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }
@@ -862,15 +871,25 @@ static int ompi_comm_allreduce_bridged_reduce_complete (ompi_comm_request_t *req
     int rc;
 
     /* step 2: leader exchange */
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(irecv (context->outbuf, context->count, MPI_INT, context->cid_context->remote_leader,
                              OMPI_COMM_ALLREDUCE_TAG, bridgecomm, subreq + 1));
+#else
+    rc = MCA_PML_CALL(irecv (context->outbuf, context->count, MPI_INT, context->cid_context->remote_leader,
+                             OMPI_COMM_ALLREDUCE_TAG, bridgecomm, subreq + 1, NULL));
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }
-
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(isend (context->tmpbuf, context->count, MPI_INT, context->cid_context->remote_leader,
                              OMPI_COMM_ALLREDUCE_TAG, MCA_PML_BASE_SEND_STANDARD, bridgecomm,
                              subreq));
+#else
+    rc = MCA_PML_CALL(isend (context->tmpbuf, context->count, MPI_INT, context->cid_context->remote_leader,
+                             OMPI_COMM_ALLREDUCE_TAG, MCA_PML_BASE_SEND_STANDARD, bridgecomm,
+                             subreq, NULL));
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }
@@ -1111,9 +1130,15 @@ static int ompi_comm_allreduce_group_broadcast (ompi_comm_request_t *request)
 
     for (int i = 0 ; i < 2 ; ++i) {
         if (MPI_PROC_NULL != context->peers_comm[i + 1]) {
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(isend(context->outbuf, context->count, MPI_INT, context->peers_comm[i+1],
                                     cid_context->pml_tag, MCA_PML_BASE_SEND_STANDARD,
                                     cid_context->comm, subreq + subreq_count++));
+#else
+            rc = MCA_PML_CALL(isend(context->outbuf, context->count, MPI_INT, context->peers_comm[i+1],
+                                    cid_context->pml_tag, MCA_PML_BASE_SEND_STANDARD,
+                                    cid_context->comm, subreq + subreq_count++, NULL));
+#endif
             if (OMPI_SUCCESS != rc) {
                 return rc;
             }
@@ -1140,15 +1165,25 @@ static int ompi_comm_allreduce_group_recv_complete (ompi_comm_request_t *request
 
     if (MPI_PROC_NULL != context->peers_comm[0]) {
         /* interior node */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(isend(context->outbuf, context->count, MPI_INT, context->peers_comm[0],
                                 cid_context->pml_tag, MCA_PML_BASE_SEND_STANDARD,
                                 cid_context->comm, subreq));
+#else
+        rc = MCA_PML_CALL(isend(context->outbuf, context->count, MPI_INT, context->peers_comm[0],
+                                cid_context->pml_tag, MCA_PML_BASE_SEND_STANDARD,
+                                cid_context->comm, subreq, NULL));
+#endif
         if (OMPI_SUCCESS != rc) {
             return rc;
         }
-
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(context->outbuf, context->count, MPI_INT, context->peers_comm[0],
                                 cid_context->pml_tag, cid_context->comm, subreq + 1));
+#else
+        rc = MCA_PML_CALL(irecv(context->outbuf, context->count, MPI_INT, context->peers_comm[0],
+                                cid_context->pml_tag, cid_context->comm, subreq + 1, NULL));
+#endif
         if (OMPI_SUCCESS != rc) {
             return rc;
         }
@@ -1205,8 +1240,13 @@ static int ompi_comm_allreduce_group_nb (int *inbuf, int *outbuf, int count,
 
     for (int i = 0 ; i < 2 ; ++i) {
         if (MPI_PROC_NULL != context->peers_comm[i + 1]) {
+#ifndef ENABLE_ANALYSIS
             int rc = MCA_PML_CALL(irecv(tmp, count, MPI_INT, context->peers_comm[i + 1],
                                         cid_context->pml_tag, comm, subreq + subreq_count++));
+#else
+            int rc = MCA_PML_CALL(irecv(tmp, count, MPI_INT, context->peers_comm[i + 1],
+                                        cid_context->pml_tag, comm, subreq + subreq_count++, NULL));
+#endif
             if (OMPI_SUCCESS != rc) {
                 ompi_comm_request_return (request);
                 return rc;

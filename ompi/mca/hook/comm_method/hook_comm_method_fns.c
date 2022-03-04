@@ -428,11 +428,19 @@ ompi_report_comm_methods(int called_from_location) // 1 = from init, 2 = from fi
             int rpeer = (myleaderrank - 1 + nleaderranks) % nleaderranks;
 
             sbuf = rbuf = 0;
+#ifndef ENABLE_ANALYSIS
             MCA_PML_CALL(isend(&sbuf, 1, MPI_INT, speer, 99,
                     MCA_PML_BASE_SEND_STANDARD,
                     leader_comm, &sreq));
             MCA_PML_CALL(irecv(&rbuf, 1, MPI_INT, rpeer, 99,
                     leader_comm, &rreq));
+#else
+	   MCA_PML_CALL(isend(&sbuf, 1, MPI_INT, speer, 99,
+                    MCA_PML_BASE_SEND_STANDARD,
+                    leader_comm, &sreq, NULL));
+            MCA_PML_CALL(irecv(&rbuf, 1, MPI_INT, rpeer, 99,
+                    leader_comm, &rreq, NULL));
+#endif
             ompi_request_wait(&sreq, &status);
             ompi_request_wait(&rreq, &status);
         }

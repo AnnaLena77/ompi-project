@@ -134,15 +134,25 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
     (void)opal_convertor_pack(&convertor, &iov, &iov_count, &max_data);
 
     /* receive into the buffer */
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(irecv(buf, count, datatype,
                             source, recvtag, comm, &req));
+#else
+    rc = MCA_PML_CALL(irecv(buf, count, datatype,
+                            source, recvtag, comm, &req, NULL));
+#endif
     if(OMPI_SUCCESS != rc) {
         goto cleanup_and_return;
     }
 
     /* send from the temporary buffer */
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(send(iov.iov_base, packed_size, MPI_PACKED, dest,
                            sendtag, MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+    rc = MCA_PML_CALL(send(iov.iov_base, packed_size, MPI_PACKED, dest,
+                           sendtag, MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
 #if OPAL_ENABLE_FT_MPI
     /* If ULFM is enabled we need to wait for the posted receive to
      * complete, hence we cannot return here */

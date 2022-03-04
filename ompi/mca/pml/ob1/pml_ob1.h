@@ -155,7 +155,24 @@ extern int mca_pml_ob1_isend_init( const void *buf,
                                    mca_pml_base_send_mode_t mode,
                                    struct ompi_communicator_t* comm,
                                    struct ompi_request_t **request );
+#ifndef ENABLE_ANALYSIS
+extern int mca_pml_ob1_isend( const void *buf,
+                              size_t count,
+                              ompi_datatype_t *datatype,
+                              int dst,
+                              int tag,
+                              mca_pml_base_send_mode_t mode,
+                              struct ompi_communicator_t* comm,
+                              struct ompi_request_t **request);
 
+extern int mca_pml_ob1_send( const void *buf,
+                             size_t count,
+                             ompi_datatype_t *datatype,
+                             int dst,
+                             int tag,
+                             mca_pml_base_send_mode_t mode,
+                             struct ompi_communicator_t* comm);
+#else
 extern int mca_pml_ob1_isend( const void *buf,
                               size_t count,
                               ompi_datatype_t *datatype,
@@ -164,14 +181,15 @@ extern int mca_pml_ob1_isend( const void *buf,
                               mca_pml_base_send_mode_t mode,
                               struct ompi_communicator_t* comm,
                               struct ompi_request_t **request, qentry **q);
-
+                              
 extern int mca_pml_ob1_send( const void *buf,
                              size_t count,
                              ompi_datatype_t *datatype,
                              int dst,
                              int tag,
                              mca_pml_base_send_mode_t mode,
-                             struct ompi_communicator_t* comm );
+                             struct ompi_communicator_t* comm, qentry **q );
+#endif
 
 extern int mca_pml_ob1_irecv_init( void *buf,
                                    size_t count,
@@ -181,13 +199,14 @@ extern int mca_pml_ob1_irecv_init( void *buf,
                                    struct ompi_communicator_t* comm,
                                    struct ompi_request_t **request );
 
+#ifndef ENABLE_ANALYSIS
 extern int mca_pml_ob1_irecv( void *buf,
                               size_t count,
                               ompi_datatype_t *datatype,
                               int src,
                               int tag,
                               struct ompi_communicator_t* comm,
-                              struct ompi_request_t **request );
+                              struct ompi_request_t **request);
 
 extern int mca_pml_ob1_recv( void *buf,
                              size_t count,
@@ -195,19 +214,52 @@ extern int mca_pml_ob1_recv( void *buf,
                              int src,
                              int tag,
                              struct ompi_communicator_t* comm,
-                             ompi_status_public_t* status );
+                             ompi_status_public_t* status);
 
 extern int mca_pml_ob1_imrecv( void *buf,
                                size_t count,
                                ompi_datatype_t *datatype,
                                struct ompi_message_t **message,
-                               struct ompi_request_t **request );
+                               struct ompi_request_t **request);
 
 extern int mca_pml_ob1_mrecv( void *buf,
                               size_t count,
                               ompi_datatype_t *datatype,
                               struct ompi_message_t **message,
-                              ompi_status_public_t* status );
+                              ompi_status_public_t* status);
+#else
+extern int mca_pml_ob1_irecv( void *buf,
+                              size_t count,
+                              ompi_datatype_t *datatype,
+                              int src,
+                              int tag,
+                              struct ompi_communicator_t* comm,
+                              struct ompi_request_t **request,
+                              struct qentry **q );
+
+extern int mca_pml_ob1_recv( void *buf,
+                             size_t count,
+                             ompi_datatype_t *datatype,
+                             int src,
+                             int tag,
+                             struct ompi_communicator_t* comm,
+                             ompi_status_public_t* status,
+                             struct qentry **q );
+
+extern int mca_pml_ob1_imrecv( void *buf,
+                               size_t count,
+                               ompi_datatype_t *datatype,
+                               struct ompi_message_t **message,
+                               struct ompi_request_t **request,
+                               struct qentry **q );
+
+extern int mca_pml_ob1_mrecv( void *buf,
+                              size_t count,
+                              ompi_datatype_t *datatype,
+                              struct ompi_message_t **message,
+                              ompi_status_public_t* status,
+                              struct qentry **q );
+#endif
 
 extern int mca_pml_ob1_dump( struct ompi_communicator_t* comm,
                              int verbose );

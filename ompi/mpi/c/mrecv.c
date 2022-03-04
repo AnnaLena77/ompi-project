@@ -37,6 +37,30 @@ static const char FUNC_NAME[] = "MPI_Mrecv";
 int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
               MPI_Message *message, MPI_Status *status)
 {
+    #ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    //item->start
+    time_t current_time = time(NULL);
+    item->start = current_time;
+    //item->operation
+    item->operation = "mrecv";
+    //item->blocking
+    item->blocking = 0;
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(type, type_name, &type_name_length);
+    item->datatype=type_name;
+    //item->count
+    item->count = count;
+    //item->datasize
+    item->datasize = count * sizeof(type);
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;
+    #endif
+    
     int rc = MPI_SUCCESS;
     ompi_communicator_t *comm;
 
@@ -81,7 +105,11 @@ int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
      */
 #endif
 
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status));
+#else
+    rc = MCA_PML_CALL(mrecv(buf, count, type, message, status, &item));
+#endif
     /* Per MPI-1, the MPI_ERROR field is not defined for
        single-completion calls */
     MEMCHECKER(

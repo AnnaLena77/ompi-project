@@ -12,11 +12,12 @@
 #include "ompi/request/request.h"
 #include "ompi/mca/pml/base/pml_base_recvreq.h"
 #include "vprotocol_pessimist.h"
+#include "ompi/mpi/c/init.h"
 
 
 
 
-
+#ifndef ENABLE_ANALYSIS
 int mca_vprotocol_pessimist_irecv(void *addr,
                      size_t count,
                      ompi_datatype_t * datatype,
@@ -24,6 +25,16 @@ int mca_vprotocol_pessimist_irecv(void *addr,
                      int tag,
                      struct ompi_communicator_t *comm,
                      struct ompi_request_t **request)
+#else
+int mca_vprotocol_pessimist_irecv(void *addr,
+                     size_t count,
+                     ompi_datatype_t * datatype,
+                     int src,
+                     int tag,
+                     struct ompi_communicator_t *comm,
+                     struct ompi_request_t **request, 
+                     struct qentry **q)
+#endif
 {
   int ret;
 
@@ -33,23 +44,34 @@ int mca_vprotocol_pessimist_irecv(void *addr,
   /* first, see if we have to enforce matching order */
   VPROTOCOL_PESSIMIST_MATCHING_REPLAY(src);
   /* now just let the host pml do its job */
+  #ifndef ENABLE_ANALYSIS
   ret = mca_pml_v.host_pml.pml_irecv(addr, count, datatype, src, tag, comm, request);
+  #else
+  ret = mca_pml_v.host_pml.pml_irecv(addr, count, datatype, src, tag, comm, request, NULL);
+  #endif
   VPESSIMIST_FTREQ_INIT(*request);
   vprotocol_pessimist_matching_log_prepare(*request);
   return ret;
 }
 
-
-
-
-
+#ifndef ENABLE_ANALYSIS
 int mca_vprotocol_pessimist_recv(void *addr,
                       size_t count,
                       ompi_datatype_t * datatype,
                       int src,
                       int tag,
                       struct ompi_communicator_t *comm,
-                      ompi_status_public_t * status )
+                      ompi_status_public_t * status)
+#else
+int mca_vprotocol_pessimist_recv(void *addr,
+                      size_t count,
+                      ompi_datatype_t * datatype,
+                      int src,
+                      int tag,
+                      struct ompi_communicator_t *comm,
+                      ompi_status_public_t * status,
+                      struct qentry **q )
+#endif
 {
   ompi_request_t *request = MPI_REQUEST_NULL;
   int ret;
@@ -59,7 +81,11 @@ int mca_vprotocol_pessimist_recv(void *addr,
   /* first, see if we have to enforce matching order */
   VPROTOCOL_PESSIMIST_MATCHING_REPLAY(src);
   /* now just let the pml do its job */
+  #ifndef ENABLE_ANALYSIS
   ret = mca_pml_v.host_pml.pml_irecv(addr, count, datatype, src, tag, comm, &request);
+  #else
+  ret = mca_pml_v.host_pml.pml_irecv(addr, count, datatype, src, tag, comm, &request, NULL);
+  #endif
   VPESSIMIST_FTREQ_INIT(request);
   vprotocol_pessimist_matching_log_prepare(request);
   /* block until the request is completed */

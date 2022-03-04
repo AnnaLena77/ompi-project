@@ -62,9 +62,15 @@ mca_coll_basic_gatherv_intra(const void *sbuf, int scount,
         size_t sdsize;
         ompi_datatype_type_size(sdtype, &sdsize);
         if (scount > 0 && sdsize > 0) {
+#ifndef ENABLE_ANALYSIS
             return MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                      MCA_COLL_BASE_TAG_GATHERV,
                                      MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+	   return MCA_PML_CALL(send(sbuf, scount, sdtype, root,
+                                     MCA_COLL_BASE_TAG_GATHERV,
+                                     MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
         }
         return MPI_SUCCESS;
     }
@@ -94,9 +100,15 @@ mca_coll_basic_gatherv_intra(const void *sbuf, int scount,
         } else {
             /* Only receive if there is something to receive */
             if (rcounts[i] > 0) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(recv(ptmp, rcounts[i], rdtype, i,
                                         MCA_COLL_BASE_TAG_GATHERV,
                                         comm, MPI_STATUS_IGNORE));
+#else
+	       err = MCA_PML_CALL(recv(ptmp, rcounts[i], rdtype, i,
+                                        MCA_COLL_BASE_TAG_GATHERV,
+                                        comm, MPI_STATUS_IGNORE, NULL));
+#endif
             }
         }
 
@@ -141,9 +153,15 @@ mca_coll_basic_gatherv_inter(const void *sbuf, int scount,
         err = OMPI_SUCCESS;
     } else if (MPI_ROOT != root) {
         /* Everyone but root sends data and returns. */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                 MCA_COLL_BASE_TAG_GATHERV,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
+                                MCA_COLL_BASE_TAG_GATHERV,
+                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     } else {
         /* I am the root, loop receiving data. */
         err = ompi_datatype_get_extent(rdtype, &lb, &extent);
@@ -156,9 +174,15 @@ mca_coll_basic_gatherv_inter(const void *sbuf, int scount,
 
         for (i = 0; i < size; ++i) {
             ptmp = ((char *) rbuf) + (extent * disps[i]);
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv(ptmp, rcounts[i], rdtype, i,
                                      MCA_COLL_BASE_TAG_GATHERV,
                                      comm, &reqs[i]));
+#else
+	   err = MCA_PML_CALL(irecv(ptmp, rcounts[i], rdtype, i,
+                                     MCA_COLL_BASE_TAG_GATHERV,
+                                     comm, &reqs[i], NULL));
+#endif
             if (OMPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(reqs, i + 1);
                 return err;
