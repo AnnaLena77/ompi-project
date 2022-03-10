@@ -38,6 +38,7 @@
 #include "ompi/types.h"
 
 #include "ompi/constants.h"
+#include "ompi/mpi/c/init.h"
 
 #define OPAL_ENABLE_DEBUG_RELIABILITY 0
 
@@ -286,7 +287,7 @@ static inline int mca_bml_base_send_status( mca_bml_base_btl_t* bml_btl,
     des->des_context = (void*) bml_btl;
     return btl->btl_send(btl, bml_btl->btl_endpoint, des, tag);
 }
-
+#ifndef ENABLE_ANALYSIS
 static inline int  mca_bml_base_sendi( mca_bml_base_btl_t* bml_btl,
                                        struct opal_convertor_t* convertor,
                                        void* header,
@@ -296,11 +297,30 @@ static inline int  mca_bml_base_sendi( mca_bml_base_btl_t* bml_btl,
                                        uint32_t flags,
                                        mca_btl_base_tag_t tag,
                                        mca_btl_base_descriptor_t** descriptor )
+#else
+static inline int  mca_bml_base_sendi( mca_bml_base_btl_t* bml_btl,
+                                       struct opal_convertor_t* convertor,
+                                       void* header,
+                                       size_t header_size,
+                                       size_t payload_size,
+                                       uint8_t order,
+                                       uint32_t flags,
+                                       mca_btl_base_tag_t tag,
+                                       mca_btl_base_descriptor_t** descriptor,
+                                       qentry **q )
+#endif
 {
     mca_btl_base_module_t* btl = bml_btl->btl;
+#ifndef ENABLE_ANALYSIS
     return btl->btl_sendi(btl, bml_btl->btl_endpoint,
                           convertor, header, header_size,
                           payload_size, order, flags, tag, descriptor);
+#else 
+    qentry *item = *q;
+    return btl->btl_sendi(btl, bml_btl->btl_endpoint,
+                          convertor, header, header_size,
+                          payload_size, order, flags, tag, descriptor, &item);
+#endif
 }
 
 static inline int mca_bml_base_put( mca_bml_base_btl_t* bml_btl, void *local_address, uint64_t remote_address,

@@ -93,6 +93,12 @@ int mca_pml_ob1_irecv(void *addr,
                       struct ompi_request_t **request, struct qentry **q)
 {
 #endif
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        item = *q;
+    }
+#endif
     mca_pml_ob1_recv_request_t *recvreq;
     MCA_PML_OB1_RECV_REQUEST_ALLOC(recvreq);
     if (NULL == recvreq)
@@ -130,6 +136,12 @@ int mca_pml_ob1_recv(void *addr,
                      struct ompi_communicator_t *comm,
                      ompi_status_public_t * status, struct qentry **q)
 {
+#endif
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        item = *q;
+    }
 #endif
     mca_pml_ob1_recv_request_t *recvreq = NULL;
     int rc;
@@ -216,6 +228,12 @@ mca_pml_ob1_imrecv( void *buf,
                     struct ompi_message_t **message,
                     struct ompi_request_t **request, struct qentry **q )
 {
+#endif
+    #ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        item = *q;
+    }
 #endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;
@@ -318,6 +336,12 @@ mca_pml_ob1_mrecv( void *buf,
                    struct ompi_message_t **message,
                    ompi_status_public_t* status, struct qentry **q )
 {
+#endif
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        item = *q;
+    }
 #endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;

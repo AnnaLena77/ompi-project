@@ -39,6 +39,7 @@
 #include "pml_ob1_rdmafrag.h"
 #include "pml_ob1_recvreq.h"
 #include "ompi/mca/bml/base/base.h"
+#include "ompi/mpi/c/init.h"
 
 OBJ_CLASS_INSTANCE(mca_pml_ob1_send_range_t, opal_free_list_item_t,
         NULL, NULL);
@@ -73,7 +74,11 @@ void mca_pml_ob1_send_request_process_pending(mca_bml_base_btl_t *bml_btl)
                         MCA_PML_OB1_SEND_PENDING_START, true);
             } else {
                 MCA_PML_OB1_SEND_REQUEST_RESET(sendreq);
+#ifndef ENABLE_ANALYSIS
                 rc = mca_pml_ob1_send_request_start_btl(sendreq, send_dst);
+#else
+                rc = mca_pml_ob1_send_request_start_btl(sendreq, send_dst, NULL);
+#endif
                 if (OMPI_ERR_OUT_OF_RESOURCE == rc) {
                     /* No more resources on this btl so prepend to the pending
                      * list to minimize reordering and give up for now. */
@@ -612,12 +617,21 @@ int mca_pml_ob1_send_request_start_copy( mca_pml_ob1_send_request_t* sendreq,
         ob1_hdr_hton (&match, MCA_PML_OB1_HDR_TYPE_MATCH, sendreq->req_send.req_base.req_proc);
 
         /* try to send immediately */
+#ifndef ENABLE_ANALYSIS
         rc = mca_bml_base_sendi( bml_btl, &sendreq->req_send.req_base.req_convertor,
                                  &match, OMPI_PML_OB1_MATCH_HDR_LEN,
                                  size, MCA_BTL_NO_ORDER,
                                  MCA_BTL_DES_FLAGS_PRIORITY | MCA_BTL_DES_FLAGS_BTL_OWNERSHIP,
                                  MCA_PML_OB1_HDR_TYPE_MATCH,
                                  &des);
+#else
+        rc = mca_bml_base_sendi( bml_btl, &sendreq->req_send.req_base.req_convertor,
+                                 &match, OMPI_PML_OB1_MATCH_HDR_LEN,
+                                 size, MCA_BTL_NO_ORDER,
+                                 MCA_BTL_DES_FLAGS_PRIORITY | MCA_BTL_DES_FLAGS_BTL_OWNERSHIP,
+                                 MCA_PML_OB1_HDR_TYPE_MATCH,
+                                 &des, NULL);
+#endif
         if( OPAL_LIKELY(OMPI_SUCCESS == rc) ) {
             /* signal request completion */
             SPC_USER_OR_MPI(sendreq->req_send.req_base.req_ompi.req_status.MPI_TAG, (ompi_spc_value_t)size,
@@ -794,8 +808,13 @@ int mca_pml_ob1_send_request_start_rdma( mca_pml_ob1_send_request_t* sendreq,
     if (!(bml_btl->btl_flags & (MCA_BTL_FLAGS_GET | MCA_BTL_FLAGS_CUDA_GET))) {
         sendreq->rdma_frag = NULL;
         /* This BTL does not support get. Use rendezvous to start the RDMA operation using put instead. */
+#ifndef ENABLE_ANALYSIS
         return mca_pml_ob1_send_request_start_rndv (sendreq, bml_btl, 0, MCA_PML_OB1_HDR_FLAGS_CONTIG |
                                                     MCA_PML_OB1_HDR_FLAGS_PIN);
+#else
+        return mca_pml_ob1_send_request_start_rndv (sendreq, bml_btl, 0, MCA_PML_OB1_HDR_FLAGS_CONTIG |
+                                                    MCA_PML_OB1_HDR_FLAGS_PIN, NULL);
+#endif
     }
 
     /* at this time ob1 does not support non-contiguous gets. the convertor represents a
@@ -880,7 +899,11 @@ int mca_pml_ob1_send_request_start_rdma( mca_pml_ob1_send_request_t* sendreq,
 int mca_pml_ob1_send_request_start_rndv( mca_pml_ob1_send_request_t* sendreq,
                                          mca_bml_base_btl_t* bml_btl,
                                          size_t size,
-                                         int flags )
+                                         int flags 
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         )
 {
     mca_btl_base_descriptor_t* des;
     mca_btl_base_segment_t* segment;

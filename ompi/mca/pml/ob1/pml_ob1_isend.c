@@ -143,9 +143,16 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
     ob1_hdr_hton(&match, MCA_PML_OB1_HDR_TYPE_MATCH, dst_proc);
 
     /* try to send immediately, defined in bml.h, return btl->btl_sendi */
+#ifndef ENABLE_ANALYSIS
     rc = mca_bml_base_sendi (bml_btl, &convertor, &match, OMPI_PML_OB1_MATCH_HDR_LEN,
                              size, MCA_BTL_NO_ORDER, MCA_BTL_DES_FLAGS_PRIORITY | MCA_BTL_DES_FLAGS_BTL_OWNERSHIP,
                              MCA_PML_OB1_HDR_TYPE_MATCH, NULL);
+#else
+    //btl_sendi Callback in btl.h, Definitionen in verschiedenen btls: self, uct, sm, ugni, smcuda
+    rc = mca_bml_base_sendi (bml_btl, &convertor, &match, OMPI_PML_OB1_MATCH_HDR_LEN,
+                             size, MCA_BTL_NO_ORDER, MCA_BTL_DES_FLAGS_PRIORITY | MCA_BTL_DES_FLAGS_BTL_OWNERSHIP,
+                             MCA_PML_OB1_HDR_TYPE_MATCH, NULL, &item);
+#endif
 
     /* This #if is required due to an issue that arises with the IBM CI (XL Compiler).
      * The compiler doesn't seem to like having a compiler hint attached to an if
@@ -199,7 +206,7 @@ int mca_pml_ob1_isend(const void *buf,
 #endif
     #ifdef ENABLE_ANALYSIS
     qentry *item;
-    //if q is NULL, isend is not called by the send function!
+    //if q is NULL, isend is not called from a normal operation
     if(q!=NULL){
         item = *q;
         if(item->blocking == 0){
@@ -248,7 +255,7 @@ int mca_pml_ob1_isend(const void *buf,
         rc = mca_pml_ob1_send_inline (buf, count, datatype, dst, tag, seqn, dst_proc,
                                       endpoint, comm, &item);
 #endif
-        //Wenn rc<0 -> Error aus send_inline!
+        //Wenn rc>0 -> Error aus send_inline!
         //Ansonsten ist rc die size, die durch opal_convertor_get_packed_size berechnet wird.
         //Wenn rc = 0, keine Daten versendet.
         if (OPAL_LIKELY(0 <= rc)) {
@@ -264,26 +271,39 @@ int mca_pml_ob1_isend(const void *buf,
         }
     }
     //siehe pml_ob1_sendreq.h
+    //Speicherplatz für den Request allocieren
     MCA_PML_OB1_SEND_REQUEST_ALLOC(comm, dst, sendreq);
     if (NULL == sendreq)
         return OMPI_ERR_OUT_OF_RESOURCE;
-
+    
+    //siehe pml_base_sendreq.h
+    //MCA_PML_BASE_SEND_REQUEST_INIT
+    //Funktionsaufrufe: opal_converter_copy_and_prepare_for_send, opal_converter_get_packed_size
     MCA_PML_OB1_SEND_REQUEST_INIT(sendreq,
                                   buf,
                                   count,
                                   datatype,
                                   dst, tag,
                                   comm, sendmode, false);
-
+#ifdef ENABLE_ANALYSIS
+    item->initializeRequest = time(NULL);
+#endif
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &(sendreq)->req_send.req_base,
                              PERUSE_SEND);
-
+    
+#ifdef ENABLE_ANALYSIS
+    item->startRequest = time(NULL);
+        //Endless-loop -> mca_pml_ob1_send_request_start_seq (pml_ob1_sendreq.h)
+    MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc, &item);
+#else
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc);
+#endif
     *request = (ompi_request_t *) sendreq;
     return rc;
 
 #if OPAL_ENABLE_FT_MPI
+//printf("OPAL_ENABLE_FT_MPI\n");
 alloc_ft_req:
     MCA_PML_OB1_SEND_REQUEST_ALLOC(comm, dst, sendreq);
     if (NULL == sendreq)
@@ -385,7 +405,7 @@ int mca_pml_ob1_send(const void *buf,
         ompi_request_wait_completion (brequest);
         ompi_request_free (&brequest);
         #ifdef ENABLE_ANALYSIS
-        if(q!=NULL) qentryIntoQueue(&item);
+        if(item!=NULL) qentryIntoQueue(&item);
         #endif
         return OMPI_SUCCESS;
     }
@@ -413,11 +433,10 @@ int mca_pml_ob1_send(const void *buf,
         //Wenn rc = 0, keine Daten versendet.
         if (OPAL_LIKELY(0 <= rc)) {
             #ifdef ENABLE_ANALYSIS
-            if(q!=NULL) qentryIntoQueue(&item);
+            if(item!=NULL) qentryIntoQueue(&item);
             #endif
             return OMPI_SUCCESS;
         }
-        printf("Message >16KB!\n");
         //Wenn MPI_Send Nachrichtengröße >16 KB, Rendevous-Protokoll! 0>rc!
     }
 
@@ -446,13 +465,15 @@ int mca_pml_ob1_send(const void *buf,
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &sendreq->req_send.req_base,
                              PERUSE_SEND);
-    #ifdef ENABLE_ANALYSIS
-    item->startRequest = time(NULL);
-    #endif
+#ifndef ENABLE_ANALYSIS
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc);
+#else
+    if(item!=NULL) item->startRequest = time(NULL);
+    MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc, &item);
+#endif
     if (OPAL_LIKELY(rc == OMPI_SUCCESS)) {
         #ifdef ENABLE_ANALYSIS
-        item->requestWaitCompletion = time(NULL);
+        if(item!=NULL) item->requestWaitCompletion = time(NULL);
         #endif
         ompi_request_wait_completion(&sendreq->req_send.req_base.req_ompi);
 
@@ -466,7 +487,7 @@ int mca_pml_ob1_send(const void *buf,
         mca_pml_ob1_sendreq = sendreq;
     }
     #ifdef ENABLE_ANALYSIS
-    item->requestFini = time(NULL);
+    if(item!=NULL) item->requestFini = time(NULL);
     
     #endif
     return rc;

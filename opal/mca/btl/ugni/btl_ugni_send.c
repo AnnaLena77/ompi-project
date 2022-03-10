@@ -17,6 +17,7 @@
 #include "btl_ugni_frag.h"
 #include "btl_ugni_prepare.h"
 #include "btl_ugni_smsg.h"
+#include "ompi/mpi/c/init.h"
 
 void mca_btl_ugni_wait_list_append(mca_btl_ugni_module_t *ugni_module,
                                    mca_btl_base_endpoint_t *endpoint,
@@ -111,8 +112,16 @@ int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_end
 int mca_btl_ugni_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
                        struct opal_convertor_t *convertor, void *header, size_t header_size,
                        size_t payload_size, uint8_t order, uint32_t flags, mca_btl_base_tag_t tag,
-                       mca_btl_base_descriptor_t **descriptor)
+                       mca_btl_base_descriptor_t **descriptor
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q;
+#endif
+                       )
 {
+    #ifdef ENABLE_ANALYSIS
+    qentry *item = *q;
+    printf("ugni");
+    #endif
     size_t total_size = header_size + payload_size;
     mca_btl_ugni_base_frag_t *frag = NULL;
     size_t packed_size = payload_size;

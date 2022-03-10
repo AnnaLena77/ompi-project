@@ -18,6 +18,8 @@ typedef struct qentry {
     char* communicator;
     int processrank;
     int partnerrank;
+    char* usedBtl;
+    char* usedProtocol;
     time_t start;
     time_t initializeRequest;
     time_t startRequest;

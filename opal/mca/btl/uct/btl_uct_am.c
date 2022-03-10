@@ -12,6 +12,7 @@
 #include "btl_uct_am.h"
 #include "btl_uct_device_context.h"
 #include "btl_uct_rdma.h"
+#include "ompi/mpi/c/init.h"
 
 /**
  * Allocate a segment.
@@ -298,8 +299,16 @@ static inline size_t mca_btl_uct_max_sendi(mca_btl_uct_module_t *uct_btl, int co
 int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoint,
                       opal_convertor_t *convertor, void *header, size_t header_size,
                       size_t payload_size, uint8_t order, uint32_t flags, mca_btl_base_tag_t tag,
-                      mca_btl_base_descriptor_t **descriptor)
+                      mca_btl_base_descriptor_t **descriptor
+#ifdef ENABLE_ANALYSIS
+                      ,qentry **q
+#else
+                      )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = *q;
+    item->usedBtl = "uct";
+#else
     mca_btl_uct_module_t *uct_btl = (mca_btl_uct_module_t *) btl;
     mca_btl_uct_device_context_t *context = mca_btl_uct_module_get_am_context(uct_btl);
     const size_t total_size = header_size + payload_size;
