@@ -95,9 +95,7 @@ int mca_pml_ob1_irecv(void *addr,
 #endif
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL){
-        item = *q;
-    }
+    item = *q;
 #endif
     mca_pml_ob1_recv_request_t *recvreq;
     MCA_PML_OB1_RECV_REQUEST_ALLOC(recvreq);
@@ -139,9 +137,7 @@ int mca_pml_ob1_recv(void *addr,
 #endif
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL){
-        item = *q;
-    }
+    item = *q;
 #endif
     mca_pml_ob1_recv_request_t *recvreq = NULL;
     int rc;
@@ -231,9 +227,7 @@ mca_pml_ob1_imrecv( void *buf,
 #endif
     #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL){
-        item = *q;
-    }
+    item = *q;
 #endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;
@@ -339,9 +333,7 @@ mca_pml_ob1_mrecv( void *buf,
 #endif
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL){
-        item = *q;
-    }
+    item = *q;
 #endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;

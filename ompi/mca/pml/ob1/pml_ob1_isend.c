@@ -175,9 +175,9 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
     }
     //immediate send was successfully!
     #ifdef ENABLE_ANALYSIS
-    item->immediate = 1;
+    if(item!=NULL) item->immediate = 1;
     time_t current_time = time(NULL);
-    item->sent = current_time;
+    if(item!=NULL) item->sent = current_time;
     #endif
 
     return (int) size;
@@ -286,14 +286,14 @@ int mca_pml_ob1_isend(const void *buf,
                                   dst, tag,
                                   comm, sendmode, false);
 #ifdef ENABLE_ANALYSIS
-    item->initializeRequest = time(NULL);
+    if(item!=NULL) item->initializeRequest = time(NULL);
 #endif
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &(sendreq)->req_send.req_base,
                              PERUSE_SEND);
     
 #ifdef ENABLE_ANALYSIS
-    item->startRequest = time(NULL);
+    if(item!=NULL) item->startRequest = time(NULL);
         //Endless-loop -> mca_pml_ob1_send_request_start_seq (pml_ob1_sendreq.h)
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc, &item);
 #else
@@ -459,7 +459,7 @@ int mca_pml_ob1_send(const void *buf,
                                   dst, tag,
                                   comm, sendmode, false);
     #ifdef ENABLE_ANALYSIS
-    item->initializeRequest = time(NULL);
+    if(item!=NULL) item->initializeRequest = time(NULL);
     #endif
     
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,

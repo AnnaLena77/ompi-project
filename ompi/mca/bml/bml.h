@@ -256,14 +256,21 @@ static inline void mca_bml_base_free( mca_bml_base_btl_t* bml_btl,
 
 int mca_bml_base_send( mca_bml_base_btl_t* bml_btl,
                        mca_btl_base_descriptor_t* des,
-                       mca_btl_base_tag_t tag );
+                       mca_btl_base_tag_t tag,
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q
+#endif
+                        );
 
 
 #else
-
 static inline int mca_bml_base_send( mca_bml_base_btl_t* bml_btl,
                                      mca_btl_base_descriptor_t* des,
-                                     mca_btl_base_tag_t tag )
+                                     mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                      )
 {
     int rc;
     mca_btl_base_module_t* btl = bml_btl->btl;

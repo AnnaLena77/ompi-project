@@ -475,7 +475,11 @@ mca_pml_ob1_copy_frag_completion( mca_btl_base_module_t* btl,
      * all the buffer counters intact.  In this case, it is too late so
      * we just abort.  In theory, a new queue could be created to hold this
      * fragment and then attempt to send it out on another BTL. */
+#ifndef ENABLE_ANALYSIS
     rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_FRAG);
+#else
+    rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_FRAG, NULL);
+#endif
     if(OPAL_UNLIKELY(rc < 0)) {
         opal_output(0, "%s:%d FATAL", __FILE__, __LINE__);
         ompi_rte_abort(-1, NULL);
@@ -576,7 +580,11 @@ int mca_pml_ob1_send_request_start_buffered(
     MCA_PML_OB1_SEND_REQUEST_MPI_COMPLETE(sendreq, true);
 
     /* send */
+#ifndef ENABLE_ANALYSIS
     rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_RNDV);
+#else
+    rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_RNDV, NULL);
+#endif
     if( OPAL_LIKELY( rc >= 0 ) ) {
         if( OPAL_LIKELY( 1 == rc ) ) {
             mca_pml_ob1_rndv_completion_request( bml_btl, sendreq, req_bytes_delivered);
@@ -767,7 +775,11 @@ int mca_pml_ob1_send_request_start_prepare( mca_pml_ob1_send_request_t* sendreq,
     des->des_cbdata = sendreq;
 
     /* send */
+#ifndef ENABLE_ANALYSIS
     rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_MATCH);
+#else
+    rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_MATCH, NULL);
+#endif
     SPC_USER_OR_MPI(sendreq->req_send.req_base.req_ompi.req_status.MPI_TAG, (ompi_spc_value_t)size,
                     OMPI_SPC_BYTES_SENT_USER, OMPI_SPC_BYTES_SENT_MPI);
     if( OPAL_LIKELY( rc >= OPAL_SUCCESS ) ) {
@@ -879,7 +891,11 @@ int mca_pml_ob1_send_request_start_rdma( mca_pml_ob1_send_request_t* sendreq,
     }
 
     /* send */
+#ifndef ENABLE_ANALYSIS
     rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_RGET);
+#else
+    rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_RGET, NULL);
+#endif
     if (OPAL_UNLIKELY(rc < 0)) {
         MCA_PML_OB1_RDMA_FRAG_RETURN(frag);
         sendreq->rdma_frag = NULL;
@@ -905,6 +921,9 @@ int mca_pml_ob1_send_request_start_rndv( mca_pml_ob1_send_request_t* sendreq,
 #endif
                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = *q;
+#endif
     mca_btl_base_descriptor_t* des;
     mca_btl_base_segment_t* segment;
     mca_pml_ob1_hdr_t* hdr;
@@ -965,7 +984,11 @@ int mca_pml_ob1_send_request_start_rndv( mca_pml_ob1_send_request_t* sendreq,
     sendreq->req_state = 2;
 
     /* send */
+#ifndef ENABLE_ANALYSIS
     rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_RNDV);
+#else
+    rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_RNDV, &item);
+#endif
     if( OPAL_LIKELY( rc >= 0 ) ) {
         if( OPAL_LIKELY( 1 == rc ) ) {
             mca_pml_ob1_rndv_completion_request( bml_btl, sendreq, size );
@@ -1209,7 +1232,11 @@ cannot_pack:
 #endif /* OPAL_CUDA_SUPPORT */
 
         /* initiate send - note that this may complete before the call returns */
+#ifndef ENABLE_ANALYSIS
         rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_FRAG);
+#else
+        rc = mca_bml_base_send(bml_btl, des, MCA_PML_OB1_HDR_TYPE_FRAG, NULL);
+#endif
         if( OPAL_LIKELY(rc >= 0) ) {
             /* update state */
             range->range_btls[btl_idx].length -= size;
