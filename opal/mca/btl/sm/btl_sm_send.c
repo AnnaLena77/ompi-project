@@ -28,6 +28,7 @@
 #include "opal/mca/btl/sm/btl_sm_fbox.h"
 #include "opal/mca/btl/sm/btl_sm_fifo.h"
 #include "opal/mca/btl/sm/btl_sm_frag.h"
+#include "ompi/mpi/c/init.h"
 
 /**
  * Initiate a send to the peer.
@@ -36,7 +37,11 @@
  * @param peer (IN)     BTL peer addressing
  */
 int mca_btl_sm_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
-                    struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag)
+                    struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                    , qentry **q
+#endif
+                    )
 {
     mca_btl_sm_frag_t *frag = (mca_btl_sm_frag_t *) descriptor;
     const size_t total_size = frag->segments[0].seg_len;

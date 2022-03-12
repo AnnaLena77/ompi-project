@@ -102,7 +102,12 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
 {
 #endif
 #ifdef ENABLE_ANALYSIS
-    qentry *item = *q;
+    qentry *item;
+    if(q!=NULL){
+        item = *q;
+    } else{
+        item = NULL;
+    }
 #endif
     mca_pml_ob1_match_hdr_t match;
     mca_bml_base_btl_t *bml_btl;
@@ -225,6 +230,9 @@ int mca_pml_ob1_isend(const void *buf,
             }
         }
     }
+    else {
+        item = NULL;
+    }
     #endif
     mca_pml_ob1_comm_proc_t *ob1_proc = mca_pml_ob1_peer_lookup (comm, dst);
     mca_pml_ob1_send_request_t *sendreq = NULL;
@@ -264,9 +272,9 @@ int mca_pml_ob1_isend(const void *buf,
              * cancelled (which it can't be at this point anyway). */
             *request = &ompi_request_empty;
             
-            #ifdef ENABLE_ANALYSIS
-            if(q!=NULL) qentryIntoQueue(&item);
-            #endif
+#ifdef ENABLE_ANALYSIS
+            if(item!=NULL) qentryIntoQueue(&item);
+#endif
             return OMPI_SUCCESS;
         }
     }
@@ -294,7 +302,7 @@ int mca_pml_ob1_isend(const void *buf,
     
 #ifdef ENABLE_ANALYSIS
     if(item!=NULL) item->startRequest = time(NULL);
-        //Endless-loop -> mca_pml_ob1_send_request_start_seq (pml_ob1_sendreq.h)
+    //Endless-loop -> mca_pml_ob1_send_request_start_seq (pml_ob1_sendreq.h)
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc, &item);
 #else
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc);
@@ -371,6 +379,9 @@ int mca_pml_ob1_send(const void *buf,
             item->sendmode = "STANDARD";
         }
     }
+    else {
+        item = NULL;
+    }
     #endif
     mca_pml_ob1_comm_proc_t *ob1_proc = mca_pml_ob1_peer_lookup (comm, dst);
     ompi_proc_t *dst_proc = ob1_proc->ompi_proc;
@@ -404,9 +415,9 @@ int mca_pml_ob1_send(const void *buf,
         //Buffer kann sicher wieder verwendet werden
         ompi_request_wait_completion (brequest);
         ompi_request_free (&brequest);
-        #ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
         if(item!=NULL) qentryIntoQueue(&item);
-        #endif
+#endif
         return OMPI_SUCCESS;
     }
 
@@ -432,9 +443,9 @@ int mca_pml_ob1_send(const void *buf,
         //Ansonsten ist rc die size, die durch opal_convertor_get_packed_size berechnet wird.
         //Wenn rc = 0, keine Daten versendet.
         if (OPAL_LIKELY(0 <= rc)) {
-            #ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
             if(item!=NULL) qentryIntoQueue(&item);
-            #endif
+#endif
             return OMPI_SUCCESS;
         }
         //Wenn MPI_Send Nachrichtengröße >16 KB, Rendevous-Protokoll! 0>rc!
@@ -458,9 +469,9 @@ int mca_pml_ob1_send(const void *buf,
                                   datatype,
                                   dst, tag,
                                   comm, sendmode, false);
-    #ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
     if(item!=NULL) item->initializeRequest = time(NULL);
-    #endif
+#endif
     
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &sendreq->req_send.req_base,
@@ -472,9 +483,9 @@ int mca_pml_ob1_send(const void *buf,
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc, &item);
 #endif
     if (OPAL_LIKELY(rc == OMPI_SUCCESS)) {
-        #ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
         if(item!=NULL) item->requestWaitCompletion = time(NULL);
-        #endif
+#endif
         ompi_request_wait_completion(&sendreq->req_send.req_base.req_ompi);
 
         rc = sendreq->req_send.req_base.req_ompi.req_status.MPI_ERROR;
@@ -486,9 +497,8 @@ int mca_pml_ob1_send(const void *buf,
         mca_pml_ob1_send_request_fini (sendreq);
         mca_pml_ob1_sendreq = sendreq;
     }
-    #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->requestFini = time(NULL);
-    
-    #endif
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->requestFini = time(NULL); 
+#endif
     return rc;
 }

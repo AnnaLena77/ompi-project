@@ -99,7 +99,11 @@ static inline void sm_memmove(void *dst, void *src, size_t size)
  * @param peer (IN)     BTL peer addressing
  */
 int mca_btl_sm_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
-                    struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag);
+                    struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                     , qentry **q
+#endif
+                     );
 
 /**
  * Initiate an inline send to the peer.

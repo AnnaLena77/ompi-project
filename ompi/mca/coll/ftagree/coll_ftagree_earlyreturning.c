@@ -2322,7 +2322,12 @@ static void send_msg(ompi_communicator_t *comm,
             }
             copied += tocopy;
         }
+#ifndef ENABLE_ANALYSIS
         btl->btl_send(btl, btl_endpoint, des, MCA_BTL_TAG_FT_AGREE);
+#else
+        printf("HIER IST EIN PROBLEM: coll_ftagree_earlyreturning\n");
+        btl->btl_send(btl, btl_endpoint, des, MCA_BTL_TAG_FT_AGREE, NULL);
+#endif
         sent += payload_size;
     }
 }

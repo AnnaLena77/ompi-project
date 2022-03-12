@@ -245,6 +245,7 @@ int ompi_comm_rbcast_send_msg(ompi_proc_t* proc, ompi_comm_rbcast_message_t* msg
 #ifndef ENABLE_ANALYSIS
     ret = mca_bml_base_send(bml_btl, des, MCA_BTL_TAG_FT_RBCAST);
 #else
+    printf("HIER IST EIN PROBLEM: comm_ft_reliable_bcast\n");
     ret = mca_bml_base_send(bml_btl, des, MCA_BTL_TAG_FT_RBCAST, NULL);
 #endif
     if(OPAL_LIKELY( ret >= 0 )) {

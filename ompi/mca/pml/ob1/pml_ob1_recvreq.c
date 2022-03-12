@@ -491,9 +491,9 @@ static int mca_pml_ob1_recv_request_put_frag (mca_pml_ob1_rdma_frag_t *frag)
 
     /* send rdma request to peer */
 #ifndef ENABLE_ANALYSIS
-    rc = mca_bml_base_send (bml_btl, ctl, MCA_PML_OB1_HDR_TYPE_PUT);
+    rc = mca_bml_base_send(bml_btl, ctl, MCA_PML_OB1_HDR_TYPE_PUT);
 #else
-    rc = mca_bml_base_send (bml_btl, ctl, MCA_PML_OB1_HDR_TYPE_PUT, NULL);
+    rc = mca_bml_base_send(bml_btl, ctl, MCA_PML_OB1_HDR_TYPE_PUT, NULL);
 #endif
     /* Increment counter for bytes sent by MPI */
     SPC_RECORD(OMPI_SPC_BYTES_SENT_MPI, (ompi_spc_value_t)(sizeof (mca_pml_ob1_rdma_hdr_t) + reg_size));

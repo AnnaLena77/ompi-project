@@ -889,10 +889,17 @@ typedef int (*mca_btl_base_module_deregister_mem_fn_t)(
  * @retval OPAL_ERROR      The descriptor was NOT successfully queued for a send
  * @retval OPAL_ERR_UNREACH The endpoint is not reachable
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_btl_base_module_send_fn_t)(struct mca_btl_base_module_t *btl,
                                              struct mca_btl_base_endpoint_t *endpoint,
                                              struct mca_btl_base_descriptor_t *descriptor,
                                              mca_btl_base_tag_t tag);
+#else
+typedef int (*mca_btl_base_module_send_fn_t)(struct mca_btl_base_module_t *btl,
+                                             struct mca_btl_base_endpoint_t *endpoint,
+                                             struct mca_btl_base_descriptor_t *descriptor,
+                                             mca_btl_base_tag_t tag, qentry **q);
+#endif
 
 /**
  * Initiate an immediate blocking send.

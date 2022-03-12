@@ -409,7 +409,13 @@ mca_pml_ob1_send_request_start_btl( mca_pml_ob1_send_request_t* sendreq,
                                      )
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = *q;
+    qentry *item;
+    if(q!=NULL){
+        item = *q;
+    }
+    else {
+        item = NULL;
+    }
 #endif
     size_t size = sendreq->req_send.req_bytes_packed;
     mca_btl_base_module_t* btl = bml_btl->btl;
@@ -495,7 +501,6 @@ mca_pml_ob1_send_request_start_btl( mca_pml_ob1_send_request_t* sendreq,
 #endif
         }
     }
-
     return rc;
 }
 
