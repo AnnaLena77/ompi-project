@@ -410,7 +410,7 @@ mca_pml_ob1_send_request_start_btl( mca_pml_ob1_send_request_t* sendreq,
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL){
+    if(*q!=NULL && q!=NULL){
         item = *q;
     }
     else {
@@ -511,6 +511,15 @@ mca_pml_ob1_send_request_start_seq (mca_pml_ob1_send_request_t* sendreq, mca_bml
 #endif
 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+    }
+    else {
+        item = NULL;
+    }
+#endif
     sendreq->req_endpoint = endpoint;
     sendreq->req_state = 0;
     sendreq->req_lock = 0;

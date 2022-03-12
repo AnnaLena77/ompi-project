@@ -103,7 +103,7 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
 #endif
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL){
+    if(*q!=NULL && q!=NULL){
         item = *q;
     } else{
         item = NULL;
@@ -212,7 +212,7 @@ int mca_pml_ob1_isend(const void *buf,
     #ifdef ENABLE_ANALYSIS
     qentry *item;
     //if q is NULL, isend is not called from a normal operation
-    if(q!=NULL){
+    if(*q!=NULL && q!=NULL){
         item = *q;
         if(item->blocking == 0){
             //qentry->sendmode & qentry->operation
@@ -308,6 +308,9 @@ int mca_pml_ob1_isend(const void *buf,
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc);
 #endif
     *request = (ompi_request_t *) sendreq;
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) qentryIntoQueue(&item);
+#endif
     return rc;
 
 #if OPAL_ENABLE_FT_MPI
@@ -363,7 +366,7 @@ int mca_pml_ob1_send(const void *buf,
 #endif
     #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(OPAL_LIKELY(q!=NULL)){
+    if(OPAL_LIKELY(*q!=NULL && q!=NULL)){
         item = *q;
         //qentry->sendmode & qentry->operation
         if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
@@ -498,7 +501,10 @@ int mca_pml_ob1_send(const void *buf,
         mca_pml_ob1_sendreq = sendreq;
     }
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->requestFini = time(NULL); 
+    if(item!=NULL){ 
+        item->requestFini = time(NULL);
+        qentryIntoQueue(&item);
+    }
 #endif
     return rc;
 }

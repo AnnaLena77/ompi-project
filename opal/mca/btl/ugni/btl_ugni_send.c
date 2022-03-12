@@ -17,7 +17,9 @@
 #include "btl_ugni_frag.h"
 #include "btl_ugni_prepare.h"
 #include "btl_ugni_smsg.h"
-#include "ompi/mpi/c/init.h"
+#ifdef ENABLE_ANALYSIS
+#  include "ompi/mpi/c/init.h"
+#endif
 
 void mca_btl_ugni_wait_list_append(mca_btl_ugni_module_t *ugni_module,
                                    mca_btl_base_endpoint_t *endpoint,
@@ -46,8 +48,22 @@ void mca_btl_ugni_wait_list_append(mca_btl_ugni_module_t *ugni_module,
 }
 
 int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
-                      struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag)
+                      struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q;
+#endif
+                      )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+        item->usedBtl = "ugni";
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_btl_ugni_base_frag_t *frag = (mca_btl_ugni_base_frag_t *) descriptor;
     size_t size = frag->segments[0].seg_len + frag->segments[1].seg_len;
     mca_btl_ugni_module_t *ugni_module = (mca_btl_ugni_module_t *) btl;
@@ -63,6 +79,9 @@ int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_end
     rc = mca_btl_ugni_check_endpoint_state(endpoint);
     if (OPAL_UNLIKELY(OPAL_SUCCESS != rc || opal_list_get_size(&endpoint->frag_wait_list))) {
         mca_btl_ugni_wait_list_append(ugni_module, endpoint, frag);
+#ifdef ENABLE_ANALYSIS
+        if(item!=NULL) item->sent = time(NULL);
+#endif
         return OPAL_SUCCESS;
     }
 
@@ -75,7 +94,9 @@ int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_end
     if (OPAL_LIKELY(mca_btl_ugni_frag_check_complete(frag))) {
         /* fast path: remote side has received the frag */
         (void) mca_btl_ugni_frag_del_ref(frag, OPAL_SUCCESS);
-
+#ifdef ENABLE_ANALYSIS
+        if(item!=NULL) item->sent = time(NULL);
+#endif
         return 1;
     }
 
@@ -90,7 +111,9 @@ int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_end
         }
 
         (void) mca_btl_ugni_frag_del_ref(frag, OPAL_SUCCESS);
-
+ #ifdef ENABLE_ANALYSIS
+        if(item!=NULL) item->sent = time(NULL);
+#endif
         return 1;
     }
 
@@ -103,6 +126,9 @@ int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_end
     if (OPAL_UNLIKELY(OPAL_ERR_OUT_OF_RESOURCE == rc)) {
         /* queue up request */
         mca_btl_ugni_wait_list_append(ugni_module, endpoint, frag);
+#ifdef ENABLE_ANALYSIS
+        if(item!=NULL) item->sent = time(NULL);
+#endif
         rc = OPAL_SUCCESS;
     }
 
@@ -118,10 +144,16 @@ int mca_btl_ugni_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_en
 #endif
                        )
 {
-    #ifdef ENABLE_ANALYSIS
-    qentry *item = *q;
-    printf("ugni");
-    #endif
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+        item->usedBtl = "ugni";
+    }
+    else {
+        item = NULL;
+    }
+#endif
     size_t total_size = header_size + payload_size;
     mca_btl_ugni_base_frag_t *frag = NULL;
     size_t packed_size = payload_size;
@@ -171,7 +203,9 @@ int mca_btl_ugni_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_en
     if (NULL != descriptor) {
         *descriptor = &frag->base;
     }
-
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->sent = time(NULL);
+#endif
     return OPAL_ERR_OUT_OF_RESOURCE;
 }
 

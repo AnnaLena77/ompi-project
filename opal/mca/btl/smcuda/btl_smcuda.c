@@ -66,7 +66,9 @@
 #include "btl_smcuda_endpoint.h"
 #include "btl_smcuda_fifo.h"
 #include "btl_smcuda_frag.h"
-#include "ompi/mpi/c/init.h"
+#ifdef ENABLE_ANALYSIS
+#   include "ompi/mpi/c/init.h"
+#endif
 
 #if OPAL_CUDA_SUPPORT
 static struct mca_btl_base_registration_handle_t *
@@ -865,9 +867,15 @@ int mca_btl_smcuda_sendi(struct mca_btl_base_module_t *btl,
 #endif
                          )
 {
-#ifndef ENABLE_ANALYSIS
-    qentry *item = *q;
-    item->usedBtl = "smcuda";
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+        item->usedBtl = "smcuda";
+    }
+    else {
+        item = NULL;
+    }
 #endif
     size_t length = (header_size + payload_size);
     mca_btl_smcuda_frag_t *frag;
@@ -948,6 +956,9 @@ int mca_btl_smcuda_sendi(struct mca_btl_base_module_t *btl,
         MCA_BTL_SMCUDA_FIFO_WRITE(endpoint, endpoint->my_smp_rank, endpoint->peer_smp_rank,
                                   (void *) VIRTUAL2RELATIVE(frag->hdr), false, true, rc);
         (void) rc; /* this is safe to ignore as the message is requeued till success */
+#ifdef ENABLE_ANALYSIS
+        if(item!=NULL) item->sent = time(NULL);
+#endif
         return OPAL_SUCCESS;
     }
 
@@ -963,8 +974,22 @@ int mca_btl_smcuda_sendi(struct mca_btl_base_module_t *btl,
  * @param peer (IN)     BTL peer addressing
  */
 int mca_btl_smcuda_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
-                        struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag)
+                        struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                        , qentry **q
+#endif
+                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+        item->usedBtl = "smcuda";
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_btl_smcuda_frag_t *frag = (mca_btl_smcuda_frag_t *) descriptor;
     int rc;
 
@@ -1003,6 +1028,9 @@ int mca_btl_smcuda_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_e
     /* not yet gone, but pending. Let the upper level knows that
      * the callback will be triggered when the data will be sent.
      */
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->sent = time(NULL);
+#endif
     return 0;
 }
 

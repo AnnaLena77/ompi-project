@@ -67,6 +67,10 @@
 #include "btl_tcp_frag.h"
 #include "btl_tcp_proc.h"
 
+#ifdef ENABLE_ANALYSIS
+#   include "ompi/mpi/c/init.h"
+#endif
+
 /*
  * Magic ID string send during connect/accept handshake
  */
@@ -343,8 +347,21 @@ static inline void mca_btl_tcp_endpoint_event_init(mca_btl_base_endpoint_t *btl_
  * queue the fragment and start the connection as required.
  */
 
-int mca_btl_tcp_endpoint_send(mca_btl_base_endpoint_t *btl_endpoint, mca_btl_tcp_frag_t *frag)
+int mca_btl_tcp_endpoint_send(mca_btl_base_endpoint_t *btl_endpoint, mca_btl_tcp_frag_t *frag
+#ifdef ENABLE_ANALYSIS
+                              , qentry **q
+#endif
+)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+    }
+    else {
+        item = NULL;
+    }
+#endif
     int rc = OPAL_SUCCESS;
 
     OPAL_THREAD_LOCK(&btl_endpoint->endpoint_send_lock);
@@ -376,6 +393,9 @@ int mca_btl_tcp_endpoint_send(mca_btl_base_endpoint_t *btl_endpoint, mca_btl_tcp
                 }
                 MCA_BTL_TCP_ENDPOINT_DUMP(50, btl_endpoint, true,
                                           "complete send fragment [endpoint_send]");
+#ifdef ENABLE_ANALYSIS
+                if(item!=NULL) item->sent = time(NULL);
+#endif
                 return 1;
             } else {
                 btl_endpoint->endpoint_send_frag = frag;
@@ -393,6 +413,9 @@ int mca_btl_tcp_endpoint_send(mca_btl_base_endpoint_t *btl_endpoint, mca_btl_tcp
         break;
     }
     OPAL_THREAD_UNLOCK(&btl_endpoint->endpoint_send_lock);
+#ifdef ENABLE_ANALYSIS
+                if(item!=NULL) item->sent = time(NULL);
+#endif
     return rc;
 }
 

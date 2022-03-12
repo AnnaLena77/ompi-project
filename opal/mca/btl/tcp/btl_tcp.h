@@ -52,6 +52,10 @@
 #include "opal/util/event.h"
 #include "opal/util/fd.h"
 
+#ifdef ENABLE_ANALYSIS
+#   include "ompi/mpi/c/init.h"
+#endif
+
 #define MCA_BTL_TCP_STATISTICS 0
 BEGIN_C_DECLS
 
@@ -249,7 +253,11 @@ extern int mca_btl_tcp_del_procs(struct mca_btl_base_module_t *btl, size_t nproc
 
 extern int mca_btl_tcp_send(struct mca_btl_base_module_t *btl,
                             struct mca_btl_base_endpoint_t *btl_peer,
-                            struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag);
+                            struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                            , qentry **q
+#endif
+                            );
 
 /**
  * Initiate an asynchronous put.

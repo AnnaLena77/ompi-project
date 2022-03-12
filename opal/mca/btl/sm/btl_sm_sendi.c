@@ -48,8 +48,14 @@ int mca_btl_sm_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
                      )
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = *q;
-    if(item!=NULL)item->usedBtl = "sm";
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+        item->usedBtl = "sm";
+    }
+    else {
+        item = NULL;
+    }
 #endif
     mca_btl_sm_frag_t *frag;
     void *data_ptr = NULL;
@@ -119,6 +125,8 @@ int mca_btl_sm_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
         }
         return OPAL_ERR_OUT_OF_RESOURCE;
     }
-
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->sent = time(NULL);
+#endif
     return OPAL_SUCCESS;
 }

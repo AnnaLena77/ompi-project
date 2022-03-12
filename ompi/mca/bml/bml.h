@@ -280,7 +280,7 @@ static inline int mca_bml_base_send( mca_bml_base_btl_t* bml_btl,
     rc = btl->btl_send(btl, bml_btl->btl_endpoint, des, tag);
 #else
     qentry *item;
-    if(q!=NULL){
+    if(q!=NULL && *q!=NULL){
         item = *q;
     }
     else {
@@ -331,13 +331,20 @@ static inline int  mca_bml_base_sendi( mca_bml_base_btl_t* bml_btl,
                                        qentry **q )
 #endif
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+    } else{
+        item = NULL;
+    }
+#endif
     mca_btl_base_module_t* btl = bml_btl->btl;
 #ifndef ENABLE_ANALYSIS
     return btl->btl_sendi(btl, bml_btl->btl_endpoint,
                           convertor, header, header_size,
                           payload_size, order, flags, tag, descriptor);
 #else 
-    qentry *item = *q;
     return btl->btl_sendi(btl, bml_btl->btl_endpoint,
                           convertor, header, header_size,
                           payload_size, order, flags, tag, descriptor, &item);

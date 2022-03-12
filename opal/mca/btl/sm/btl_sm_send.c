@@ -43,6 +43,16 @@ int mca_btl_sm_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpo
 #endif
                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+        item->usedBtl = "sm";
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_btl_sm_frag_t *frag = (mca_btl_sm_frag_t *) descriptor;
     const size_t total_size = frag->segments[0].seg_len;
 
@@ -76,7 +86,9 @@ int mca_btl_sm_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpo
         OPAL_THREAD_UNLOCK(&endpoint->pending_frags_lock);
         return OPAL_SUCCESS;
     }
-
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->sent = time(NULL);
+#endif
     return OPAL_SUCCESS;
 
 #if 0

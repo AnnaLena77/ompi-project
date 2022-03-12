@@ -12,7 +12,9 @@
 #include "btl_uct_am.h"
 #include "btl_uct_device_context.h"
 #include "btl_uct_rdma.h"
-#include "ompi/mpi/c/init.h"
+#ifdef ENABLE_ANALYSIS
+#   include "ompi/mpi/c/init.h"
+#endif
 
 /**
  * Allocate a segment.
@@ -164,8 +166,21 @@ static void mca_btl_uct_append_pending_frag(mca_btl_uct_module_t *uct_btl,
     opal_list_append(&uct_btl->pending_frags, (opal_list_item_t *) frag);
 }
 
-int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t *frag, bool append)
+int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t *frag, bool append
+#ifdef ENABLE_ANALYSIS
+                          , qentry **q
+#endif
+)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_btl_uct_device_context_t *context = frag->context;
     const ssize_t msg_size = frag->uct_iov.length + 8;
     ssize_t size;
@@ -206,6 +221,9 @@ int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t
                     mca_btl_uct_context_unlock(context);
                     /* send is complete */
                     mca_btl_uct_frag_complete(frag, OPAL_SUCCESS);
+#ifdef ENABLE_ANALYSIS
+                    if(item!=NULL) item->sent = time(NULL);
+#endif
                     return 1;
                 }
             }
@@ -217,6 +235,9 @@ int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t
                 mca_btl_uct_context_unlock(context);
                 /* send is complete */
                 mca_btl_uct_frag_complete(frag, OPAL_SUCCESS);
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->sent = time(NULL);
+#endif
                 return 1;
             }
         }
@@ -240,8 +261,22 @@ int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t
 }
 
 int mca_btl_uct_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoint,
-                     mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag)
+                     mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                      ,qentry **q
+#endif
+                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+        item->usedBtl = "uct";
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_btl_uct_module_t *uct_btl = (mca_btl_uct_module_t *) btl;
     mca_btl_uct_device_context_t *context = mca_btl_uct_module_get_am_context(uct_btl);
     mca_btl_uct_base_frag_t *frag = (mca_btl_uct_base_frag_t *) descriptor;
@@ -266,8 +301,11 @@ int mca_btl_uct_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoi
         }
         OPAL_THREAD_UNLOCK(&uct_btl->lock);
     }
-
+#ifndef ENABLE_ANALYSIS
     return mca_btl_uct_send_frag(uct_btl, frag, true);
+#else
+    return mca_btl_uct_send_frag(uct_btl, frag, true, &item);
+#endif
 }
 
 struct mca_btl_uct_sendi_pack_args_t {
@@ -306,9 +344,15 @@ int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpo
                       )
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = *q;
-    item->usedBtl = "uct";
-#else
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+        item->usedBtl = "uct";
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_btl_uct_module_t *uct_btl = (mca_btl_uct_module_t *) btl;
     mca_btl_uct_device_context_t *context = mca_btl_uct_module_get_am_context(uct_btl);
     const size_t total_size = header_size + payload_size;
@@ -365,6 +409,8 @@ int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpo
 
         return OPAL_ERR_OUT_OF_RESOURCE;
     }
-
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->sent = time(NULL);
+#endif
     return OPAL_SUCCESS;
 }

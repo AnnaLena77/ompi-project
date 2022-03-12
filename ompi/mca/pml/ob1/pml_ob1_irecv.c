@@ -95,7 +95,7 @@ int mca_pml_ob1_irecv(void *addr,
 #endif
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL){
+    if(*q!=NULL && q!=NULL){
         item = *q;
     }
     else {
