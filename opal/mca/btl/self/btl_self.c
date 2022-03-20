@@ -33,11 +33,6 @@
 #include "opal/class/opal_bitmap.h"
 #include "opal/datatype/opal_convertor.h"
 #include "opal/util/proc.h"
-#include "ompi/mpi/c/init.h"
-
-#ifdef ENABLE_ANALYSIS
-#   include "ompi/mpi/c/init.h"
-#endif
 
 /**
  * PML->BTL notification of change in the process list.

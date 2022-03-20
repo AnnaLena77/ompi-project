@@ -28,7 +28,6 @@
 #include "ompi/datatype/ompi_datatype.h"
 #include "ompi/memchecker.h"
 #include "ompi/runtime/ompi_spc.h"
-#include "ompi/mpi/c/init.h"
 #include <time.h>
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -56,7 +55,6 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     //Integer for the partnerrank-value= -1
     //-> Function Bcast sends the message to all other processes. All other processes are partnerranks
     int partnerrank = -1;
-    enqueue(&operation, &type_name, count, count*sizeof(datatype), &comm_name, root, partnerrank, current_time);
     #endif
     int err;
 

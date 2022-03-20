@@ -42,6 +42,10 @@
 #include "pml_ob1_rdmafrag.h"
 #include "ompi/mca/bml/base/base.h"
 
+#ifdef ENABLE_ANALYSIS
+#   include "ompi/mpi/c/init.h"
+#endif
+
 #if OPAL_CUDA_SUPPORT
 #include "opal/mca/common/cuda/common_cuda.h"
 #endif /* OPAL_CUDA_SUPPORT */
@@ -1265,8 +1269,20 @@ recv_req_match_wild( mca_pml_ob1_recv_request_t* req,
 }
 
 
-void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req)
+void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(*q!=NULL && q!=NULL){
+        item = *q;
+    } else{
+        item = NULL;
+    }
+#endif
     ompi_communicator_t *comm = req->req_recv.req_base.req_comm;
     mca_pml_ob1_comm_t *ob1_comm = comm->c_pml_comm;
     mca_pml_ob1_comm_proc_t* proc;

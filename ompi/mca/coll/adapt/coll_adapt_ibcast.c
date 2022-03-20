@@ -21,6 +21,7 @@
 #include "opal/sys/atomic.h"
 #include "ompi/mca/pml/ob1/pml_ob1.h"
 
+
 static int ompi_coll_adapt_ibcast_generic(IBCAST_ARGS,
                                    ompi_coll_tree_t * tree, size_t seg_size);
 

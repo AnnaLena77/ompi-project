@@ -180,9 +180,10 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
     }
     //immediate send was successfully!
     #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->immediate = 1;
-    time_t current_time = time(NULL);
-    if(item!=NULL) item->sent = current_time;
+    if(item!=NULL) {
+        item->immediate = 1;
+        item->sent = time(NULL);
+    }
     #endif
 
     return (int) size;
@@ -301,7 +302,6 @@ int mca_pml_ob1_isend(const void *buf,
                              PERUSE_SEND);
     
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->startRequest = time(NULL);
     //Endless-loop -> mca_pml_ob1_send_request_start_seq (pml_ob1_sendreq.h)
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc, &item);
 #else

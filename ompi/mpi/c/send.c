@@ -32,7 +32,6 @@
 #include "ompi/datatype/ompi_datatype.h"
 #include "ompi/memchecker.h"
 #include "ompi/runtime/ompi_spc.h"
-#include "ompi/mpi/c/init.h"
 #include <time.h>
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -48,9 +47,9 @@ static const char FUNC_NAME[] = "MPI_Send";
 int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
              int tag, MPI_Comm comm)
 {
-    qentry *item = NULL;
     #ifdef ENABLE_ANALYSIS
-    item = (qentry*)malloc(sizeof(qentry));
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
     //item->start
     time_t current_time = time(NULL);
     item->start = current_time;

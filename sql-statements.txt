@@ -3,3 +3,30 @@ ALTER TABLE MPI_Data ADD Timestamp_Insertion DATETIME DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE MPI_Data ADD ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST;
 ALTER TABLE MPI_Data ADD duration INT GENERATED ALWAYS AS (TIMESTAMPDIFF(second, timestamp_into_queue, timestamp_insertion));
 
+CREATE TABLE MPI_Information (
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	operation VARCHAR(255),
+	sendmode VARCHAR(255),
+	immediate BOOLEAN,
+	datatype VARCHAR(255),
+	count INT,
+	datasize INT,
+	communicator VARCHAR(255),
+	processrank INT,
+	partnerrank INT,
+	usedBtl VARCHAR(255),
+	usedProtocol VARCHAR(255),
+	time_start DATETIME(6),
+	time_initializeRequest DATETIME(6),
+	time_startRequest DATETIME(6),
+	time_requestWaitCompletion DATETIME(6),
+	time_requestFini DATETIME(6),
+	time_sent DATETIME(6),
+	time_bufferFree DATETIME(6),
+	time_intoQueue DATETIME(6),
+	time_insertIntoDatabase DATETIME(6) DEFAULT CURRENT_TIMESTAMP,
+	time_durationStartInsertion INT GENERATED ALWAYS AS (TIMESTAMPDIFF(second, time_start, time_InsertIntoDatabase))
+);
+
+//Remove Table:
+DROP TABLE MPI_Information;

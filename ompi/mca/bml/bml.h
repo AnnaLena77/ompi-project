@@ -38,7 +38,6 @@
 #include "ompi/types.h"
 
 #include "ompi/constants.h"
-#include "ompi/mpi/c/init.h"
 
 #define OPAL_ENABLE_DEBUG_RELIABILITY 0
 

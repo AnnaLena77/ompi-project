@@ -28,7 +28,6 @@
 #include "opal/mca/btl/sm/btl_sm_fbox.h"
 #include "opal/mca/btl/sm/btl_sm_fifo.h"
 #include "opal/mca/btl/sm/btl_sm_frag.h"
-#include "ompi/mpi/c/init.h"
 
 /**
  * Initiate a send to the peer.

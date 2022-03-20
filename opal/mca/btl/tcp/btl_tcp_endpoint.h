@@ -25,9 +25,7 @@
 #include "btl_tcp_frag.h"
 #include "opal/class/opal_list.h"
 #include "opal/util/event.h"
-#ifdef ENABLE_ANALYSIS
-#   include "ompi/mpi/c/init.h"
-#endif
+
 BEGIN_C_DECLS
 
 #define MCA_BTL_TCP_ENDPOINT_CACHE      1

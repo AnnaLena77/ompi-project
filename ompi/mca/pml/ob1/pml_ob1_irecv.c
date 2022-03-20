@@ -97,6 +97,7 @@ int mca_pml_ob1_irecv(void *addr,
     qentry *item;
     if(*q!=NULL && q!=NULL){
         item = *q;
+        item->blocking = 0;
     }
     else {
         item = NULL;
@@ -111,12 +112,18 @@ int mca_pml_ob1_irecv(void *addr,
     MCA_PML_OB1_RECV_REQUEST_INIT(recvreq,
                                    addr,
                                    count, datatype, src, tag, comm, false);
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->initializeRequest = time(NULL);
+#endif
 
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &((recvreq)->req_recv.req_base),
                              PERUSE_RECV);
-
+#ifndef ENABLE_ANALYSIS
     MCA_PML_OB1_RECV_REQUEST_START(recvreq);
+#else
+    MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
+#endif
     *request = (ompi_request_t *) recvreq;
     return OMPI_SUCCESS;
 }
@@ -144,6 +151,7 @@ int mca_pml_ob1_recv(void *addr,
     qentry *item;
     if(q!=NULL){
         item = *q;
+        item->blocking = 1;
     }
     else {
         item = NULL;
@@ -170,8 +178,11 @@ int mca_pml_ob1_recv(void *addr,
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &(recvreq->req_recv.req_base),
                              PERUSE_RECV);
-
+#ifndef ENABLE_ANALYSIS
     MCA_PML_OB1_RECV_REQUEST_START(recvreq);
+#else
+    MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
+#endif
     ompi_request_wait_completion(&recvreq->req_recv.req_base.req_ompi);
 
     if (recvreq->req_recv.req_base.req_pml_complete) {

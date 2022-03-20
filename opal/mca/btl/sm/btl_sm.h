@@ -58,7 +58,6 @@
 #include "opal/mca/rcache/rcache.h"
 #include "opal/sys/atomic.h"
 #include "opal/util/proc.h"
-#include "ompi/mpi/c/init.h"
 
 #include "opal/mca/pmix/pmix-internal.h"
 

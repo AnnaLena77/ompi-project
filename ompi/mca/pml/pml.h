@@ -70,7 +70,6 @@
 #include "mpi.h" /* needed for MPI_ANY_TAG */
 #include "ompi/mca/pml/pml_constants.h"
 #include "ompi/request/request.h"
-#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 

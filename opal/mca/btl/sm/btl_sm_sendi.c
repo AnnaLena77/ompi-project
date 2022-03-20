@@ -30,7 +30,6 @@
 #include "opal/mca/btl/sm/btl_sm_frag.h"
 
 #include "opal/mca/btl/sm/btl_sm_fbox.h"
-#include "ompi/mpi/c/init.h"
 
 /**
  * Initiate an inline send to the peer.

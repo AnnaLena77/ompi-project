@@ -27,9 +27,14 @@ typedef struct qentry {
     time_t requestFini;
     time_t sent;//later
     time_t bufferFree; //later
+    time_t intoQueue;
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
 #endif
 
 extern void qentryIntoQueue(qentry **q);
+extern void initQentry(qentry **q);
+
+
+
 

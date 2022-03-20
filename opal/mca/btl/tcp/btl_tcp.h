@@ -52,10 +52,6 @@
 #include "opal/util/event.h"
 #include "opal/util/fd.h"
 
-#ifdef ENABLE_ANALYSIS
-#   include "ompi/mpi/c/init.h"
-#endif
-
 #define MCA_BTL_TCP_STATISTICS 0
 BEGIN_C_DECLS
 

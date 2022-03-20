@@ -67,10 +67,6 @@
 #include "btl_tcp_frag.h"
 #include "btl_tcp_proc.h"
 
-#ifdef ENABLE_ANALYSIS
-#   include "ompi/mpi/c/init.h"
-#endif
-
 /*
  * Magic ID string send during connect/accept handshake
  */

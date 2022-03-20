@@ -41,7 +41,6 @@
 #include "ompi/mca/bml/base/base.h"
 #include "ompi/proc/proc.h"
 #include "opal/mca/allocator/base/base.h"
-#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 

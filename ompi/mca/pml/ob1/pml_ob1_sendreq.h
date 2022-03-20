@@ -515,6 +515,7 @@ mca_pml_ob1_send_request_start_seq (mca_pml_ob1_send_request_t* sendreq, mca_bml
     qentry *item;
     if(*q!=NULL && q!=NULL){
         item = *q;
+        item->startRequest=time(NULL);
     }
     else {
         item = NULL;
@@ -539,7 +540,6 @@ mca_pml_ob1_send_request_start_seq (mca_pml_ob1_send_request_t* sendreq, mca_bml
 #ifndef ENABLE_ANALYSIS
         rc = mca_pml_ob1_send_request_start_btl(sendreq, bml_btl);
 #else
-        qentry *item = *q;
         rc = mca_pml_ob1_send_request_start_btl(sendreq, bml_btl, &item);
 #endif
 #if OPAL_ENABLE_FT_MPI
