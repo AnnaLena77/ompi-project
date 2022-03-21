@@ -204,7 +204,10 @@ int mca_btl_ugni_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_en
         *descriptor = &frag->base;
     }
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->sent = time(NULL);
+    if(item!=NULL){
+         item->sent = time(NULL);
+         item->immediate = 1;
+    }
 #endif
     return OPAL_ERR_OUT_OF_RESOURCE;
 }

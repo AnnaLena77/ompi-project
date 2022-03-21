@@ -125,6 +125,11 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
     if ((size * count) > 256) {  /* some random number */
         return OMPI_ERR_NOT_AVAILABLE; //Zahl: -16
     }
+#ifdef ENABLE_ANALYSIS
+    else {
+        if(item != NULL) item->withinEagerLimit = 1;
+    }
+#endif
 
     if (count > 0) {
         /* initialize just enough of the convertor to avoid a SEGV in opal_convertor_cleanup */
@@ -178,14 +183,6 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
 	return rc;
     }
-    //immediate send was successfully!
-    #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) {
-        item->immediate = 1;
-        item->sent = time(NULL);
-    }
-    #endif
-
     return (int) size;
 }
 
@@ -482,7 +479,6 @@ int mca_pml_ob1_send(const void *buf,
 #ifndef ENABLE_ANALYSIS
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc);
 #else
-    if(item!=NULL) item->startRequest = time(NULL);
     MCA_PML_OB1_SEND_REQUEST_START_W_SEQ(sendreq, endpoint, seqn, rc, &item);
 #endif
     if (OPAL_LIKELY(rc == OMPI_SUCCESS)) {

@@ -410,7 +410,10 @@ int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpo
         return OPAL_ERR_OUT_OF_RESOURCE;
     }
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->sent = time(NULL);
+    if(item!=NULL){
+        item->sent = time(NULL);
+        item->immediate = 1;
+    }
 #endif
     return OPAL_SUCCESS;
 }

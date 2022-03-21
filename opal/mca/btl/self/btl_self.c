@@ -275,6 +275,7 @@ static int mca_btl_self_sendi(struct mca_btl_base_module_t *btl,
         (void) mca_btl_self_send(btl, endpoint, &des, tag);
 #else
         (void) mca_btl_self_send(btl, endpoint, &des, tag, &item);
+        if(item!=NULL) item->immediate = 1;
 #endif
         return OPAL_SUCCESS;
     }
@@ -291,6 +292,7 @@ static int mca_btl_self_sendi(struct mca_btl_base_module_t *btl,
     (void) mca_btl_self_send(btl, endpoint, frag, tag);
 #else
     (void) mca_btl_self_send(btl, endpoint, frag, tag, &item);
+    if(item!=NULL) item->immediate = 1;
 #endif
     return OPAL_SUCCESS;
 }

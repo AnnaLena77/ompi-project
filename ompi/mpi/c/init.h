@@ -1,5 +1,5 @@
 #include <sys/queue.h>
-#define ENABLE_ANALYSIS 1;
+#define ENABLE_ANALYSIS 1
 
 extern void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime);
 extern void initialize(void);
@@ -20,9 +20,13 @@ typedef struct qentry {
     int partnerrank;
     char* usedBtl;
     char* usedProtocol;
+    int withinEagerLimit;
     time_t start;
     time_t initializeRequest;
     time_t startRequest;
+    //Completion of the first fragment of a long message that requires an acknowledgement
+    time_t requestCompletePmlLevel;
+    //Warten auf Recv-Request
     time_t requestWaitCompletion;
     time_t requestFini;
     time_t sent;//later

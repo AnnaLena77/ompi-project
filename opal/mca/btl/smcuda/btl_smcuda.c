@@ -957,7 +957,10 @@ int mca_btl_smcuda_sendi(struct mca_btl_base_module_t *btl,
                                   (void *) VIRTUAL2RELATIVE(frag->hdr), false, true, rc);
         (void) rc; /* this is safe to ignore as the message is requeued till success */
 #ifdef ENABLE_ANALYSIS
-        if(item!=NULL) item->sent = time(NULL);
+        if(item!=NULL){
+            item->sent = time(NULL);
+            item->immediate = 1;
+        }
 #endif
         return OPAL_SUCCESS;
     }

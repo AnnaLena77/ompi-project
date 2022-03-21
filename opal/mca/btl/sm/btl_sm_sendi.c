@@ -125,7 +125,10 @@ int mca_btl_sm_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
         return OPAL_ERR_OUT_OF_RESOURCE;
     }
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->sent = time(NULL);
+    if(item!=NULL){ 
+        item->sent = time(NULL);
+        item->immediate = 1;
+    }
 #endif
     return OPAL_SUCCESS;
 }
