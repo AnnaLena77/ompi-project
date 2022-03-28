@@ -218,7 +218,12 @@ mca_pml_ob1_match_completion_free_request( mca_bml_base_btl_t* bml_btl,
     send_request_pml_complete(sendreq);
 #else
     qentry *item;
-    if(q!=NULL && *q!=NULL) item = *q;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
     else item = NULL;
     send_request_pml_complete(sendreq, &item);
 #endif
@@ -283,11 +288,13 @@ mca_pml_ob1_rndv_completion_request( mca_bml_base_btl_t* bml_btl,
     send_request_pml_complete_check(sendreq);
 #else
     qentry *item;
-    if(q!=NULL && *q!=NULL){
-        item = *q;
-    } else{
-        item = NULL;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
+    else item = NULL;
     send_request_pml_complete_check(sendreq, &item);
 #endif
 
@@ -542,11 +549,13 @@ int mca_pml_ob1_send_request_start_buffered(
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL && *q!=NULL) {
-        item = *q;
-    } else {
-        item = NULL;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
+    else item = NULL;
 #endif
     mca_btl_base_descriptor_t* des;
     mca_btl_base_segment_t* segment;
@@ -669,11 +678,13 @@ int mca_pml_ob1_send_request_start_copy( mca_pml_ob1_send_request_t* sendreq,
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL && *q!=NULL) {
-        item = *q;
-    } else {
-        item = NULL;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
+    else item = NULL;
 #endif
     mca_btl_base_descriptor_t* des = NULL;
     mca_btl_base_segment_t* segment;
@@ -829,8 +840,11 @@ int mca_pml_ob1_send_request_start_prepare( mca_pml_ob1_send_request_t* sendreq,
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL && *q!=NULL){
-        item = *q;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
     else item = NULL;
 #endif
@@ -910,7 +924,12 @@ int mca_pml_ob1_send_request_start_rdma( mca_pml_ob1_send_request_t* sendreq,
      */
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL && *q!=NULL) item = *q;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
     else item = NULL;
 #endif
     mca_btl_base_registration_handle_t *local_handle;

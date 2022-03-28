@@ -63,8 +63,11 @@ mca_coll_basic_allreduce_intra(const void *sbuf, void *rbuf, int count,
     if (MPI_SUCCESS != err) {
         return err;
     }
-
+#ifndef ENABLE_ANALYSIS
     return comm->c_coll->coll_bcast(rbuf, count, dtype, 0, comm, comm->c_coll->coll_bcast_module);
+#else
+    return comm->c_coll->coll_bcast(rbuf, count, dtype, 0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
 }
 
 

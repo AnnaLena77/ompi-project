@@ -1635,9 +1635,15 @@ int ompi_comm_get_rprocs ( ompi_communicator_t *local_comm,
     }
 
     /* broadcast buffer length to all processes in local_comm */
+#ifndef ENABLE_ANALYSIS
     rc = local_comm->c_coll->coll_bcast( &rlen, 1, MPI_INT,
                                         local_leader, local_comm,
                                         local_comm->c_coll->coll_bcast_module );
+#else
+    rc = local_comm->c_coll->coll_bcast( &rlen, 1, MPI_INT,
+                                        local_leader, local_comm,
+                                        local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != rc ) {
 #if OPAL_ENABLE_FT_MPI
         if ( local_rank != local_leader ) {
@@ -1697,9 +1703,15 @@ int ompi_comm_get_rprocs ( ompi_communicator_t *local_comm,
     }
 
     /* broadcast name list to all proceses in local_comm */
+#ifndef ENABLE_ANALYSIS
     rc = local_comm->c_coll->coll_bcast( recvbuf, rlen, MPI_BYTE,
                                         local_leader, local_comm,
                                         local_comm->c_coll->coll_bcast_module);
+#else
+    rc = local_comm->c_coll->coll_bcast( recvbuf, rlen, MPI_BYTE,
+                                        local_leader, local_comm,
+                                        local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != rc ) {
         goto err_exit;
     }

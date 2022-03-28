@@ -253,7 +253,11 @@ int ompi_coll_tuned_barrier_intra_dec_dynamic(struct ompi_communicator_t *comm,
 int ompi_coll_tuned_bcast_intra_dec_dynamic(void *buf, int count,
                                             struct ompi_datatype_t *dtype, int root,
                                             struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				        , qentry **q
+#endif
+                                            )
 {
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
@@ -288,9 +292,13 @@ int ompi_coll_tuned_bcast_intra_dec_dynamic(void *buf, int count,
         } /* found a method */
     } /*end if any com rules to check */
 
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_bcast_intra_dec_fixed (buf, count, dtype, root,
                                                   comm, module);
+#else
+    return ompi_coll_tuned_bcast_intra_dec_fixed (buf, count, dtype, root,
+                                                  comm, module, NULL);
+#endif
 }
 
 /*

@@ -175,13 +175,21 @@ int mca_sharedfp_individual_write_ordered (ompio_file_t *fh,
 	opal_output(0,"sharedfp_individual_write_ordered: Error in scattering offsets \n");
 	goto exit;
     }
-
+#ifndef ENABLE_ANALYSIS
     ret = fh->f_comm->c_coll->coll_bcast ( &global_offset, 
                                            1, 
                                            OMPI_OFFSET_DATATYPE,
                                            0, 
                                            fh->f_comm, 
                                            fh->f_comm->c_coll->coll_bcast_module );
+#else
+    ret = fh->f_comm->c_coll->coll_bcast ( &global_offset, 
+                                           1, 
+                                           OMPI_OFFSET_DATATYPE,
+                                           0, 
+                                           fh->f_comm, 
+                                           fh->f_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != ret )  {
 	opal_output(0,"sharedfp_individual_write_ordered: Error while bcasting global offset \n");
 	goto exit;

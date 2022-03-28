@@ -21,6 +21,7 @@ typedef struct qentry {
     char* usedBtl;
     char* usedProtocol;
     int withinEagerLimit;
+    int foundMatchWild;
     time_t start;
     time_t initializeRequest;
     time_t startRequest;

@@ -234,8 +234,13 @@ bcast_rportlen:
      * side's participants */
 
     /* bcast the list-length to all processes in the local comm */
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_bcast(&rportlen, 1, MPI_INT, root, comm,
                                  comm->c_coll->coll_bcast_module);
+#else
+    rc = comm->c_coll->coll_bcast(&rportlen, 1, MPI_INT, root, comm,
+                                 comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (OMPI_SUCCESS != rc) {
         free(rport);
         goto exit;
@@ -258,8 +263,13 @@ bcast_rportlen:
         }
     }
     /* now share the list of remote participants */
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_bcast(rport, rportlen, MPI_BYTE, root, comm,
                                  comm->c_coll->coll_bcast_module);
+#else
+    rc = comm->c_coll->coll_bcast(rport, rportlen, MPI_BYTE, root, comm,
+                                 comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (OMPI_SUCCESS != rc) {
         free(rport);
         goto exit;

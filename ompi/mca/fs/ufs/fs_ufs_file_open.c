@@ -62,8 +62,11 @@ mca_fs_ufs_file_open (struct ompi_communicator_t *comm,
             ret = mca_fs_base_get_mpi_err(errno);
         }
     }
-
+#ifndef ENABLE_ANALYSIS
     comm->c_coll->coll_bcast ( &ret, 1, MPI_INT, 0, comm, comm->c_coll->coll_bcast_module);
+#else
+    comm->c_coll->coll_bcast ( &ret, 1, MPI_INT, 0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != ret ) {
         fh->fd = -1;
         return ret;

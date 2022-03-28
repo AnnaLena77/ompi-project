@@ -87,9 +87,15 @@ mca_coll_inter_allgather_inter(const void *sbuf, int scount,
     }
     /* bcast the message to all the local processes */
     if ( rcount > 0 ) {
+#ifndef ENABLE_ANALYSIS
 	err = comm->c_local_comm->c_coll->coll_bcast(rbuf, rcount*rsize, rdtype,
 						    root, comm->c_local_comm,
 						    comm->c_local_comm->c_coll->coll_bcast_module);
+#else
+	err = comm->c_local_comm->c_coll->coll_bcast(rbuf, rcount*rsize, rdtype,
+						    root, comm->c_local_comm,
+						    comm->c_local_comm->c_coll->coll_bcast_module, NULL);
+#endif
 	if (OMPI_SUCCESS != err) {
 	    goto exit;
 	}

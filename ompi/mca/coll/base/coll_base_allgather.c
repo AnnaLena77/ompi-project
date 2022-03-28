@@ -854,14 +854,24 @@ ompi_coll_base_allgather_intra_basic_linear(const void *sbuf, int scount,
     if (MPI_SUCCESS == err) {
         size_t length = (ptrdiff_t)rcount * ompi_comm_size(comm);
         if( length < (size_t)INT_MAX ) {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_bcast(rbuf, (ptrdiff_t)rcount * ompi_comm_size(comm), rdtype,
                                           0, comm, comm->c_coll->coll_bcast_module);
+#else
+	   err = comm->c_coll->coll_bcast(rbuf, (ptrdiff_t)rcount * ompi_comm_size(comm), rdtype,
+                                          0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
         } else {
             ompi_datatype_t* temptype;
             ompi_datatype_create_contiguous(ompi_comm_size(comm), rdtype, &temptype);
             ompi_datatype_commit(&temptype);
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_bcast(rbuf, rcount, temptype,
                                           0, comm, comm->c_coll->coll_bcast_module);
+#else
+	   err = comm->c_coll->coll_bcast(rbuf, rcount, temptype,
+                                          0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
             ompi_datatype_destroy(&temptype);
         }
     }

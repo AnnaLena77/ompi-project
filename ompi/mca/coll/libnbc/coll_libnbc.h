@@ -185,7 +185,11 @@ int ompi_coll_libnbc_ibarrier(struct ompi_communicator_t *comm, ompi_request_t *
                               mca_coll_base_module_t *module);
 int ompi_coll_libnbc_ibcast(void *buffer, int count, MPI_Datatype datatype, int root,
                             struct ompi_communicator_t *comm, ompi_request_t ** request,
-                            mca_coll_base_module_t *module);
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                            , qentry **q
+#endif
+                            );
 int ompi_coll_libnbc_iexscan(const void *sbuf, void *rbuf, int count, struct ompi_datatype_t *dtype,
                              struct ompi_op_t *op, struct ompi_communicator_t *comm, ompi_request_t **request,
                              mca_coll_base_module_t *module);
@@ -243,7 +247,11 @@ int ompi_coll_libnbc_ibarrier_inter(struct ompi_communicator_t *comm, ompi_reque
                               mca_coll_base_module_t *module);
 int ompi_coll_libnbc_ibcast_inter(void *buffer, int count, MPI_Datatype datatype, int root,
                             struct ompi_communicator_t *comm, ompi_request_t ** request,
-                            mca_coll_base_module_t *module);
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                            , qentry **q
+#endif
+                            );
 int ompi_coll_libnbc_igather_inter(const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf, int recvcount,
                              MPI_Datatype recvtype, int root, struct ompi_communicator_t *comm, ompi_request_t ** request,
                              mca_coll_base_module_t *module);

@@ -124,13 +124,21 @@ BEGIN_C_DECLS
                                        struct ompi_datatype_t *datatype,
                                        int root,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_bcast_log_intra(void *buff, int count,
                                        struct ompi_datatype_t *datatype,
                                        int root,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_bcast_log_inter(void *buff, int count,
                                        struct ompi_datatype_t *datatype,

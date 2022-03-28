@@ -23,7 +23,8 @@
 
 
 static int ompi_coll_adapt_ibcast_generic(IBCAST_ARGS,
-                                   ompi_coll_tree_t * tree, size_t seg_size);
+                                   ompi_coll_tree_t * tree, size_t seg_size
+                                   );
 
 /*
  * Set up MCA parameters of MPI_Bcast and MPI_IBcast
@@ -115,6 +116,7 @@ static int ibcast_request_fini(ompi_coll_adapt_bcast_context_t * context)
  */
 static int send_cb(ompi_request_t * req)
 {
+    printf("\nHELLO AUS SEND_CB, coll_adapt_ibcast\n");
     ompi_coll_adapt_bcast_context_t *context =
         (ompi_coll_adapt_bcast_context_t *) req->req_complete_cb_data;
     int err;
@@ -344,7 +346,11 @@ static int recv_cb(ompi_request_t * req)
 
 int ompi_coll_adapt_ibcast(void *buff, int count, struct ompi_datatype_t *datatype, int root,
                           struct ompi_communicator_t *comm, ompi_request_t ** request,
-                          mca_coll_base_module_t * module)
+                          mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          )
 {
     OPAL_OUTPUT_VERBOSE((10, mca_coll_adapt_component.adapt_output,
                          "ibcast root %d, algorithm %d, coll_adapt_ibcast_segment_size %zu, coll_adapt_ibcast_max_send_requests %d, coll_adapt_ibcast_max_recv_requests %d\n",

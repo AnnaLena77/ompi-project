@@ -67,7 +67,11 @@ mca_coll_han_bcast_intra(void *buff,
                          int count,
                          struct ompi_datatype_t *dtype,
                          int root,
-                         struct ompi_communicator_t *comm, mca_coll_base_module_t * module)
+                         struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         )
 {
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
     int err, seg_count = count, w_rank = ompi_comm_rank(comm);
@@ -84,8 +88,13 @@ mca_coll_han_bcast_intra(void *buff,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_bcast(buff, count, dtype, root,
                                         comm, comm->c_coll->coll_bcast_module);
+#else
+        return comm->c_coll->coll_bcast(buff, count, dtype, root,
+                                        comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
     }
     /* Topo must be initialized to know rank distribution which then is used to
      * determine if han can be used */
@@ -97,8 +106,13 @@ mca_coll_han_bcast_intra(void *buff,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, bcast);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_bcast(buff, count, dtype, root,
                                         comm, comm->c_coll->coll_bcast_module);
+#else
+        return comm->c_coll->coll_bcast(buff, count, dtype, root,
+                                        comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
     }
 
     ompi_datatype_get_extent(dtype, &lb, &extent);
@@ -171,8 +185,13 @@ int mca_coll_han_bcast_t0_task(void *task_args)
     if (t->noop) {
         return OMPI_SUCCESS;
     }
+#ifndef ENABLE_ANALYSIS
     t->up_comm->c_coll->coll_bcast((char *) t->buff, t->seg_count, t->dtype, t->root_up_rank,
                                    t->up_comm, t->up_comm->c_coll->coll_bcast_module);
+#else
+    t->up_comm->c_coll->coll_bcast((char *) t->buff, t->seg_count, t->dtype, t->root_up_rank,
+                                   t->up_comm, t->up_comm->c_coll->coll_bcast_module, NULL);
+#endif
     return OMPI_SUCCESS;
 }
 
@@ -200,15 +219,25 @@ int mca_coll_han_bcast_t1_task(void *task_args)
             t->up_comm->c_coll->coll_ibcast((char *) t->buff + extent * t->seg_count,
                                             tmp_count, t->dtype, t->root_up_rank,
                                             t->up_comm, &ibcast_req,
-                                            t->up_comm->c_coll->coll_ibcast_module);
+                                            t->up_comm->c_coll->coll_ibcast_module
+#ifdef ENABLE_ANALYSIS
+				        , NULL
+#endif
+                                            );
         }
     }
 
     /* are we the last segment to be pushed downstream ? */
     tmp_count = (t->cur_seg == (t->num_segments - 1)) ? t->last_seg_count : t->seg_count;
+#ifndef ENABLE_ANALYSIS
     t->low_comm->c_coll->coll_bcast((char *) t->buff,
                                     tmp_count, t->dtype, t->root_low_rank, t->low_comm,
                                     t->low_comm->c_coll->coll_bcast_module);
+#else
+    t->low_comm->c_coll->coll_bcast((char *) t->buff,
+                                    tmp_count, t->dtype, t->root_low_rank, t->low_comm,
+                                    t->low_comm->c_coll->coll_bcast_module, NULL);
+#endif
 
     if (NULL != ibcast_req) {
         ompi_request_wait(&ibcast_req, MPI_STATUS_IGNORE);
@@ -227,7 +256,11 @@ mca_coll_han_bcast_intra_simple(void *buff,
                                 struct ompi_datatype_t *dtype,
                                 int root,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
     /* create the subcommunicators */
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
@@ -246,8 +279,13 @@ mca_coll_han_bcast_intra_simple(void *buff,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_bcast(buff, count, dtype, root,
                                         comm, comm->c_coll->coll_bcast_module);
+#else
+        return comm->c_coll->coll_bcast(buff, count, dtype, root,
+                                        comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
     }
     /* Topo must be initialized to know rank distribution which then is used to
      * determine if han can be used */
@@ -259,8 +297,13 @@ mca_coll_han_bcast_intra_simple(void *buff,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, bcast);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_bcast(buff, count, dtype, root,
                                         comm, comm->c_coll->coll_bcast_module);
+#else
+        return comm->c_coll->coll_bcast(buff, count, dtype, root,
+                                        comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
     }
 
     low_comm = han_module->sub_comm[INTRA_NODE];
@@ -277,8 +320,13 @@ mca_coll_han_bcast_intra_simple(void *buff,
                          w_rank, root_low_rank, root_up_rank));
 
     if (low_rank == root_low_rank) {
+#ifndef ENABLE_ANALYSIS
         up_comm->c_coll->coll_bcast(buff, count, dtype, root_up_rank,
                                     up_comm, up_comm->c_coll->coll_bcast_module);
+#else
+        up_comm->c_coll->coll_bcast(buff, count, dtype, root_up_rank,
+                                    up_comm, up_comm->c_coll->coll_bcast_module, NULL);
+#endif
 
         /* To remove when han has better sub-module selection.
            For now switching to ibcast enables to make runs with libnbc. */
@@ -288,8 +336,13 @@ mca_coll_han_bcast_intra_simple(void *buff,
         //ompi_request_wait(&req, MPI_STATUS_IGNORE);
 
     }
+#ifndef ENABLE_ANALYSIS
     low_comm->c_coll->coll_bcast(buff, count, dtype, root_low_rank,
                                  low_comm, low_comm->c_coll->coll_bcast_module);
+#else
+    low_comm->c_coll->coll_bcast(buff, count, dtype, root_low_rank,
+                                 low_comm, low_comm->c_coll->coll_bcast_module, NULL);
+#endif
 
     return OMPI_SUCCESS;
 }

@@ -103,11 +103,13 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
 #endif
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-    } else{
-        item = NULL;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
+    else item = NULL;
 #endif
     mca_pml_ob1_match_hdr_t match;
     mca_bml_base_btl_t *bml_btl;
@@ -210,7 +212,7 @@ int mca_pml_ob1_isend(const void *buf,
     #ifdef ENABLE_ANALYSIS
     qentry *item;
     //if q is NULL, isend is not called from a normal operation
-    if(*q!=NULL && q!=NULL){
+    if(q!=NULL){
         item = *q;
         if(item->blocking == 0){
             //qentry->sendmode & qentry->operation
@@ -253,7 +255,6 @@ int mca_pml_ob1_isend(const void *buf,
     }
 
     if (MCA_PML_BASE_SEND_SYNCHRONOUS != sendmode) {
-        //printf("%s\n",);
 #ifndef ENABLE_ANALYSIS
         rc = mca_pml_ob1_send_inline (buf, count, datatype, dst, tag, seqn, dst_proc,
                                       endpoint, comm);
@@ -363,7 +364,7 @@ int mca_pml_ob1_send(const void *buf,
 #endif
     #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(OPAL_LIKELY(*q!=NULL && q!=NULL)){
+    if(OPAL_LIKELY(q!=NULL)){
         item = *q;
         //qentry->sendmode & qentry->operation
         if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){

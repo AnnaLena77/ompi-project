@@ -796,9 +796,13 @@ ompi_coll_base_allgatherv_intra_basic_default(const void *sbuf, int scount,
     if(MPI_SUCCESS != err) {
         return err;
     }
-
+#ifndef ENABLE_ANALYSIS
     comm->c_coll->coll_bcast(rbuf, 1, newtype, 0, comm,
                             comm->c_coll->coll_bcast_module);
+#else
+    comm->c_coll->coll_bcast(rbuf, 1, newtype, 0, comm,
+                            comm->c_coll->coll_bcast_module, NULL);
+#endif
 
     ompi_datatype_destroy (&newtype);
 

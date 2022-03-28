@@ -252,9 +252,17 @@ typedef int (*mca_coll_base_module_alltoallw_fn_t)
    struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module);
 typedef int (*mca_coll_base_module_barrier_fn_t)
   (struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module);
+
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_coll_base_module_bcast_fn_t)
   (void *buff, int count, struct ompi_datatype_t *datatype, int root,
    struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module);
+#else
+typedef int (*mca_coll_base_module_bcast_fn_t)
+  (void *buff, int count, struct ompi_datatype_t *datatype, int root,
+   struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module, qentry **q);
+#endif
+
 typedef int (*mca_coll_base_module_exscan_fn_t)
   (const void *sbuf, void *rbuf, int count, struct ompi_datatype_t *dtype,
    struct ompi_op_t *op, struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module);
@@ -320,10 +328,19 @@ typedef int (*mca_coll_base_module_ialltoallw_fn_t)
 typedef int (*mca_coll_base_module_ibarrier_fn_t)
   (struct ompi_communicator_t *comm, ompi_request_t ** request,
    struct mca_coll_base_module_2_4_0_t *module);
+
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_coll_base_module_ibcast_fn_t)
   (void *buff, int count, struct ompi_datatype_t *datatype, int root,
    struct ompi_communicator_t *comm, ompi_request_t ** request,
    struct mca_coll_base_module_2_4_0_t *module);
+#else
+typedef int (*mca_coll_base_module_ibcast_fn_t)
+  (void *buff, int count, struct ompi_datatype_t *datatype, int root,
+   struct ompi_communicator_t *comm, ompi_request_t ** request,
+   struct mca_coll_base_module_2_4_0_t *module, qentry **q);
+#endif   
+
 typedef int (*mca_coll_base_module_iexscan_fn_t)
   (const void *sbuf, void *rbuf, int count, struct ompi_datatype_t *dtype,
    struct ompi_op_t *op, struct ompi_communicator_t *comm, ompi_request_t ** request,

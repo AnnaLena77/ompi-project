@@ -56,9 +56,11 @@ int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_end
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
+    if(q!=NULL){
+      if(*q!=NULL){
         item = *q;
         item->usedBtl = "ugni";
+      } item = NULL;
     }
     else {
         item = NULL;
@@ -146,9 +148,11 @@ int mca_btl_ugni_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_en
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
+    if(q!=NULL){
+      if(*q!=NULL){
         item = *q;
         item->usedBtl = "ugni";
+      } else item = NULL;
     }
     else {
         item = NULL;

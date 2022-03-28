@@ -351,8 +351,10 @@ int mca_btl_tcp_endpoint_send(mca_btl_base_endpoint_t *btl_endpoint, mca_btl_tcp
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
+    if(q!=NULL){
+        if (q!=NULL){
+            item = *q;
+        } item = NULL;
     }
     else {
         item = NULL;

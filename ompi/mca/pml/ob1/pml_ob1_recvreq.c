@@ -1277,11 +1277,13 @@ void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-    } else{
-        item = NULL;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
+    else item = NULL;
 #endif
     ompi_communicator_t *comm = req->req_recv.req_base.req_comm;
     mca_pml_ob1_comm_t *ob1_comm = comm->c_pml_comm;
@@ -1373,6 +1375,9 @@ void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req
     }
 
     if(OPAL_UNLIKELY(NULL == frag)) {
+#ifdef ENABLE_ANALYSIS
+        if(item!=NULL) item->foundMatchWild = 0;
+#endif
         PERUSE_TRACE_COMM_EVENT(PERUSE_COMM_SEARCH_UNEX_Q_END,
                                 &(req->req_recv.req_base), PERUSE_RECV);
         /* We didn't find any matches.  Record this irecv so we can match
@@ -1389,6 +1394,9 @@ void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req
         req->req_match_received = false;
         OB1_MATCHING_UNLOCK(&ob1_comm->matching_lock);
     } else {
+#ifdef ENABLE_ANALYSIS
+        if(item!=NULL) item->foundMatchWild = 1;
+#endif
         if(OPAL_LIKELY(!IS_PROB_REQ(req))) {
             PERUSE_TRACE_COMM_EVENT(PERUSE_COMM_REQ_MATCH_UNEX,
                                     &(req->req_recv.req_base), PERUSE_RECV);
@@ -1414,10 +1422,16 @@ void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req
 
             switch(hdr->hdr_common.hdr_type) {
             case MCA_PML_OB1_HDR_TYPE_MATCH:
+#ifdef ENABLE_ANALYSIS
+                if(item!=NULL) item->usedProtocol = "eager";
+#endif
                 mca_pml_ob1_recv_request_progress_match(req, frag->btl, frag->segments,
                                                         frag->num_segments);
                 break;
             case MCA_PML_OB1_HDR_TYPE_RNDV:
+#ifdef ENABLE_ANALYSIS
+                if(item!=NULL) item->usedProtocol = "rendevous";
+#endif
                 mca_pml_ob1_recv_request_progress_rndv(req, frag->btl, frag->segments,
                                                        frag->num_segments);
                 break;

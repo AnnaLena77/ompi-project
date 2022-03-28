@@ -144,9 +144,17 @@ int ompi_coll_tuned_bcast_intra_do_this(void *buf, int count,
 
     switch (algorithm) {
     case (0):
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_bcast_intra_dec_fixed( buf, count, dtype, root, comm, module );
+#else
+        return ompi_coll_tuned_bcast_intra_dec_fixed( buf, count, dtype, root, comm, module, NULL);
+#endif
     case (1):
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_basic_linear( buf, count, dtype, root, comm, module );
+#else
+        return ompi_coll_base_bcast_intra_basic_linear( buf, count, dtype, root, comm, module, NULL);
+#endif
     case (2):
         return ompi_coll_base_bcast_intra_chain( buf, count, dtype, root, comm, module, segsize, faninout );
     case (3):

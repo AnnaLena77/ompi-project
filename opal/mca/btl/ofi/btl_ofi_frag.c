@@ -95,9 +95,11 @@ int mca_btl_ofi_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoi
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->usedBtl = "ofi";
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            item->usedBtl = "ofi";
+        } else item = NULL;
     }
     else {
         item = NULL;

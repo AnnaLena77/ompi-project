@@ -309,9 +309,11 @@ int mca_btl_tcp_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->usedBtl = "tcp";
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            item->usedBtl = "tcp";
+        } else item = NULL;
     }
     else {
         item = NULL;

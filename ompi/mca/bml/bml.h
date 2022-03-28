@@ -279,12 +279,13 @@ static inline int mca_bml_base_send( mca_bml_base_btl_t* bml_btl,
     rc = btl->btl_send(btl, bml_btl->btl_endpoint, des, tag);
 #else
     qentry *item;
-    if(q!=NULL && *q!=NULL){
-        item = *q;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
-    else {
-        item = NULL;
-    }
+    else item = NULL;
     rc = btl->btl_send(btl, bml_btl->btl_endpoint, des, tag, &item);
 #endif
     if (rc == OMPI_ERR_RESOURCE_BUSY)
@@ -309,8 +310,11 @@ static inline int mca_bml_base_send_status( mca_bml_base_btl_t* bml_btl,
     return btl->btl_send(btl, bml_btl->btl_endpoint, des, tag);
 #else
     qentry *item;
-    if(q!=NULL && *q!=NULL) item = *q;
-    else item = NULL;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
     return btl->btl_send(btl, bml_btl->btl_endpoint, des, tag, &item);
 #endif
 }
@@ -339,11 +343,13 @@ static inline int  mca_bml_base_sendi( mca_bml_base_btl_t* bml_btl,
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-    } else{
-        item = NULL;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
+    else item = NULL;
 #endif
     mca_btl_base_module_t* btl = bml_btl->btl;
 #ifndef ENABLE_ANALYSIS

@@ -42,7 +42,11 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
                                      struct ompi_communicator_t* comm,
                                      mca_coll_base_module_t *module,
                                      uint32_t count_by_segment,
-                                     ompi_coll_tree_t* tree )
+                                     ompi_coll_tree_t* tree 
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     )
 {
     int err = 0, line, i, rank, segindex, req_index;
     int num_segments; /* Number of segments */
@@ -318,8 +322,13 @@ ompi_coll_base_bcast_intra_bintree ( void* buffer,
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,"coll:base:bcast_intra_binary rank %d ss %5d typelng %lu segcount %d",
                  ompi_comm_rank(comm), segsize, (unsigned long)typelng, segcount));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
                                                 segcount, data->cached_bintree );
+#else
+    return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
+                                                segcount, data->cached_bintree, NULL);
+#endif
 }
 
 int
@@ -346,8 +355,13 @@ ompi_coll_base_bcast_intra_pipeline( void* buffer,
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,"coll:base:bcast_intra_pipeline rank %d ss %5d typelng %lu segcount %d",
                  ompi_comm_rank(comm), segsize, (unsigned long)typelng, segcount));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
                                                 segcount, data->cached_pipeline );
+#else
+    return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
+                                                segcount, data->cached_pipeline, NULL);
+#endif
 }
 
 int
@@ -374,8 +388,13 @@ ompi_coll_base_bcast_intra_chain( void* buffer,
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,"coll:base:bcast_intra_chain rank %d fo %d ss %5d typelng %lu segcount %d",
                  ompi_comm_rank(comm), chains, segsize, (unsigned long)typelng, segcount));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
                                                 segcount, data->cached_chain );
+#else
+    return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
+                                                segcount, data->cached_chain, NULL);
+#endif
 }
 
 int
@@ -402,8 +421,13 @@ ompi_coll_base_bcast_intra_binomial( void* buffer,
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,"coll:base:bcast_intra_binomial rank %d ss %5d typelng %lu segcount %d",
                  ompi_comm_rank(comm), segsize, (unsigned long)typelng, segcount));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
                                                 segcount, data->cached_bmtree );
+#else
+    return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
+                                                segcount, data->cached_bmtree, NULL);
+#endif
 }
 
 int
@@ -725,7 +749,11 @@ int
 ompi_coll_base_bcast_intra_basic_linear(void *buff, int count,
                                         struct ompi_datatype_t *datatype, int root,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module)
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        )
 {
     int i, size, rank, err;
     ompi_request_t **preq, **reqs;
@@ -851,9 +879,13 @@ int ompi_coll_base_bcast_intra_knomial(
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,
                  "coll:base:bcast_intra_knomial rank %d segsize %5d typesize %lu segcount %d",
                  ompi_comm_rank(comm), segsize, (unsigned long)typesize, segcount));
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic(buf, count, datatype, root, comm, module,
                                               segcount, data->cached_kmtree);
+#else
+    return ompi_coll_base_bcast_intra_generic(buf, count, datatype, root, comm, module,
+                                              segcount, data->cached_kmtree, NULL);
+#endif
 }
 
 /*
@@ -905,8 +937,13 @@ int ompi_coll_base_bcast_intra_scatter_allgather(
                      "coll:base:bcast_intra_scatter_allgather: rank %d/%d "
                      "count %d switching to basic linear bcast",
                      rank, comm_size, count));
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_basic_linear(buf, count, datatype,
                                                        root, comm, module);
+#else
+        return ompi_coll_base_bcast_intra_basic_linear(buf, count, datatype,
+                                                       root, comm, module, NULL);
+#endif
     }
 
     int vrank = (rank - root + comm_size) % comm_size;
@@ -1109,8 +1146,13 @@ int ompi_coll_base_bcast_intra_scatter_allgather_ring(
                      "coll:base:bcast_intra_scatter_allgather_ring: rank %d/%d "
                      "count %d switching to basic linear bcast",
                      rank, comm_size, count));
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_basic_linear(buf, count, datatype,
                                                        root, comm, module);
+#else
+        return ompi_coll_base_bcast_intra_basic_linear(buf, count, datatype,
+                                                       root, comm, module, NULL);
+#endif
     }
 
     int vrank = (rank - root + comm_size) % comm_size;

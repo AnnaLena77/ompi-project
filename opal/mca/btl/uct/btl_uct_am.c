@@ -174,12 +174,13 @@ int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
-    else {
-        item = NULL;
-    }
+    else item = NULL;
 #endif
     mca_btl_uct_device_context_t *context = frag->context;
     const ssize_t msg_size = frag->uct_iov.length + 8;
@@ -269,9 +270,11 @@ int mca_btl_uct_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoi
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->usedBtl = "uct";
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            item->usedBtl = "uct";
+        } else item = NULL;
     }
     else {
         item = NULL;
@@ -345,9 +348,11 @@ int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpo
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->usedBtl = "uct";
+    if(q!=NULL){
+        if  (*q!=NULL){
+            item = *q;
+            item->usedBtl = "uct";
+        } else item = NULL;
     }
     else {
         item = NULL;

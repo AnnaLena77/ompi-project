@@ -80,9 +80,13 @@ ompi_coll_base_allreduce_intra_nonoverlapping(const void *sbuf, void *rbuf, int 
     if (MPI_SUCCESS != err) {
         return err;
     }
-
+#ifndef ENABLE_ANALYSIS
     return comm->c_coll->coll_bcast (rbuf, count, dtype, 0, comm,
                                     comm->c_coll->coll_bcast_module);
+#else
+    return comm->c_coll->coll_bcast (rbuf, count, dtype, 0, comm,
+                                    comm->c_coll->coll_bcast_module, NULL);
+#endif
 }
 
 /*
@@ -976,8 +980,11 @@ ompi_coll_base_allreduce_intra_basic_linear(const void *sbuf, void *rbuf, int co
     if (MPI_SUCCESS != err) {
         return err;
     }
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_basic_linear(rbuf, count, dtype, 0, comm, module);
+#else
+    return ompi_coll_base_bcast_intra_basic_linear(rbuf, count, dtype, 0, comm, module, NULL);
+#endif
 }
 
 /*

@@ -83,9 +83,15 @@ mca_coll_inter_allreduce_inter(const void *sbuf, void *rbuf, int count,
     }
 
     /* bcast the message to all the local processes */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_bcast(rbuf, count, dtype,
 						root, comm->c_local_comm,
                                                 comm->c_local_comm->c_coll->coll_bcast_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_bcast(rbuf, count, dtype,
+						root, comm->c_local_comm,
+                                                comm->c_local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (OMPI_SUCCESS != err) {
             goto exit;
     }

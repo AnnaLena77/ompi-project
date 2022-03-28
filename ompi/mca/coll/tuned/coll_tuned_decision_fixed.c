@@ -512,7 +512,11 @@ int ompi_coll_tuned_barrier_intra_dec_fixed(struct ompi_communicator_t *comm,
 int ompi_coll_tuned_bcast_intra_dec_fixed(void *buff, int count,
                                           struct ompi_datatype_t *datatype, int root,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          )
 {
     size_t total_dsize, dsize;
     int communicator_size, alg;

@@ -116,9 +116,15 @@ mca_coll_inter_allgatherv_inter(const void *sbuf, int scount,
     }
 
     /* bcast the message to all the local processes */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_bcast(rbuf, 1, ndtype,
 						0, comm->c_local_comm,
                                                 comm->c_local_comm->c_coll->coll_bcast_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_bcast(rbuf, 1, ndtype,
+						0, comm->c_local_comm,
+                                                comm->c_local_comm->c_coll->coll_bcast_module, NULL);
+#endif
   exit:
     if( NULL != ndtype ) {
         ompi_datatype_destroy(&ndtype);

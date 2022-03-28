@@ -206,9 +206,12 @@ static int mca_btl_self_send(struct mca_btl_base_module_t *btl,
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->usedBtl = "self";
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            item->usedBtl = "self";
+        }
+        else item = NULL;
     }
     else {
         item = NULL;
@@ -250,9 +253,11 @@ static int mca_btl_self_sendi(struct mca_btl_base_module_t *btl,
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->usedBtl = "self";
+    if(q!=NULL){
+        if (*q!=NULL){
+            item = *q;
+            item->usedBtl = "self";
+        } else item = NULL;
     }
     else {
         item = NULL;

@@ -826,8 +826,13 @@ static int ompi_comm_allreduce_inter_bcast (ompi_comm_request_t *request)
     int rc;
 
     /* both roots have the same result. broadcast to the local group */
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_ibcast (context->outbuf, context->count, MPI_INT, 0, comm,
                                    &subreq, comm->c_coll->coll_ibcast_module);
+#else
+    rc = comm->c_coll->coll_ibcast (context->outbuf, context->count, MPI_INT, 0, comm,
+                                   &subreq, comm->c_coll->coll_ibcast_module, NULL);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }
@@ -842,9 +847,15 @@ static int ompi_comm_allreduce_bridged_schedule_bcast (ompi_comm_request_t *requ
     ompi_request_t *subreq;
     int rc;
 
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_ibcast (context->outbuf, context->count, MPI_INT,
                                    context->cid_context->local_leader, comm,
                                    &subreq, comm->c_coll->coll_ibcast_module);
+#else
+    rc = comm->c_coll->coll_ibcast (context->outbuf, context->count, MPI_INT,
+                                   context->cid_context->local_leader, comm,
+                                   &subreq, comm->c_coll->coll_ibcast_module, NULL);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }

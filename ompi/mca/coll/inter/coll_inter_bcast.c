@@ -40,7 +40,11 @@ int
 mca_coll_inter_bcast_inter(void *buff, int count,
                            struct ompi_datatype_t *datatype, int root,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module)
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           )
 {
     int rank;
     int err;
@@ -66,9 +70,15 @@ mca_coll_inter_bcast_inter(void *buff, int count,
                 return err;
             }
 	}
+#ifndef ENABLE_ANALYSIS
 	err = comm->c_local_comm->c_coll->coll_bcast(buff, count, datatype, 0,
                                                     comm->c_local_comm,
                                                     comm->c_local_comm->c_coll->coll_bcast_module);
+#else
+	err = comm->c_local_comm->c_coll->coll_bcast(buff, count, datatype, 0,
+                                                    comm->c_local_comm,
+                                                    comm->c_local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     } else {
         /* root section, send to the first process of the remote group */
 #ifndef ENABLE_ANALYSIS

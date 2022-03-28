@@ -160,9 +160,15 @@ int MPI_Intercomm_create(MPI_Comm local_comm, int local_leader,
     }
 
     /* bcast size and list of remote processes to all processes in local_comm */
+#ifndef ENABLE_ANALYSIS
     rc = local_comm->c_coll->coll_bcast ( &rsize, 1, MPI_INT, lleader,
                                          local_comm,
                                          local_comm->c_coll->coll_bcast_module);
+#else
+    rc = local_comm->c_coll->coll_bcast ( &rsize, 1, MPI_INT, lleader,
+                                         local_comm,
+                                         local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( rc != MPI_SUCCESS ) {
 #if OPAL_ENABLE_FT_MPI
         if ( local_rank != local_leader ) {

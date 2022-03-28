@@ -739,7 +739,11 @@ mca_coll_han_bcast_intra_dynamic(void *buff,
                                  struct ompi_datatype_t *dtype,
                                  int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                 , qentry **q
+#endif
+                                 )
 {
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t*) module;
     TOPO_LVL_T topo_lvl = han_module->topologic_level;
@@ -826,8 +830,13 @@ mca_coll_han_bcast_intra_dynamic(void *buff,
          */
         bcast = sub_module->coll_bcast;
     }
+#ifndef ENABLE_ANALYSIS
     return bcast(buff, count, dtype,
                  root, comm, sub_module);
+#else
+    return bcast(buff, count, dtype,
+                 root, comm, sub_module, NULL);
+#endif
 }
 
 

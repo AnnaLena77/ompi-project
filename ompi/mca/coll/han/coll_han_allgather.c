@@ -275,9 +275,15 @@ int mca_coll_han_allgather_lb_task(void *task_args)
     OBJ_RELEASE(t->cur_task);
     int low_size = ompi_comm_size(t->low_comm);
     int up_size = ompi_comm_size(t->up_comm);
+#ifndef ENABLE_ANALYSIS
     t->low_comm->c_coll->coll_bcast((char *) t->rbuf, t->rcount * low_size * up_size, t->rdtype,
                                     t->root_low_rank, t->low_comm,
                                     t->low_comm->c_coll->coll_bcast_module);
+#else
+    t->low_comm->c_coll->coll_bcast((char *) t->rbuf, t->rcount * low_size * up_size, t->rdtype,
+                                    t->root_low_rank, t->low_comm,
+                                    t->low_comm->c_coll->coll_bcast_module, NULL);
+#endif
 
     ompi_request_t *temp_req = t->req;
     free(t);
@@ -425,9 +431,15 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
     }
 
     /* 3. up broadcast: leaders broadcast on their nodes */
+#ifndef ENABLE_ANALYSIS
     low_comm->c_coll->coll_bcast(rbuf, rcount*low_size*up_size, rdtype,
                                  root_low_rank, low_comm,
                                  low_comm->c_coll->coll_bcast_module);
+#else
+    low_comm->c_coll->coll_bcast(rbuf, rcount*low_size*up_size, rdtype,
+                                 root_low_rank, low_comm,
+                                 low_comm->c_coll->coll_bcast_module, NULL);
+#endif
 
 
     return OMPI_SUCCESS;

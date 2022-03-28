@@ -684,9 +684,13 @@ static int allocate_state_shared (ompi_osc_rdma_module_t *module, void **base, s
         if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
             break;
         }
-
+#ifndef ENABLE_ANALYSIS
         ret = shared_comm->c_coll->coll_bcast (&module->seg_ds, sizeof (module->seg_ds), MPI_BYTE, 0,
                                                shared_comm, shared_comm->c_coll->coll_bcast_module);
+#else
+        ret = shared_comm->c_coll->coll_bcast (&module->seg_ds, sizeof (module->seg_ds), MPI_BYTE, 0,
+                                               shared_comm, shared_comm->c_coll->coll_bcast_module, NULL);
+#endif
         if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
             break;
         }
@@ -1252,8 +1256,13 @@ static int ompi_osc_rdma_create_groups (ompi_osc_rdma_module_t *module)
     }
 
     if (ompi_comm_size (module->shared_comm) > 1) {
+#ifndef ENABLE_ANALYSIS
         ret = module->shared_comm->c_coll->coll_bcast (values, 2, MPI_INT, 0, module->shared_comm,
                                                       module->shared_comm->c_coll->coll_bcast_module);
+#else
+        ret = module->shared_comm->c_coll->coll_bcast (values, 2, MPI_INT, 0, module->shared_comm,
+                                                      module->shared_comm->c_coll->coll_bcast_module, NULL);
+#endif
         if (OMPI_SUCCESS != ret) {
             OSC_RDMA_VERBOSE(MCA_BASE_VERBOSE_ERROR, "failed to broadcast local data. error code %d", ret);
             return ret;

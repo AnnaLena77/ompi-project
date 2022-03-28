@@ -193,7 +193,11 @@ static int nbc_bcast_init(void *buffer, int count, MPI_Datatype datatype, int ro
 
 int ompi_coll_libnbc_ibcast(void *buffer, int count, MPI_Datatype datatype, int root,
                             struct ompi_communicator_t *comm, ompi_request_t ** request,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                            , qentry **q
+#endif
+                            )
 {
     int res = nbc_bcast_init(buffer, count, datatype, root,
                              comm, request, module, false);
@@ -462,7 +466,11 @@ static int nbc_bcast_inter_init(void *buffer, int count, MPI_Datatype datatype, 
 
 int ompi_coll_libnbc_ibcast_inter(void *buffer, int count, MPI_Datatype datatype, int root,
                                   struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                  mca_coll_base_module_t *module) {
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  ) {
     int res = nbc_bcast_inter_init(buffer, count, datatype, root,
                                    comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {

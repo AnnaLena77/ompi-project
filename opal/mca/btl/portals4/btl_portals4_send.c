@@ -43,9 +43,11 @@ int mca_btl_portals4_send(struct mca_btl_base_module_t *btl_base,
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->usedBtl = "portals4";
+    if(q!=NULL) {
+    	if(*q!=NULL){
+        		item = *q;
+        		item->usedBtl = "portals4";
+         } item = NULL;
     }
     else {
         item = NULL;

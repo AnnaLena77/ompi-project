@@ -267,8 +267,11 @@ send_request_pml_complete(mca_pml_ob1_send_request_t *sendreq
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(q!=NULL && *q!=NULL) item = *q;
-    else item = NULL;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
     
     if(item !=NULL) item->requestCompletePmlLevel = time(NULL);
 #endif
@@ -328,8 +331,11 @@ send_request_pml_complete_check(mca_pml_ob1_send_request_t *sendreq
         send_request_pml_complete(sendreq);
 #else
         qentry *item;
-        if(q!=NULL && *q!=NULL) item=*q;
-        else item = NULL;
+        if(q!=NULL){
+            if(*q!=NULL){  
+                item=*q;
+            } else item = NULL;
+        } else item = NULL;
         send_request_pml_complete(sendreq, &item);
 #endif
 
@@ -449,12 +455,13 @@ mca_pml_ob1_send_request_start_btl( mca_pml_ob1_send_request_t* sendreq,
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
-    else {
-        item = NULL;
-    }
+    else item = NULL;
 #endif
     size_t size = sendreq->req_send.req_bytes_packed;
     mca_btl_base_module_t* btl = bml_btl->btl;
@@ -587,13 +594,13 @@ mca_pml_ob1_send_request_start_seq (mca_pml_ob1_send_request_t* sendreq, mca_bml
 {
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->startRequest=time(NULL);
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
     }
-    else {
-        item = NULL;
-    }
+    else item = NULL;
 #endif
     sendreq->req_endpoint = endpoint;
     sendreq->req_state = 0;

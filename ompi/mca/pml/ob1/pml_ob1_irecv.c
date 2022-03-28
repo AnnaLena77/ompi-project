@@ -95,9 +95,11 @@ int mca_pml_ob1_irecv(void *addr,
 #endif
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(*q!=NULL && q!=NULL){
-        item = *q;
-        item->blocking = 0;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            item->blocking = 0;
+        }
     }
     else {
         item = NULL;
@@ -125,6 +127,9 @@ int mca_pml_ob1_irecv(void *addr,
     MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
 #endif
     *request = (ompi_request_t *) recvreq;
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) qentryIntoQueue(&item);
+#endif
     return OMPI_SUCCESS;
 }
 
@@ -150,8 +155,10 @@ int mca_pml_ob1_recv(void *addr,
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
-        item = *q;
-        item->blocking = 1;
+        if(*q!=NULL){
+            item = *q;
+            item->blocking = 1;
+        }
     }
     else {
         item = NULL;
@@ -182,6 +189,9 @@ int mca_pml_ob1_recv(void *addr,
     MCA_PML_OB1_RECV_REQUEST_START(recvreq);
 #else
     MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
+#endif
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->requestWaitCompletion = time(NULL);
 #endif
     ompi_request_wait_completion(&recvreq->req_recv.req_base.req_ompi);
 
@@ -223,9 +233,14 @@ int mca_pml_ob1_recv(void *addr,
         MCA_PML_OB1_RECV_REQUEST_RETURN(recvreq);
     } else {
         mca_pml_ob1_recv_request_fini (recvreq);
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->requestFini = time(NULL);
+#endif
         mca_pml_ob1_recvreq = recvreq;
     }
-
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) qentryIntoQueue(&item);
+#endif
     return rc;
 }
 
@@ -249,7 +264,9 @@ mca_pml_ob1_imrecv( void *buf,
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
-        item = *q;
+        if(*q!=NULL){
+            item = *q;
+        } else item=NULL;
     }
     else {
         item = NULL;
@@ -360,7 +377,9 @@ mca_pml_ob1_mrecv( void *buf,
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
-        item = *q;
+        if(*q!=NULL){
+            item = *q;
+        } item = NULL;
     }
     else {
         item = NULL;

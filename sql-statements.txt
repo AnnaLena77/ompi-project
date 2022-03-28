@@ -7,6 +7,7 @@ CREATE TABLE MPI_Information (
 	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	operation VARCHAR(255),
 	sendmode VARCHAR(255),
+	blocking BOOLEAN,
 	immediate BOOLEAN,
 	datatype VARCHAR(255),
 	count INT,
@@ -17,6 +18,7 @@ CREATE TABLE MPI_Information (
 	usedBtl VARCHAR(255),
 	usedProtocol VARCHAR(255),
 	withinEagerLimit BOOLEAN,
+	foundMatchWild BOOLEAN,
 	time_start DATETIME(6),
 	time_initializeRequest DATETIME(6),
 	time_startRequest DATETIME(6),
@@ -27,7 +29,8 @@ CREATE TABLE MPI_Information (
 	time_bufferFree DATETIME(6),
 	time_intoQueue DATETIME(6),
 	time_insertIntoDatabase DATETIME(6) DEFAULT CURRENT_TIMESTAMP,
-	time_durationStartInsertion INT GENERATED ALWAYS AS (TIMESTAMPDIFF(second, time_start, time_InsertIntoDatabase))
+	time_durationStartIntoQueue INT GENERATED ALWAYS AS (TIMESTAMPDIFF(MICROSECOND, time_start, time_intoQueue)),
+	time_durationQueueDB INT GENERATED ALWAYS AS (TIMESTAMPDIFF(SECOND, time_intoQueue, time_insertIntoDatabase))
 );
 
 //Remove Table:

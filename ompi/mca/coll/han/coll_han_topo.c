@@ -138,8 +138,13 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
 
     /* broadcast balanced and consecutive properties from node leaders to remaining ranks */
     int bcast_vals[] = {is_imbalanced, ranks_non_consecutive};
+#ifndef ENABLE_ANALYSIS
     low_comm->c_coll->coll_bcast(bcast_vals, 2, MPI_INT, 0,
                                  low_comm, low_comm->c_coll->coll_bcast_module);
+#else
+    low_comm->c_coll->coll_bcast(bcast_vals, 2, MPI_INT, 0,
+                                 low_comm, low_comm->c_coll->coll_bcast_module, NULL);
+#endif
     is_imbalanced = bcast_vals[0];
     ranks_non_consecutive = bcast_vals[1];
 
@@ -190,8 +195,13 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
     }
 
     /* broadcast topology from node leaders to remaining ranks */
+#ifndef ENABLE_ANALYSIS
     low_comm->c_coll->coll_bcast(topo, num_topo_level*size, MPI_INT, 0,
                                 low_comm, low_comm->c_coll->coll_bcast_module);
+#else
+    low_comm->c_coll->coll_bcast(topo, num_topo_level*size, MPI_INT, 0,
+                                low_comm, low_comm->c_coll->coll_bcast_module, NULL);
+#endif
     free(my_low_rank_map);
     han_module->cached_topo = topo;
 #if OPAL_ENABLE_DEBUG

@@ -135,8 +135,13 @@ int ompi_coll_tuned_barrier_intra_do_this(BARRIER_ARGS, int algorithm, int fanin
 int ompi_coll_tuned_barrier_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Bcast */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_bcast_intra_dec_fixed(BCAST_ARGS);
 int ompi_coll_tuned_bcast_intra_dec_dynamic(BCAST_ARGS);
+#else
+int ompi_coll_tuned_bcast_intra_dec_fixed(BCAST_ARGS, qentry **q);
+int ompi_coll_tuned_bcast_intra_dec_dynamic(BCAST_ARGS, qentry **q);
+#endif
 int ompi_coll_tuned_bcast_intra_do_this(BCAST_ARGS, int algorithm, int faninout, int segsize);
 int ompi_coll_tuned_bcast_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
