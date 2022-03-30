@@ -47,12 +47,13 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     item->start = time(NULL);
-    item->operation = "bcast";
+    strcpy(item->operation, "MPI_Bcast");
     //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(datatype, type_name, &type_name_length);
-    item->datatype=type_name;
+    strcpy(item->datatype, type_name);
+    free(type_name);
     //item->count
     item->count = count;
     //item->datasize
@@ -61,11 +62,13 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    item->communicator=comm_name;
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
     //item->processrank
     item->processrank = root;
     item->partnerrank = -1;
    
+    item->blocking = 1;
 #endif 
     //Integer for the partnerrank-value= -1
     //-> Function Bcast sends the message to all other processes. All other processes are partnerranks
@@ -152,6 +155,8 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
                                   comm->c_coll->coll_bcast_module);
 #else
+    printf("%s, %d\n", item->operation, strcmp(item->operation, "MPI_Bcast"));
+    char test[] = "MPI_Bcast";
     err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
                                   comm->c_coll->coll_bcast_module, &item);
     qentryIntoQueue(&item);

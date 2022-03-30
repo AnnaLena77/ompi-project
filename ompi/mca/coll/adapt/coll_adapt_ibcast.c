@@ -21,10 +21,15 @@
 #include "opal/sys/atomic.h"
 #include "ompi/mca/pml/ob1/pml_ob1.h"
 
-
+#ifndef ENABLE_ANALYSIS
 static int ompi_coll_adapt_ibcast_generic(IBCAST_ARGS,
                                    ompi_coll_tree_t * tree, size_t seg_size
                                    );
+#else
+static int ompi_coll_adapt_ibcast_generic(IBCAST_ARGS,
+                                   ompi_coll_tree_t * tree, size_t seg_size, qentry **q
+                                   );
+#endif
 
 /*
  * Set up MCA parameters of MPI_Bcast and MPI_IBcast
@@ -352,6 +357,15 @@ int ompi_coll_adapt_ibcast(void *buff, int count, struct ompi_datatype_t *dataty
 #endif
                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+    	if(*q!=NULL){
+    	    item=*q;
+    	}
+    	else item = NULL;
+    } else item = NULL;
+#endif
     OPAL_OUTPUT_VERBOSE((10, mca_coll_adapt_component.adapt_output,
                          "ibcast root %d, algorithm %d, coll_adapt_ibcast_segment_size %zu, coll_adapt_ibcast_max_send_requests %d, coll_adapt_ibcast_max_recv_requests %d\n",
                          root, mca_coll_adapt_component.adapt_ibcast_algorithm,
@@ -364,17 +378,36 @@ int ompi_coll_adapt_ibcast(void *buff, int count, struct ompi_datatype_t *dataty
         return OMPI_ERR_NOT_IMPLEMENTED;
     }
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module,
                                           adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm),
                                           mca_coll_adapt_component.adapt_ibcast_segment_size);
+#else
+    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module,
+                                          adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm),
+                                          mca_coll_adapt_component.adapt_ibcast_segment_size, &item);
+#endif
 }
 
 
 int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t *datatype, int root,
                                    struct ompi_communicator_t *comm, ompi_request_t ** request,
                                    mca_coll_base_module_t * module, ompi_coll_tree_t * tree,
-                                   size_t seg_size)
+                                   size_t seg_size
+#ifdef ENABLE_ANALYSIS
+			        , qentry **q
+#endif
+                                   )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+    	if(*q!=NULL){
+    	    item=*q;
+    	}
+    	else item = NULL;
+    } else item = NULL;
+#endif
     int i, j, rank, err;
     /* The min of num_segs and SEND_NUM or RECV_NUM, in case the num_segs is less than SEND_NUM or RECV_NUM */
     int min;
@@ -391,7 +424,12 @@ int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t
 
     mca_pml_base_send_mode_t sendmode = (mca_coll_adapt_component.adapt_ibcast_synchronous_send)
                                         ? MCA_PML_BASE_SEND_SYNCHRONOUS : MCA_PML_BASE_SEND_STANDARD;
-
+#ifdef ENABLE_ANALYSIS    
+    if(item!=NULL){
+    	if(sendmode == MCA_PML_BASE_SEND_SYNCHRONOUS) strcpy(item->sendmode, "SYNCHRONOUS");
+    	else if (sendmode == MCA_PML_BASE_SEND_STANDARD) strcpy(item->sendmode, "STANDARD");
+    }
+#endif
     /* The request passed outside */
     ompi_coll_base_nbc_request_t *temp_request = NULL;
     opal_mutex_t *mutex;
@@ -536,7 +574,7 @@ int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t
                     MCA_PML_CALL(isend
                                  (send_buff, send_count, datatype, context->peer,
                                   con->ibcast_tag - i, sendmode, comm,
-                                  &send_req, NULL));
+                                  &send_req, &item));
 #endif
                 if (MPI_SUCCESS != err) {
                     return err;

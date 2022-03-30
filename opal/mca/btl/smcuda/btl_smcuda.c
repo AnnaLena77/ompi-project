@@ -872,7 +872,7 @@ int mca_btl_smcuda_sendi(struct mca_btl_base_module_t *btl,
     if(q!=NULL) {
         if(*q!=NULL){
             item = *q;
-            item->usedBtl = "smcuda";
+            strcpy(item->usedBtl, "smcuda");
         } item = NULL;
     }
     else {
@@ -990,7 +990,7 @@ int mca_btl_smcuda_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_e
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            item->usedBtl = "smcuda";
+            strcpy(item->usedBtl, "smcuda");
         } item = NULL;
     }
     else {

@@ -46,7 +46,7 @@ int mca_btl_portals4_send(struct mca_btl_base_module_t *btl_base,
     if(q!=NULL) {
     	if(*q!=NULL){
         		item = *q;
-        		item->usedBtl = "portals4";
+        		strcpy(item->usedBtl, "portals4");
          } item = NULL;
     }
     else {

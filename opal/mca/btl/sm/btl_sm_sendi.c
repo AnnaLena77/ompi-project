@@ -51,7 +51,7 @@ int mca_btl_sm_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
     if(q!=NULL){ 
         if(*q!=NULL){
             item = *q;
-            item->usedBtl = "sm";
+            strcpy(item->usedBtl, "sm");
         } else item = NULL;
     }
     else {

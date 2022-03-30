@@ -209,7 +209,7 @@ static int mca_btl_self_send(struct mca_btl_base_module_t *btl,
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            item->usedBtl = "self";
+            strcpy(item->usedBtl,"self");
         }
         else item = NULL;
     }
@@ -256,7 +256,7 @@ static int mca_btl_self_sendi(struct mca_btl_base_module_t *btl,
     if(q!=NULL){
         if (*q!=NULL){
             item = *q;
-            item->usedBtl = "self";
+            strcpy(item->usedBtl, "self");
         } else item = NULL;
     }
     else {

@@ -65,18 +65,18 @@ void initQentry(qentry **q){
     	return 0;
     } else {
         qentry *item = *q;
-        item->operation = "";
-        item->sendmode = "";
+        strcpy(item->operation, "");
+        strcpy(item->sendmode, "");
         item->blocking = -1;
         item->immediate = 0;
-        item->datatype = "";
+        strcpy(item->datatype, "");
         item->count = 0;
         item->datasize = 0;
-        item->communicator = "";
+        strcpy(item->communicator, "");
         item->processrank = -1;
         item->partnerrank = -1;
-        item->usedBtl = "";
-        item->usedProtocol = "";
+        strcpy(item->usedBtl, "");
+        strcpy(item->usedProtocol, "");
         item->withinEagerLimit = -1;
         item->foundMatchWild = -1;
         item->start = 0;
@@ -195,8 +195,23 @@ static void collectData(qentry **q, char **batchstr){
     int datalen = strlen(item->operation) + strlen(item->sendmode) + strlen(item->datatype) + strlen(item->communicator) + strlen(item->usedBtl) + strlen(item->usedProtocol) + timestampslen*9 +  immediatelen + blockinglen + countlen + datasizelen + processranklen + partnerranklen + withinEagerLimitlen + foundMatchWildlen + 14*2 + 22*2 +2 +1;     
     //printf("Datalen: %d\n", datalen);
     char *data=(char*)malloc(datalen+1);
+    
     sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d, '%s', %d, %d, '%s', '%s', %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s),", item->operation, item->sendmode, item->blocking, item->immediate, item->datatype, item->count, item->datasize, item->communicator, item->processrank, item->partnerrank, item->usedBtl, item->usedProtocol, item->withinEagerLimit, item->foundMatchWild, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel , time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue);
-
+    
+    free(time_start);
+    free(time_initializeRequest);
+    free(time_startRequest);
+    free(time_requestCompletePmlLevel);
+    free(time_requestWaitCompletion);
+    free(time_requestFini);
+    free(time_sent);
+    free(time_bufferFree);
+    free(time_intoQueue);
+    free(*q);
+    *q  = NULL;
+    //qentry *test = *q;
+    //printf("%s\n", test->operation);
+    
     *batchstr = realloc(*batchstr, strlen(*batchstr)+1 + strlen(data)+1);
     strcat(*batchstr, data);
     free(data);
@@ -213,7 +228,7 @@ static void collectData(qentry **q, char **batchstr){
 }
 
 static void* MonitorFunc(void* _arg){
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    qentry *item;
     char *batch=(char*) malloc(strlen(batchstring)+1);
     strcpy(batch, batchstring);
     int finish = 0;
@@ -230,7 +245,6 @@ static void* MonitorFunc(void* _arg){
             	last_one=1;
             }
             collectData(&item, &batch);
-	   free(item);
             //printf("%d\n", item->data);
         }
     }

@@ -273,7 +273,7 @@ int mca_btl_uct_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoi
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            item->usedBtl = "uct";
+            strcpy(item->usedBtl, "uct");
         } else item = NULL;
     }
     else {
@@ -351,7 +351,7 @@ int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpo
     if(q!=NULL){
         if  (*q!=NULL){
             item = *q;
-            item->usedBtl = "uct";
+            strcpy(item->usedBtl, "uct");
         } else item = NULL;
     }
     else {

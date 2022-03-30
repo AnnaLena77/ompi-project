@@ -8,18 +8,18 @@ extern pthread_t MONITOR_THREAD;
 #ifndef QENTRY_H_
 #define QENTRY_H_
 typedef struct qentry {
-    char* operation;
-    char* sendmode; //later
+    char operation[30];
+    char sendmode[30]; //later
     int blocking;
     int immediate; //later
-    char* datatype;
+    char datatype[30];
     int count;
     int datasize;
-    char* communicator;
+    char communicator[30];
     int processrank;
     int partnerrank;
-    char* usedBtl;
-    char* usedProtocol;
+    char usedBtl[30];
+    char usedProtocol[30];
     int withinEagerLimit;
     int foundMatchWild;
     time_t start;

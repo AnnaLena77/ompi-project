@@ -98,7 +98,7 @@ int mca_btl_ofi_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoi
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            item->usedBtl = "ofi";
+            strcpy(item->usedBtl, "ofi");
         } else item = NULL;
     }
     else {

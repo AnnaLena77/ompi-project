@@ -312,7 +312,7 @@ int mca_btl_tcp_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            item->usedBtl = "tcp";
+            strcpy(item->usedBtl, "tcp");
         } else item = NULL;
     }
     else {

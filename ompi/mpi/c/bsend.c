@@ -56,14 +56,15 @@ int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
     time_t current_time = time(NULL);
     item->start = current_time;
     //item->operation
-    item->operation = "MPI_Bsend";
+    strcpy(item->operation, "MPI_Bsend");
     //item->blocking
     item->blocking = 1;
     //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
-    item->datatype=type_name;
+    strcpy(item->datatype, type_name);
+    free(type_name);
     //item->count
     item->count = count;
     //item->datasize
@@ -72,7 +73,8 @@ int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    item->communicator=comm_name;
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
     //item->processrank
     int processrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processrank);

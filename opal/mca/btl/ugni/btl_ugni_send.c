@@ -59,8 +59,8 @@ int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_end
     if(q!=NULL){
       if(*q!=NULL){
         item = *q;
-        item->usedBtl = "ugni";
-      } item = NULL;
+        strcpy(item->usedBtl, "ugni");
+      } else item = NULL;
     }
     else {
         item = NULL;
@@ -151,7 +151,7 @@ int mca_btl_ugni_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_en
     if(q!=NULL){
       if(*q!=NULL){
         item = *q;
-        item->usedBtl = "ugni";
+        strcpy(item->usedBtl, "ugni");
       } else item = NULL;
     }
     else {

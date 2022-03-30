@@ -1423,14 +1423,14 @@ void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req
             switch(hdr->hdr_common.hdr_type) {
             case MCA_PML_OB1_HDR_TYPE_MATCH:
 #ifdef ENABLE_ANALYSIS
-                if(item!=NULL) item->usedProtocol = "eager";
+                if(item!=NULL) strcpy(item->usedProtocol, "eager");
 #endif
                 mca_pml_ob1_recv_request_progress_match(req, frag->btl, frag->segments,
                                                         frag->num_segments);
                 break;
             case MCA_PML_OB1_HDR_TYPE_RNDV:
 #ifdef ENABLE_ANALYSIS
-                if(item!=NULL) item->usedProtocol = "rendevous";
+                if(item!=NULL) strcpy(item->usedProtocol, "rendevous");
 #endif
                 mca_pml_ob1_recv_request_progress_rndv(req, frag->btl, frag->segments,
                                                        frag->num_segments);
