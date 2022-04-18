@@ -259,17 +259,35 @@ int ompi_coll_tuned_bcast_intra_dec_dynamic(void *buf, int count,
 #endif
                                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:bcast_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[BCAST].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_bcast_intra_do_this(buf, count, dtype,
                                                    root, comm, module,
                                                    tuned_module->user_forced[BCAST].algorithm,
                                                    tuned_module->user_forced[BCAST].chain_fanout,
                                                    tuned_module->user_forced[BCAST].segsize);
+#else
+        return ompi_coll_tuned_bcast_intra_do_this(buf, count, dtype,
+                                                   root, comm, module,
+                                                   tuned_module->user_forced[BCAST].algorithm,
+                                                   tuned_module->user_forced[BCAST].chain_fanout,
+                                                   tuned_module->user_forced[BCAST].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -286,9 +304,15 @@ int ompi_coll_tuned_bcast_intra_dec_dynamic(void *buf, int count,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_bcast_intra_do_this (buf, count, dtype, root,
                                                         comm, module,
                                                         alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_bcast_intra_do_this (buf, count, dtype, root,
+                                                        comm, module,
+                                                        alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
@@ -297,7 +321,7 @@ int ompi_coll_tuned_bcast_intra_dec_dynamic(void *buf, int count,
                                                   comm, module);
 #else
     return ompi_coll_tuned_bcast_intra_dec_fixed (buf, count, dtype, root,
-                                                  comm, module, NULL);
+                                                  comm, module, &item);
 #endif
 }
 

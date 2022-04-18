@@ -199,6 +199,17 @@ int ompi_coll_libnbc_ibcast(void *buffer, int count, MPI_Datatype datatype, int 
 #endif
                             )
 {
+printf("nbc_ibcast\n");
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int res = nbc_bcast_init(buffer, count, datatype, root,
                              comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {
@@ -471,6 +482,17 @@ int ompi_coll_libnbc_ibcast_inter(void *buffer, int count, MPI_Datatype datatype
                                   , qentry **q
 #endif
                                   ) {
+printf("nbc_ibcast\n");
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int res = nbc_bcast_inter_init(buffer, count, datatype, root,
                                    comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {

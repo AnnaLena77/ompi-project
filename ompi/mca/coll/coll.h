@@ -552,7 +552,9 @@ struct mca_coll_base_module_2_4_0_t {
     mca_coll_base_module_alltoallv_fn_t coll_alltoallv;
     mca_coll_base_module_alltoallw_fn_t coll_alltoallw;
     mca_coll_base_module_barrier_fn_t coll_barrier;
+    
     mca_coll_base_module_bcast_fn_t coll_bcast;
+    
     mca_coll_base_module_exscan_fn_t coll_exscan;
     mca_coll_base_module_gather_fn_t coll_gather;
     mca_coll_base_module_gatherv_fn_t coll_gatherv;
@@ -670,8 +672,10 @@ struct mca_coll_base_comm_coll_t {
     mca_coll_base_module_2_4_0_t *coll_alltoallw_module;
     mca_coll_base_module_barrier_fn_t coll_barrier;
     mca_coll_base_module_2_4_0_t *coll_barrier_module;
+    
     mca_coll_base_module_bcast_fn_t coll_bcast;
     mca_coll_base_module_2_4_0_t *coll_bcast_module;
+    
     mca_coll_base_module_exscan_fn_t coll_exscan;
     mca_coll_base_module_2_4_0_t *coll_exscan_module;
     mca_coll_base_module_gather_fn_t coll_gather;
@@ -706,8 +710,10 @@ struct mca_coll_base_comm_coll_t {
     mca_coll_base_module_2_4_0_t *coll_ialltoallw_module;
     mca_coll_base_module_ibarrier_fn_t coll_ibarrier;
     mca_coll_base_module_2_4_0_t *coll_ibarrier_module;
+    
     mca_coll_base_module_ibcast_fn_t coll_ibcast;
     mca_coll_base_module_2_4_0_t *coll_ibcast_module;
+    
     mca_coll_base_module_iexscan_fn_t coll_iexscan;
     mca_coll_base_module_2_4_0_t *coll_iexscan_module;
     mca_coll_base_module_igather_fn_t coll_igather;
@@ -742,8 +748,10 @@ struct mca_coll_base_comm_coll_t {
     mca_coll_base_module_2_4_0_t *coll_alltoallw_init_module;
     mca_coll_base_module_barrier_init_fn_t coll_barrier_init;
     mca_coll_base_module_2_4_0_t *coll_barrier_init_module;
+    
     mca_coll_base_module_bcast_init_fn_t coll_bcast_init;
     mca_coll_base_module_2_4_0_t *coll_bcast_init_module;
+    
     mca_coll_base_module_exscan_init_fn_t coll_exscan_init;
     mca_coll_base_module_2_4_0_t *coll_exscan_init_module;
     mca_coll_base_module_gather_init_fn_t coll_gather_init;

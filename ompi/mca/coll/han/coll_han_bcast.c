@@ -73,6 +73,16 @@ mca_coll_han_bcast_intra(void *buff,
 #endif
                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
     int err, seg_count = count, w_rank = ompi_comm_rank(comm);
     ompi_communicator_t *low_comm, *up_comm;
@@ -93,7 +103,7 @@ mca_coll_han_bcast_intra(void *buff,
                                         comm, comm->c_coll->coll_bcast_module);
 #else
         return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module, NULL);
+                                        comm, comm->c_coll->coll_bcast_module, &item);
 #endif
     }
     /* Topo must be initialized to know rank distribution which then is used to
@@ -111,7 +121,7 @@ mca_coll_han_bcast_intra(void *buff,
                                         comm, comm->c_coll->coll_bcast_module);
 #else
         return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module, NULL);
+                                        comm, comm->c_coll->coll_bcast_module, &item);
 #endif
     }
 

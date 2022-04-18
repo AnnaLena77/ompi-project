@@ -39,6 +39,7 @@ int mca_coll_self_bcast_intra(void *buff, int count,
 #endif
                               )
 {
+    printf("coll_self_bcast.c\n");
     /* Since there's only one process, there's nothing to do */
 
     return MPI_SUCCESS;

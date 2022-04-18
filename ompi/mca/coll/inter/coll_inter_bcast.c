@@ -46,6 +46,17 @@ mca_coll_inter_bcast_inter(void *buff, int count,
 #endif
                            )
 {
+printf("coll_inter_bcast\n");
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int rank;
     int err;
 
@@ -64,7 +75,7 @@ mca_coll_inter_bcast_inter(void *buff, int count,
 #else
 	    err = MCA_PML_CALL(recv(buff, count, datatype, root,
 				    MCA_COLL_BASE_TAG_BCAST, comm,
-				    MPI_STATUS_IGNORE, NULL));
+				    MPI_STATUS_IGNORE, &item));
 #endif
 	    if (OMPI_SUCCESS != err) {
                 return err;
@@ -90,7 +101,7 @@ mca_coll_inter_bcast_inter(void *buff, int count,
 	err = MCA_PML_CALL(send(buff, count, datatype, 0,
 				MCA_COLL_BASE_TAG_BCAST,
 				MCA_PML_BASE_SEND_STANDARD,
-				comm, NULL));
+				comm, &item));
 #endif
 	if (OMPI_SUCCESS != err) {
 	    return err;

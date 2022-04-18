@@ -244,10 +244,6 @@ int ompi_coll_base_barrier_intra_basic_linear(BARRIER_ARGS);
 #ifndef ENABLE_ANALYSIS
 int ompi_coll_base_bcast_intra_generic(BCAST_ARGS, uint32_t count_by_segment, ompi_coll_tree_t* tree);
 int ompi_coll_base_bcast_intra_basic_linear(BCAST_ARGS);
-#else
-int ompi_coll_base_bcast_intra_generic(BCAST_ARGS, uint32_t count_by_segment, ompi_coll_tree_t* tree, qentry **q);
-int ompi_coll_base_bcast_intra_basic_linear(BCAST_ARGS, qentry **q);
-#endif
 int ompi_coll_base_bcast_intra_chain(BCAST_ARGS, uint32_t segsize, int32_t chains);
 int ompi_coll_base_bcast_intra_pipeline(BCAST_ARGS, uint32_t segsize);
 int ompi_coll_base_bcast_intra_binomial(BCAST_ARGS, uint32_t segsize);
@@ -256,6 +252,22 @@ int ompi_coll_base_bcast_intra_split_bintree(BCAST_ARGS, uint32_t segsize);
 int ompi_coll_base_bcast_intra_knomial(BCAST_ARGS, uint32_t segsize, int radix);
 int ompi_coll_base_bcast_intra_scatter_allgather(BCAST_ARGS, uint32_t segsize);
 int ompi_coll_base_bcast_intra_scatter_allgather_ring(BCAST_ARGS, uint32_t segsize);
+
+#else
+int ompi_coll_base_bcast_intra_generic(BCAST_ARGS, uint32_t count_by_segment, ompi_coll_tree_t* tree, qentry **q);
+int ompi_coll_base_bcast_intra_basic_linear(BCAST_ARGS, qentry **q);
+int ompi_coll_base_bcast_intra_chain(BCAST_ARGS, uint32_t segsize, int32_t chains, qentry **q);
+int ompi_coll_base_bcast_intra_pipeline(BCAST_ARGS, uint32_t segsize, qentry **q);
+int ompi_coll_base_bcast_intra_binomial(BCAST_ARGS, uint32_t segsize, qentry **q);
+int ompi_coll_base_bcast_intra_bintree(BCAST_ARGS, uint32_t segsize, qentry **q);
+int ompi_coll_base_bcast_intra_split_bintree(BCAST_ARGS, uint32_t segsize, qentry **q);
+int ompi_coll_base_bcast_intra_knomial(BCAST_ARGS, uint32_t segsize, int radix, qentry **q);
+int ompi_coll_base_bcast_intra_scatter_allgather(BCAST_ARGS, uint32_t segsize, qentry **q);
+int ompi_coll_base_bcast_intra_scatter_allgather_ring(BCAST_ARGS, uint32_t segsize, qentry **q);
+
+#endif
+
+
 
 /* Exscan */
 int ompi_coll_base_exscan_intra_recursivedoubling(EXSCAN_ARGS);

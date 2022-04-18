@@ -209,31 +209,38 @@ int mca_pml_ob1_isend(const void *buf,
                       ompi_request_t ** request, qentry ** q)
 {
 #endif
-    #ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
     qentry *item;
+    int bcast = 0;
     //if q is NULL, isend is not called from a normal operation
     if(q!=NULL){
-        item = *q;
-        if(item->blocking == 0){
-            //qentry->sendmode & qentry->operation
-            if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
-                strcpy(item->sendmode, "SYNCHRONOUS");
+        if(*q!=NULL){
+            item = *q;
+            if(strcmp(item->operation, "MPI_Bcast")==0){
+                bcast = 1;
+                printf("BCAST! Aus pml_ob1_isend\n");
             }
-            else if(sendmode==MCA_PML_BASE_SEND_BUFFERED){
-                strcpy(item->sendmode, "BUFFERED");
+            else if(item->blocking == 0){
+                //qentry->sendmode & qentry->operation
+                if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
+                    strcpy(item->sendmode, "SYNCHRONOUS");
+                }
+                else if(sendmode==MCA_PML_BASE_SEND_BUFFERED){
+                    strcpy(item->sendmode, "BUFFERED");
+                }
+                else if(sendmode==MCA_PML_BASE_SEND_READY){
+                    strcpy(item->sendmode, "READY");
+                }
+                else if(sendmode==MCA_PML_BASE_SEND_STANDARD){
+                    strcpy(item->sendmode, "STANDARD");
+                }
             }
-            else if(sendmode==MCA_PML_BASE_SEND_READY){
-                strcpy(item->sendmode, "READY");
-            }
-            else if(sendmode==MCA_PML_BASE_SEND_STANDARD){
-                strcpy(item->sendmode, "STANDARD");
-            }
-        }
+        }else item = NULL;
     }
     else {
         item = NULL;
     }
-    #endif
+#endif
     mca_pml_ob1_comm_proc_t *ob1_proc = mca_pml_ob1_peer_lookup (comm, dst);
     mca_pml_ob1_send_request_t *sendreq = NULL;
     ompi_proc_t *dst_proc = ob1_proc->ompi_proc;
@@ -272,7 +279,7 @@ int mca_pml_ob1_isend(const void *buf,
             *request = &ompi_request_empty;
             
 #ifdef ENABLE_ANALYSIS
-            if(item!=NULL) qentryIntoQueue(&item);
+            if(item!=NULL && bcast == 0) qentryIntoQueue(&item);
 #endif
             return OMPI_SUCCESS;
         }
@@ -366,9 +373,6 @@ int mca_pml_ob1_send(const void *buf,
     qentry *item;
     if(OPAL_LIKELY(q!=NULL)){
         item = *q;
-        if(strcmp(item->operation, "MPI_Bcast")==0){
-            printf("BCAST! Aus pml_ob1_isend\n");
-        }
         //qentry->sendmode & qentry->operation
         if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
             strcpy(item->sendmode, "SYNCHRONOUS");

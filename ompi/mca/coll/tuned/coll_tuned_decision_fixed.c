@@ -518,6 +518,16 @@ int ompi_coll_tuned_bcast_intra_dec_fixed(void *buff, int count,
 #endif
                                           )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     size_t total_dsize, dsize;
     int communicator_size, alg;
 	communicator_size = ompi_comm_size(comm);
@@ -649,10 +659,23 @@ int ompi_coll_tuned_bcast_intra_dec_fixed(void *buff, int count,
             alg = 8;
         }
     }
-
+#ifdef ENABLE_ANALYSIS
+    if(alg == 1) strcpy(item->usedAlgorithm, "basic_linear");
+    else if(alg == 2) strcpy(item->usedAlgorithm, "chain");
+    else if(alg == 3) strcpy(item->usedAlgorithm, "pipeline");
+    else if(alg == 4) strcpy(item->usedAlgorithm, "split_binary_tree");
+    else if(alg == 5) strcpy(item->usedAlgorithm, "binomial");
+    else if(alg == 6) strcpy(item->usedAlgorithm, "knomial");
+    else if(alg == 7) strcpy(item->usedAlgorithm, "scatter_allgather");
+    else if(alg == 8) strcpy(item->usedAlgorithm, "scatter_allgather_ring");
+    return ompi_coll_tuned_bcast_intra_do_this (buff, count, datatype, root,
+                                                comm, module,
+                                                alg, 0, 0, &item);
+#else
     return ompi_coll_tuned_bcast_intra_do_this (buff, count, datatype, root,
                                                 comm, module,
                                                 alg, 0, 0);
+#endif
 }
 
 /*

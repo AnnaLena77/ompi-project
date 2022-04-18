@@ -155,8 +155,9 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
                                   comm->c_coll->coll_bcast_module);
 #else
-    printf("%s, %d\n", item->operation, strcmp(item->operation, "MPI_Bcast"));
+    //printf("%s, %d\n", item->operation, strcmp(item->operation, "MPI_Bcast"));
     char test[] = "MPI_Bcast";
+    printf("Nullertest in bcast.c: %d\n", item==NULL);
     err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
                                   comm->c_coll->coll_bcast_module, &item);
     qentryIntoQueue(&item);

@@ -306,6 +306,7 @@ int mca_coll_base_comm_select(ompi_communicator_t * comm)
 
 static int avail_coll_compare (opal_list_item_t **a,
                                opal_list_item_t **b) {
+                               
     mca_coll_base_avail_coll_t *acoll = (mca_coll_base_avail_coll_t *) *a;
     mca_coll_base_avail_coll_t *bcoll = (mca_coll_base_avail_coll_t *) *b;
 
