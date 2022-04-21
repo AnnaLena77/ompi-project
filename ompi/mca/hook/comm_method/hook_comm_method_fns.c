@@ -501,10 +501,17 @@ ompi_report_comm_methods(int called_from_location) // 1 = from init, 2 = from fi
         } else {
             lens = disps = NULL;
         }
+#ifndef ENABLE_ANALYSIS
         leader_comm->c_coll->coll_gather(
             &len, 1, MPI_INT,
             lens, 1, MPI_INT,
             0, leader_comm, leader_comm->c_coll->coll_gather_module);
+#else
+        leader_comm->c_coll->coll_gather(
+            &len, 1, MPI_INT,
+            lens, 1, MPI_INT,
+            0, leader_comm, leader_comm->c_coll->coll_gather_module, NULL);
+#endif
         if (myleaderrank == 0) {
             int tlen = 0;
             char *p;
@@ -518,27 +525,48 @@ ompi_report_comm_methods(int called_from_location) // 1 = from init, 2 = from fi
                 allhoststrings[i] = p;
                 p += lens[i];
             }
+#ifndef ENABLE_ANALYSIS
             leader_comm->c_coll->coll_gatherv(
                 hoststring, strlen(hoststring) + 1, MPI_CHAR,
                 &allhoststrings[0][0], lens, disps, MPI_CHAR,
                 0, leader_comm, leader_comm->c_coll->coll_gatherv_module);
+#else
+            leader_comm->c_coll->coll_gatherv(
+                hoststring, strlen(hoststring) + 1, MPI_CHAR,
+                &allhoststrings[0][0], lens, disps, MPI_CHAR,
+                0, leader_comm, leader_comm->c_coll->coll_gatherv_module, NULL);
+#endif
         } else {
             // matching above call from rank 0, just &allhoststrings[0][0]
             // isn't legal here, and those args aren't used at non-root anyway
+#ifndef ENABLE_ANALYSIS
             leader_comm->c_coll->coll_gatherv(
                 hoststring, strlen(hoststring) + 1, MPI_CHAR,
                 NULL, NULL, NULL, MPI_CHAR,
                 0, leader_comm, leader_comm->c_coll->coll_gatherv_module);
+#else
+            leader_comm->c_coll->coll_gatherv(
+                hoststring, strlen(hoststring) + 1, MPI_CHAR,
+                NULL, NULL, NULL, MPI_CHAR,
+                0, leader_comm, leader_comm->c_coll->coll_gatherv_module, NULL);
+#endif
         }
         if (myleaderrank == 0) {
             free(lens);
             free(disps);
         }
 // and a simpler gather for the methods
+#ifndef ENABLE_ANALYSIS
         leader_comm->c_coll->coll_gather(
             method, nleaderranks, MPI_INT,
             method, nleaderranks, MPI_INT,
             0, leader_comm, leader_comm->c_coll->coll_gather_module);
+#else
+        leader_comm->c_coll->coll_gather(
+            method, nleaderranks, MPI_INT,
+            method, nleaderranks, MPI_INT,
+            0, leader_comm, leader_comm->c_coll->coll_gather_module, NULL);
+#endif
     }
     ompi_comm_free(&local_comm);
     ompi_comm_free(&leader_comm);

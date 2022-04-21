@@ -71,7 +71,11 @@ int mca_coll_sync_gather(const void *sbuf, int scount,
                          struct ompi_datatype_t *rdtype,
                          int root,
                          struct ompi_communicator_t *comm,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         );
 
 int mca_coll_sync_gatherv(const void *sbuf, int scount,
                           struct ompi_datatype_t *sdtype,
@@ -79,7 +83,11 @@ int mca_coll_sync_gatherv(const void *sbuf, int scount,
                           struct ompi_datatype_t *rdtype,
                           int root,
                           struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t *module);
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif	
+                          );
 
 int mca_coll_sync_reduce(const void *sbuf, void *rbuf, int count,
                          struct ompi_datatype_t *dtype,
@@ -107,7 +115,11 @@ int mca_coll_sync_scatter(const void *sbuf, int scount,
                           struct ompi_datatype_t *rdtype,
                           int root,
                           struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t *module);
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          );
 
 int mca_coll_sync_scatterv(const void *sbuf, const int *scounts, const int *disps,
                            struct ompi_datatype_t *sdtype,
@@ -115,7 +127,11 @@ int mca_coll_sync_scatterv(const void *sbuf, const int *scounts, const int *disp
                            struct ompi_datatype_t *rdtype,
                            int root,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module);
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           );
 
 /* Types */
 /* Module */

@@ -33,5 +33,4 @@ $ mpicc mpitest.c -o mpitest
 $ mpirun -n 2 --oversubscribe ./mpitest
 
 
-INFO BTLs:
-template-btl and btl-usnic are not implemented for the analysis.
+

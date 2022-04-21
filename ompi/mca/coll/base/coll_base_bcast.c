@@ -50,7 +50,7 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
 {
 
 #ifdef ENABLE_ANALYSIS
-printf("NULLERTEST coll_base_bcast: %d\n", q==NULL);
+//printf("NULLERTEST coll_base_bcast: %d\n", q==NULL);
     qentry *item;
     if(q!=NULL){
         if(*q!=NULL) {

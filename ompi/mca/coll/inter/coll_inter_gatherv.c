@@ -42,8 +42,22 @@ mca_coll_inter_gatherv_inter(const void *sbuf, int scount,
                              void *rbuf, const int *rcounts, const int *disps,
                              struct ompi_datatype_t *rdtype, int root,
                              struct ompi_communicator_t *comm,
-                             mca_coll_base_module_t *module)
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int i, rank, size, size_local, total=0, err;
     int *count=NULL, *displace=NULL;
     char *ptmp_free=NULL, *ptmp=NULL;
@@ -81,10 +95,17 @@ mca_coll_inter_gatherv_inter(const void *sbuf, int scount,
         }
     }
 
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_gather(&scount, 1, MPI_INT,
                                                  count, 1, MPI_INT,
                                                  0, comm->c_local_comm,
                                                  comm->c_local_comm->c_coll->coll_gather_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_gather(&scount, 1, MPI_INT,
+                                                 count, 1, MPI_INT,
+                                                 0, comm->c_local_comm,
+                                                 comm->c_local_comm->c_coll->coll_gather_module, &item);
+#endif
     if (OMPI_SUCCESS != err) {
         goto exit;
     }
@@ -108,10 +129,17 @@ mca_coll_inter_gatherv_inter(const void *sbuf, int scount,
             ptmp = ptmp_free - gap;
         }
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_gatherv(sbuf, scount, sdtype,
                                                   ptmp, count, displace,
                                                   sdtype,0, comm->c_local_comm,
                                                   comm->c_local_comm->c_coll->coll_gatherv_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_gatherv(sbuf, scount, sdtype,
+                                                  ptmp, count, displace,
+                                                  sdtype,0, comm->c_local_comm,
+                                                  comm->c_local_comm->c_coll->coll_gatherv_module, &item);
+#endif
     if (OMPI_SUCCESS != err) {
         goto exit;
     }

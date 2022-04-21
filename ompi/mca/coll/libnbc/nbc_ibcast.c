@@ -199,7 +199,6 @@ int ompi_coll_libnbc_ibcast(void *buffer, int count, MPI_Datatype datatype, int 
 #endif
                             )
 {
-printf("nbc_ibcast\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -482,7 +481,6 @@ int ompi_coll_libnbc_ibcast_inter(void *buffer, int count, MPI_Datatype datatype
                                   , qentry **q
 #endif
                                   ) {
-printf("nbc_ibcast\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){

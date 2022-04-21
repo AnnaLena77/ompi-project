@@ -98,9 +98,15 @@ ompi_coll_base_reduce_scatter_block_basic_linear(const void *sbuf, void *rbuf, i
 
     /* scatter */
     if (MPI_SUCCESS == err) {
+#ifndef ENABLE_ANALYSIS
         err = comm->c_coll->coll_scatter(recv_buf, rcount, dtype,
                                         rbuf, rcount, dtype, 0,
                                         comm, comm->c_coll->coll_scatter_module);
+#else
+        err = comm->c_coll->coll_scatter(recv_buf, rcount, dtype,
+                                        rbuf, rcount, dtype, 0,
+                                        comm, comm->c_coll->coll_scatter_module, NULL);
+#endif
     }
 
  cleanup:

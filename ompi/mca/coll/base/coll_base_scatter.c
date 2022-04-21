@@ -64,7 +64,11 @@ ompi_coll_base_scatter_intra_binomial(
     const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
     void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
     int root, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
     mca_coll_base_module_t *base_module = (mca_coll_base_module_t*)module;
     mca_coll_base_comm_t *data = base_module->base_data;
@@ -242,7 +246,11 @@ ompi_coll_base_scatter_intra_basic_linear(const void *sbuf, int scount,
                                           struct ompi_datatype_t *rdtype,
                                           int root,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          )
 {
     int i, rank, size, err;
     ptrdiff_t incr;
@@ -322,7 +330,11 @@ ompi_coll_base_scatter_intra_linear_nb(const void *sbuf, int scount,
                                        int root,
                                        struct ompi_communicator_t *comm,
                                        mca_coll_base_module_t *module,
-                                       int max_reqs)
+                                       int max_reqs
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       )
 {
     int i, rank, size, err, line, nreqs;
     ptrdiff_t incr;

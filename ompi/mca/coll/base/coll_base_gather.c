@@ -44,7 +44,11 @@ ompi_coll_base_gather_intra_binomial(const void *sbuf, int scount,
                                       struct ompi_datatype_t *rdtype,
                                       int root,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module)
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
     int line = -1, i, rank, vrank, size, total_recv = 0, err;
     char *ptmp     = NULL, *tempbuf  = NULL;
@@ -223,7 +227,11 @@ ompi_coll_base_gather_intra_linear_sync(const void *sbuf, int scount,
                                          int root,
                                          struct ompi_communicator_t *comm,
                                          mca_coll_base_module_t *module,
-                                         int first_segment_size)
+                                         int first_segment_size
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif  
+                                         )
 {
     int i, ret, line, rank, size, first_segment_count;
     ompi_request_t **reqs = NULL;
@@ -418,7 +426,11 @@ ompi_coll_base_gather_intra_basic_linear(const void *sbuf, int scount,
                                           struct ompi_datatype_t *rdtype,
                                           int root,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif 
+                                          )
 {
     int i, err, rank, size;
     char *ptmp;

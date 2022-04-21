@@ -413,9 +413,15 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
             for(i = 0; i < topo->outdegree ; i++)
                 local_pattern[topo->out[i]] += topo->outw[i];
         }
+#ifndef ENABLE_ANALYSIS
         err = comm_old->c_coll->coll_gather( (0 == rank ? MPI_IN_PLACE : local_pattern), size, MPI_DOUBLE,
                                              local_pattern, size, MPI_DOUBLE,  /* ignored on non-root */
                                              0, comm_old, comm_old->c_coll->coll_gather_module);
+#else
+        err = comm_old->c_coll->coll_gather( (0 == rank ? MPI_IN_PLACE : local_pattern), size, MPI_DOUBLE,
+                                             local_pattern, size, MPI_DOUBLE,  /* ignored on non-root */
+                                             0, comm_old, comm_old->c_coll->coll_gather_module, NULL);
+#endif
         if (OMPI_SUCCESS != err) {
             goto release_and_return;
         }
@@ -728,10 +734,17 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
         /* Todo : Bcast + group creation */
         /* scatter the ranks */
         /* don't need to convert k from local rank to global rank */
+#ifndef ENABLE_ANALYSIS
         if (OMPI_SUCCESS != (err = comm_old->c_coll->coll_scatter(k, 1, MPI_INT,
                                                                   &newrank, 1, MPI_INT,
                                                                   0, comm_old,
                                                                   comm_old->c_coll->coll_scatter_module))) {
+#else
+        if (OMPI_SUCCESS != (err = comm_old->c_coll->coll_scatter(k, 1, MPI_INT,
+                                                                  &newrank, 1, MPI_INT,
+                                                                  0, comm_old,
+                                                                  comm_old->c_coll->coll_scatter_module, NULL))) {
+#endif
             if (NULL != k) { free(k); k = NULL; }
             goto release_and_return;
         }
@@ -793,10 +806,17 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
                 if (grank_to_lrank[topo->out[i]] != -1)
                     local_pattern[grank_to_lrank[topo->out[i]]] += topo->outw[i];
         }
+#ifndef ENABLE_ANALYSIS
         if (OMPI_SUCCESS != (err = localcomm->c_coll->coll_gather((rank == lindex_to_grank[0] ? MPI_IN_PLACE : local_pattern),
                                                                   num_procs_in_node, MPI_DOUBLE,
                                                                   local_pattern, num_procs_in_node, MPI_DOUBLE,
                                                                   0, localcomm, localcomm->c_coll->coll_gather_module))) {
+#else
+        if (OMPI_SUCCESS != (err = localcomm->c_coll->coll_gather((rank == lindex_to_grank[0] ? MPI_IN_PLACE : local_pattern),
+                                                                  num_procs_in_node, MPI_DOUBLE,
+                                                                  local_pattern, num_procs_in_node, MPI_DOUBLE,
+                                                                  0, localcomm, localcomm->c_coll->coll_gather_module, NULL))) {
+#endif
             free(lrank_to_grank);
             ompi_comm_free(&localcomm);
             free(grank_to_lrank);
@@ -940,10 +960,17 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
         
         /* Todo : Bcast + group creation */
         /* scatter the ranks */
+#ifndef ENABLE_ANALYSIS
         if (OMPI_SUCCESS != (err = localcomm->c_coll->coll_scatter(k, 1, MPI_INT,
                                                                    &newrank, 1, MPI_INT,
                                                                    0, localcomm,
                                                                    localcomm->c_coll->coll_scatter_module))) {
+#else
+        if (OMPI_SUCCESS != (err = localcomm->c_coll->coll_scatter(k, 1, MPI_INT,
+                                                                   &newrank, 1, MPI_INT,
+                                                                   0, localcomm,
+                                                                   localcomm->c_coll->coll_scatter_module, NULL))) {
+#endif
             if (NULL != k) { free(k); k = NULL; };
             ompi_comm_free(&localcomm);
             free(lrank_to_grank);

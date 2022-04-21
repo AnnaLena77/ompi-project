@@ -847,10 +847,15 @@ ompi_coll_base_allgather_intra_basic_linear(const void *sbuf, int scount,
     }
 
     /* Gather and broadcast. */
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_gather(sbuf, scount, sdtype,
                                    rbuf, rcount, rdtype,
                                    0, comm, comm->c_coll->coll_gather_module);
+#else
+    err = comm->c_coll->coll_gather(sbuf, scount, sdtype,
+                                   rbuf, rcount, rdtype,
+                                   0, comm, comm->c_coll->coll_gather_module, NULL);
+#endif
     if (MPI_SUCCESS == err) {
         size_t length = (ptrdiff_t)rcount * ompi_comm_size(comm);
         if( length < (size_t)INT_MAX ) {

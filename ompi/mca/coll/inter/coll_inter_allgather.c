@@ -65,10 +65,17 @@ mca_coll_inter_allgather_inter(const void *sbuf, int scount,
 	}
         ptmp = ptmp_free - gap;
 
+#ifndef ENABLE_ANALYSIS
 	err = comm->c_local_comm->c_coll->coll_gather(sbuf, scount, sdtype,
 						     ptmp, scount, sdtype,
 						     0, comm->c_local_comm,
 						     comm->c_local_comm->c_coll->coll_gather_module);
+#else
+	err = comm->c_local_comm->c_coll->coll_gather(sbuf, scount, sdtype,
+						     ptmp, scount, sdtype,
+						     0, comm->c_local_comm,
+						     comm->c_local_comm->c_coll->coll_gather_module, NULL);
+#endif
 	if (OMPI_SUCCESS != err) {
 	    goto exit;
 	}

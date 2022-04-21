@@ -97,13 +97,25 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
         displs[i] = displs[i-1] + rcounts[i-1];
     }
     if (MPI_IN_PLACE == sbuf && root == rank) {
+#ifndef ENABLE_ANALYSIS
         err =  comm->c_coll->coll_scatterv (tmprbuf, rcounts, displs, dtype,
                                            MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
                                            root, comm, comm->c_coll->coll_scatterv_module);
+#else
+        err =  comm->c_coll->coll_scatterv (tmprbuf, rcounts, displs, dtype,
+                                           MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+                                           root, comm, comm->c_coll->coll_scatterv_module, NULL);
+#endif
     } else {
+#ifndef ENABLE_ANALYSIS
         err =  comm->c_coll->coll_scatterv (tmprbuf, rcounts, displs, dtype,
                                            rbuf, rcounts[rank], dtype,
                                            root, comm, comm->c_coll->coll_scatterv_module);
+#else
+        err =  comm->c_coll->coll_scatterv (tmprbuf, rcounts, displs, dtype,
+                                           rbuf, rcounts[rank], dtype,
+                                           root, comm, comm->c_coll->coll_scatterv_module, NULL);
+#endif
     }
     free(displs);
     if (NULL != tmprbuf_free) free(tmprbuf_free);

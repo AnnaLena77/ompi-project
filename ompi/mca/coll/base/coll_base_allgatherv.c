@@ -766,11 +766,17 @@ ompi_coll_base_allgatherv_intra_basic_default(const void *sbuf, int scount,
         send_buf = (char*)sbuf;
         send_type = sdtype;
     }
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_gatherv(send_buf,
                                     scount, send_type,rbuf,
                                     rcounts, disps, rdtype, 0,
                                     comm, comm->c_coll->coll_gatherv_module);
+#else
+    err = comm->c_coll->coll_gatherv(send_buf,
+                                    scount, send_type,rbuf,
+                                    rcounts, disps, rdtype, 0,
+                                    comm, comm->c_coll->coll_gatherv_module, NULL);
+#endif
     if (MPI_SUCCESS != err) {
         return err;
     }

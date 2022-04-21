@@ -65,8 +65,17 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     strcpy(item->communicator, comm_name);
     free(comm_name);
     //item->processrank
-    item->processrank = root;
-    item->partnerrank = -1;
+        //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    if(processrank==root){
+    	item->partnerrank = -1;
+    }
+    else{
+    	item->partnerrank = root;
+    }
    
     item->blocking = 1;
 #endif 
@@ -156,8 +165,6 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
                                   comm->c_coll->coll_bcast_module);
 #else
     //printf("%s, %d\n", item->operation, strcmp(item->operation, "MPI_Bcast"));
-    char test[] = "MPI_Bcast";
-    printf("Nullertest in bcast.c: %d\n", item==NULL);
     err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
                                   comm->c_coll->coll_bcast_module, &item);
     qentryIntoQueue(&item);

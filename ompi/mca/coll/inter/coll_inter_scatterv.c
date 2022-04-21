@@ -43,8 +43,22 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
                               void *rbuf, int rcount,
                               struct ompi_datatype_t *rdtype, int root,
                               struct ompi_communicator_t *comm,
-                              mca_coll_base_module_t *module)
+                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			   , qentry **q
+#endif
+                              )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int i, rank, size, err, total=0, size_local;
     int *counts=NULL,*displace=NULL;
     char *ptmp_free=NULL, *ptmp=NULL;
@@ -108,10 +122,17 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 	    }
 	}
 	/* perform the scatterv locally */
+#ifndef ENABLE_ANALYSIS
 	err = comm->c_local_comm->c_coll->coll_scatterv(ptmp, counts, displace,
 						       rdtype, rbuf, rcount,
 						       rdtype, 0, comm->c_local_comm,
                                                        comm->c_local_comm->c_coll->coll_scatterv_module);
+#else
+	err = comm->c_local_comm->c_coll->coll_scatterv(ptmp, counts, displace,
+						       rdtype, rbuf, rcount,
+						       rdtype, 0, comm->c_local_comm,
+                                                       comm->c_local_comm->c_coll->coll_scatterv_module, &item);
+#endif
 	if (OMPI_SUCCESS != err) {
 	    return err;
 	}

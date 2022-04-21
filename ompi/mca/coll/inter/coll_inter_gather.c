@@ -43,8 +43,22 @@ mca_coll_inter_gather_inter(const void *sbuf, int scount,
                             void *rbuf, int rcount,
                             struct ompi_datatype_t *rdtype,
                             int root, struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int err;
     int rank;
     int size;
@@ -70,10 +84,17 @@ mca_coll_inter_gather_inter(const void *sbuf, int scount,
         }
         ptmp = ptmp_free - gap;
 
+#ifndef ENABLE_ANALYSIS
 	err = comm->c_local_comm->c_coll->coll_gather(sbuf, scount, sdtype,
 						     ptmp, scount, sdtype,
 						     0, comm->c_local_comm,
                                                      comm->c_local_comm->c_coll->coll_gather_module);
+#else
+	err = comm->c_local_comm->c_coll->coll_gather(sbuf, scount, sdtype,
+						     ptmp, scount, sdtype,
+						     0, comm->c_local_comm,
+                                                     comm->c_local_comm->c_coll->coll_gather_module, &item);
+#endif
 	if (0 == rank) {
 	    /* First process sends data to the root */
 #ifndef ENABLE_ANALYSIS

@@ -142,6 +142,7 @@ int ompi_io_ompio_generate_current_file_view (struct ompio_file_t *fh,
             return OMPI_ERR_OUT_OF_RESOURCE;
 	}
 
+#ifndef ENABLE_ANALYSIS
         fh->f_comm->c_coll->coll_gather (&k,
                                         1,
                                         MPI_INT,
@@ -151,6 +152,17 @@ int ompi_io_ompio_generate_current_file_view (struct ompio_file_t *fh,
                                         OMPIO_ROOT,
                                         fh->f_comm,
                                         fh->f_comm->c_coll->coll_gather_module);
+#else
+        fh->f_comm->c_coll->coll_gather (&k,
+                                        1,
+                                        MPI_INT,
+                                        recvcounts,
+                                        1,
+					MPI_INT,
+                                        OMPIO_ROOT,
+                                        fh->f_comm,
+                                        fh->f_comm->c_coll->coll_gather_module, NULL);
+#endif
 
         per_process = (mca_io_ompio_offlen_array_t *)
 	    malloc (k * sizeof(mca_io_ompio_offlen_array_t));
@@ -248,6 +260,7 @@ int ompi_io_ompio_generate_current_file_view (struct ompio_file_t *fh,
                 }
             }
 	}
+#ifndef ENABLE_ANALYSIS
 	fh->f_comm->c_coll->coll_gatherv (per_process,
 					 k,
 					 io_array_type,
@@ -258,6 +271,18 @@ int ompi_io_ompio_generate_current_file_view (struct ompio_file_t *fh,
 					 OMPIO_ROOT,
 					 fh->f_comm,
 					 fh->f_comm->c_coll->coll_gatherv_module);
+#else
+	fh->f_comm->c_coll->coll_gatherv (per_process,
+					 k,
+					 io_array_type,
+					 all_process,
+					 recvcounts,
+					 displs,
+					 io_array_type,
+					 OMPIO_ROOT,
+					 fh->f_comm,
+					 fh->f_comm->c_coll->coll_gatherv_module, NULL);
+#endif
 
 	ompi_datatype_destroy(&io_array_type);
 

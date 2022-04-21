@@ -46,7 +46,6 @@ mca_coll_inter_bcast_inter(void *buff, int count,
 #endif
                            )
 {
-printf("coll_inter_bcast\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){

@@ -218,7 +218,6 @@ int mca_pml_ob1_isend(const void *buf,
             item = *q;
             if(strcmp(item->operation, "MPI_Bcast")==0){
                 bcast = 1;
-                printf("BCAST! Aus pml_ob1_isend\n");
             }
             else if(item->blocking == 0){
                 //qentry->sendmode & qentry->operation
@@ -369,28 +368,35 @@ int mca_pml_ob1_send(const void *buf,
                      ompi_communicator_t * comm, qentry **q)
 {
 #endif
-    #ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
     qentry *item;
-    if(OPAL_LIKELY(q!=NULL)){
-        item = *q;
-        //qentry->sendmode & qentry->operation
-        if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
-            strcpy(item->sendmode, "SYNCHRONOUS");
-        }
-        else if(sendmode==MCA_PML_BASE_SEND_BUFFERED){
-            strcpy(item->sendmode, "BUFFERED");
-        }
-        else if(sendmode==MCA_PML_BASE_SEND_READY){
-            strcpy(item->sendmode, "READY");
-        }
-        else if(sendmode==MCA_PML_BASE_SEND_STANDARD){
-            strcpy(item->sendmode, "STANDARD");
-        }
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            if(strcmp(item->operation, "MPI_Bcast")==0){
+                //bcast = 1;
+            }
+            else if(item->blocking == 0){
+                //qentry->sendmode & qentry->operation
+                if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
+                    strcpy(item->sendmode, "SYNCHRONOUS");
+                }
+                else if(sendmode==MCA_PML_BASE_SEND_BUFFERED){
+                    strcpy(item->sendmode, "BUFFERED");
+                }
+                else if(sendmode==MCA_PML_BASE_SEND_READY){
+                    strcpy(item->sendmode, "READY");
+                }
+                else if(sendmode==MCA_PML_BASE_SEND_STANDARD){
+                    strcpy(item->sendmode, "STANDARD");
+                }
+            }
+        }else item = NULL;
     }
     else {
         item = NULL;
     }
-    #endif
+#endif
     mca_pml_ob1_comm_proc_t *ob1_proc = mca_pml_ob1_peer_lookup (comm, dst);
     ompi_proc_t *dst_proc = ob1_proc->ompi_proc;
     mca_bml_base_endpoint_t* endpoint = mca_bml_base_get_endpoint (dst_proc);

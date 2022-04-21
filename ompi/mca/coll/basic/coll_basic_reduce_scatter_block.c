@@ -186,10 +186,17 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
     }
 
     /* Now do a scatterv on the local communicator */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_scatter(lbuf, rcount, dtype,
 				   rbuf, rcount, dtype, 0,
 				   comm->c_local_comm,
 				   comm->c_local_comm->c_coll->coll_scatter_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_scatter(lbuf, rcount, dtype,
+				   rbuf, rcount, dtype, 0,
+				   comm->c_local_comm,
+				   comm->c_local_comm->c_coll->coll_scatter_module, NULL);
+#endif
 
   exit:
     if (NULL != tmpbuf) {

@@ -108,13 +108,21 @@ int mca_coll_self_gather_intra(const void *sbuf, int scount,
                                struct ompi_datatype_t *sdtype, void *rbuf,
                                int rcount, struct ompi_datatype_t *rdtype,
                                int root, struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module);
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               );
 int mca_coll_self_gatherv_intra(const void *sbuf, int scount,
                                 struct ompi_datatype_t *sdtype, void *rbuf,
                                 const int *rcounts, const int *disps,
                                 struct ompi_datatype_t *rdtype, int root,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module);
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                );
 int mca_coll_self_reduce_intra(const void *sbuf, void* rbuf, int count,
                                struct ompi_datatype_t *dtype,
                                struct ompi_op_t *op,
@@ -136,13 +144,21 @@ int mca_coll_self_scatter_intra(const void *sbuf, int scount,
                                 struct ompi_datatype_t *sdtype, void *rbuf,
                                 int rcount, struct ompi_datatype_t *rdtype,
                                 int root, struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module);
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                );
 int mca_coll_self_scatterv_intra(const void *sbuf, const int *scounts, const int *disps,
                                  struct ompi_datatype_t *sdtype,
                                  void* rbuf, int rcount,
                                  struct ompi_datatype_t *rdtype, int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 );
 
 
 struct mca_coll_self_module_t {

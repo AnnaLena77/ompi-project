@@ -378,9 +378,15 @@ mca_coll_basic_reduce_scatter_intra(const void *sbuf, void *rbuf, const int *rco
 
         /* scatter */
         if (MPI_SUCCESS == err) {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_scatterv(recv_buf, rcounts, disps, dtype,
                                              rbuf, rcounts[rank], dtype, 0,
                                              comm, comm->c_coll->coll_scatterv_module);
+#else
+            err = comm->c_coll->coll_scatterv(recv_buf, rcounts, disps, dtype,
+                                             rbuf, rcounts[rank], dtype, 0,
+                                             comm, comm->c_coll->coll_scatterv_module, NULL);
+#endif
         }
     }
 
@@ -534,10 +540,17 @@ mca_coll_basic_reduce_scatter_inter(const void *sbuf, void *rbuf, const int *rco
     }
 
     /* Now do a scatterv on the local communicator */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_scatterv(lbuf, rcounts, disps, dtype,
                                                    rbuf, rcounts[rank], dtype, 0,
                                                    comm->c_local_comm,
                                                    comm->c_local_comm->c_coll->coll_scatterv_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_scatterv(lbuf, rcounts, disps, dtype,
+                                                   rbuf, rcounts[rank], dtype, 0,
+                                                   comm->c_local_comm,
+                                                   comm->c_local_comm->c_coll->coll_scatterv_module, NULL);
+#endif
 
   exit:
     if (NULL != tmpbuf) {

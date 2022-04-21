@@ -159,21 +159,39 @@ int mca_coll_han_allgather_lg_task(void *task_args)
     /* Lower level (shared memory or intra-node) gather */
     if (MPI_IN_PLACE == t->sbuf) {
         if (!t->noop) {
+#ifndef ENABLE_ANALYSIS
             t->low_comm->c_coll->coll_gather(MPI_IN_PLACE, t->scount, t->sdtype, 
                                              tmp_rbuf, t->rcount, t->rdtype, t->root_low_rank, 
                                              t->low_comm, t->low_comm->c_coll->coll_gather_module);
+#else
+            t->low_comm->c_coll->coll_gather(MPI_IN_PLACE, t->scount, t->sdtype, 
+                                             tmp_rbuf, t->rcount, t->rdtype, t->root_low_rank, 
+                                             t->low_comm, t->low_comm->c_coll->coll_gather_module, NULL);
+#endif
         }
         else {
             tmp_send = ((char*)t->rbuf) + (ptrdiff_t)t->w_rank * (ptrdiff_t)t->rcount * rext;
+#ifndef ENABLE_ANALYSIS
             t->low_comm->c_coll->coll_gather(tmp_send, t->rcount, t->rdtype, 
                                              NULL, t->rcount, t->rdtype, t->root_low_rank, 
                                              t->low_comm, t->low_comm->c_coll->coll_gather_module);
+#else
+            t->low_comm->c_coll->coll_gather(tmp_send, t->rcount, t->rdtype, 
+                                             NULL, t->rcount, t->rdtype, t->root_low_rank, 
+                                             t->low_comm, t->low_comm->c_coll->coll_gather_module, NULL);
+#endif
         }
     }
     else {
+#ifndef ENABLE_ANALYSIS
         t->low_comm->c_coll->coll_gather((char *) t->sbuf, t->scount, t->sdtype, tmp_rbuf, t->rcount,
                                          t->rdtype, t->root_low_rank, t->low_comm,
                                          t->low_comm->c_coll->coll_gather_module);
+#else
+        t->low_comm->c_coll->coll_gather((char *) t->sbuf, t->scount, t->sdtype, tmp_rbuf, t->rcount,
+                                         t->rdtype, t->root_low_rank, t->low_comm,
+                                         t->low_comm->c_coll->coll_gather_module, NULL);
+#endif
     }
 
     t->sbuf = tmp_rbuf;
@@ -367,21 +385,39 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
     /* 1. low gather on node leaders into tmp_buf */
     if (MPI_IN_PLACE == sbuf) {
         if (low_rank == root_low_rank) {
+#ifndef ENABLE_ANALYSIS
             low_comm->c_coll->coll_gather(MPI_IN_PLACE, scount, sdtype,
                                           tmp_buf_start, rcount, rdtype, root_low_rank,
                                           low_comm, low_comm->c_coll->coll_gather_module);
+#else
+            low_comm->c_coll->coll_gather(MPI_IN_PLACE, scount, sdtype,
+                                          tmp_buf_start, rcount, rdtype, root_low_rank,
+                                          low_comm, low_comm->c_coll->coll_gather_module, NULL);
+#endif
         }
         else {
             tmp_send = ((char*)rbuf) + (ptrdiff_t)w_rank * (ptrdiff_t)rcount * rext;
+#ifndef ENABLE_ANALYSIS
             low_comm->c_coll->coll_gather(tmp_send, rcount, rdtype,
                                           NULL, rcount, rdtype, root_low_rank,
                                           low_comm, low_comm->c_coll->coll_gather_module);
+#else
+            low_comm->c_coll->coll_gather(tmp_send, rcount, rdtype,
+                                          NULL, rcount, rdtype, root_low_rank,
+                                          low_comm, low_comm->c_coll->coll_gather_module, NULL);
+#endif
         }
     }
     else {
+#ifndef ENABLE_ANALYSIS
         low_comm->c_coll->coll_gather((char *)sbuf, scount, sdtype,
                                       tmp_buf_start, rcount, rdtype, root_low_rank,
                                       low_comm, low_comm->c_coll->coll_gather_module);
+#else
+        low_comm->c_coll->coll_gather((char *)sbuf, scount, sdtype,
+                                      tmp_buf_start, rcount, rdtype, root_low_rank,
+                                      low_comm, low_comm->c_coll->coll_gather_module, NULL);
+#endif
     }
     /* 2. allgather between node leaders, from tmp_buf to reorder_buf */
     if (low_rank == root_low_rank) {

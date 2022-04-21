@@ -163,42 +163,49 @@ int ompi_coll_tuned_bcast_intra_do_this(void *buf, int count,
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_bcast_intra_dec_fixed( buf, count, dtype, root, comm, module );
 #else
+        //printf("dec_fixed\n");
         return ompi_coll_tuned_bcast_intra_dec_fixed( buf, count, dtype, root, comm, module, &item);
 #endif
     case (1):
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_basic_linear( buf, count, dtype, root, comm, module );
 #else
+        //printf("basic_linear\n");
         return ompi_coll_base_bcast_intra_basic_linear( buf, count, dtype, root, comm, module, &item);
 #endif
     case (2):
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_chain( buf, count, dtype, root, comm, module, segsize, faninout );
 #else
+        //printf("intra_chain\n");
         return ompi_coll_base_bcast_intra_chain( buf, count, dtype, root, comm, module, segsize, faninout, &item);
 #endif
     case (3):
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_pipeline( buf, count, dtype, root, comm, module, segsize );
 #else
+        //printf("intra_pipeline\n");
         return ompi_coll_base_bcast_intra_pipeline( buf, count, dtype, root, comm, module, segsize, &item);
 #endif
     case (4):
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_split_bintree( buf, count, dtype, root, comm, module, segsize );
 #else
+        //printf("split_bintree\n");
         return ompi_coll_base_bcast_intra_split_bintree( buf, count, dtype, root, comm, module, segsize, &item);
 #endif
     case (5):
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_bintree( buf, count, dtype, root, comm, module, segsize );
 #else
+        //printf("intra_bintree\n");
         return ompi_coll_base_bcast_intra_bintree( buf, count, dtype, root, comm, module, segsize, &item);
 #endif
     case (6):
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_binomial( buf, count, dtype, root, comm, module, segsize );
 #else
+        //printf("intra_binominal\n");
         return ompi_coll_base_bcast_intra_binomial( buf, count, dtype, root, comm, module, segsize, &item);
 #endif
     case (7):
@@ -206,6 +213,7 @@ int ompi_coll_tuned_bcast_intra_do_this(void *buf, int count,
         return ompi_coll_base_bcast_intra_knomial(buf, count, dtype, root, comm, module,
                                                   segsize, coll_tuned_bcast_knomial_radix);
 #else
+        //printf("intra_knomial\n");
         return ompi_coll_base_bcast_intra_knomial(buf, count, dtype, root, comm, module,
                                                   segsize, coll_tuned_bcast_knomial_radix, &item);
 #endif
@@ -213,12 +221,14 @@ int ompi_coll_tuned_bcast_intra_do_this(void *buf, int count,
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_scatter_allgather(buf, count, dtype, root, comm, module, segsize);
 #else
+        //printf("intra_scatter_allgather\n");
         return ompi_coll_base_bcast_intra_scatter_allgather(buf, count, dtype, root, comm, module, segsize, &item);
 #endif
     case (9):
 #ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_scatter_allgather_ring(buf, count, dtype, root, comm, module, segsize);
 #else
+        //printf("scatter_allgather_ring\n");
         return ompi_coll_base_bcast_intra_scatter_allgather_ring(buf, count, dtype, root, comm, module, segsize, &item);
 #endif
     } /* switch */

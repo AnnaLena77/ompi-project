@@ -275,9 +275,15 @@ int ompi_coll_base_exscan_intra_linear(EXSCAN_ARGS);
 int ompi_coll_base_exscan_intra_recursivedoubling(EXSCAN_ARGS);
 
 /* Gather */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_gather_intra_basic_linear(GATHER_ARGS);
 int ompi_coll_base_gather_intra_binomial(GATHER_ARGS);
 int ompi_coll_base_gather_intra_linear_sync(GATHER_ARGS, int first_segment_size);
+#else
+int ompi_coll_base_gather_intra_basic_linear(GATHER_ARGS, qentry **q);
+int ompi_coll_base_gather_intra_binomial(GATHER_ARGS, qentry **q);
+int ompi_coll_base_gather_intra_linear_sync(GATHER_ARGS, int first_segment_size, qentry **q);
+#endif
 
 /* GatherV */
 
@@ -309,9 +315,15 @@ int ompi_coll_base_scan_intra_linear(SCAN_ARGS);
 int ompi_coll_base_scan_intra_recursivedoubling(SCAN_ARGS);
 
 /* Scatter */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_scatter_intra_basic_linear(SCATTER_ARGS);
 int ompi_coll_base_scatter_intra_binomial(SCATTER_ARGS);
 int ompi_coll_base_scatter_intra_linear_nb(SCATTER_ARGS, int max_reqs);
+#else
+int ompi_coll_base_scatter_intra_basic_linear(SCATTER_ARGS, qentry **q);
+int ompi_coll_base_scatter_intra_binomial(SCATTER_ARGS, qentry **q);
+int ompi_coll_base_scatter_intra_linear_nb(SCATTER_ARGS, int max_reqs, qentry **q);
+#endif
 
 /* ScatterV */
 
