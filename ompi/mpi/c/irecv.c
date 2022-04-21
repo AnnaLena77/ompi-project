@@ -29,7 +29,6 @@
 #include "ompi/request/request.h"
 #include "ompi/memchecker.h"
 #include "ompi/runtime/ompi_spc.h"
-#include "ompi/mpi/c/init.h"
 #include <time.h>
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -46,19 +45,39 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
               int tag, MPI_Comm comm, MPI_Request *request)
 {
     #ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    //item->start
     time_t current_time = time(NULL);
-    char *operation = "ireceive";
-    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int comm_name_length;
-    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    item->start = current_time;
+    //item->operation
+    strcpy(item->operation, "MPI_Irecv");
+    //item->blocking
+    item->blocking = 0;
+    //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
-    //rank of actual process
+    strcpy(item->datatype, type_name);
+    free(type_name);
+    //item->count
+    item->count = count;
+    //item->datasize
+    item->datasize = count * sizeof(type);
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
+    //item->processrank
     int processrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
-    enqueue(&operation, &type_name, count, count*sizeof(type), &comm_name, processrank, source, current_time);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = source;
     #endif
+
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_IRECV, 1);
@@ -102,6 +121,10 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
     MEMCHECKER (
         memchecker_call(&opal_memchecker_base_mem_noaccess, buf, count, type);
     );
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(irecv(buf,count,type,source,tag,comm,request));
+#else
+    rc = MCA_PML_CALL(irecv(buf,count,type,source,tag,comm,request, &item));
+#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

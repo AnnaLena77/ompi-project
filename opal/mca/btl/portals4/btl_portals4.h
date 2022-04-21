@@ -36,6 +36,10 @@
 
 #include <portals4.h>
 
+#ifdef
+#   include "ompi/mpi/c/init.h"
+#endif
+
 BEGIN_C_DECLS
 
 /*
@@ -209,7 +213,11 @@ mca_btl_base_descriptor_t *mca_btl_portals4_prepare_src(struct mca_btl_base_modu
 
 int mca_btl_portals4_send(struct mca_btl_base_module_t *btl_base,
                           struct mca_btl_base_endpoint_t *btl_peer,
-                          struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag);
+                          struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                          , qentry **q
+#endif
+                          );
 
 int mca_btl_portals4_sendi(struct mca_btl_base_module_t *btl_base,
                            struct mca_btl_base_endpoint_t *endpoint,

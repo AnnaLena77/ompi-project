@@ -32,6 +32,7 @@
 #include "ompi/peruse/peruse-internal.h"
 #include "ompi/message/message.h"
 #include "ompi/memchecker.h"
+#include "ompi/mpi/c/init.h"
 
 /**
  * Single usage request. As we allow recursive calls to recv
@@ -73,7 +74,7 @@ int mca_pml_ob1_irecv_init(void *addr,
     *request = (ompi_request_t *) recvreq;
     return OMPI_SUCCESS;
 }
-
+#ifndef ENABLE_ANALYSIS
 int mca_pml_ob1_irecv(void *addr,
                       size_t count,
                       ompi_datatype_t * datatype,
@@ -82,6 +83,28 @@ int mca_pml_ob1_irecv(void *addr,
                       struct ompi_communicator_t *comm,
                       struct ompi_request_t **request)
 {
+#else
+int mca_pml_ob1_irecv(void *addr,
+                      size_t count,
+                      ompi_datatype_t * datatype,
+                      int src,
+                      int tag,
+                      struct ompi_communicator_t *comm,
+                      struct ompi_request_t **request, struct qentry **q)
+{
+#endif
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            item->blocking = 0;
+        }
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_pml_ob1_recv_request_t *recvreq;
     MCA_PML_OB1_RECV_REQUEST_ALLOC(recvreq);
     if (NULL == recvreq)
@@ -91,17 +114,26 @@ int mca_pml_ob1_irecv(void *addr,
     MCA_PML_OB1_RECV_REQUEST_INIT(recvreq,
                                    addr,
                                    count, datatype, src, tag, comm, false);
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->initializeRequest = time(NULL);
+#endif
 
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &((recvreq)->req_recv.req_base),
                              PERUSE_RECV);
-
+#ifndef ENABLE_ANALYSIS
     MCA_PML_OB1_RECV_REQUEST_START(recvreq);
+#else
+    MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
+#endif
     *request = (ompi_request_t *) recvreq;
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) qentryIntoQueue(&item);
+#endif
     return OMPI_SUCCESS;
 }
 
-
+#ifndef ENABLE_ANALYSIS
 int mca_pml_ob1_recv(void *addr,
                      size_t count,
                      ompi_datatype_t * datatype,
@@ -110,6 +142,28 @@ int mca_pml_ob1_recv(void *addr,
                      struct ompi_communicator_t *comm,
                      ompi_status_public_t * status)
 {
+#else
+int mca_pml_ob1_recv(void *addr,
+                     size_t count,
+                     ompi_datatype_t * datatype,
+                     int src,
+                     int tag,
+                     struct ompi_communicator_t *comm,
+                     ompi_status_public_t * status, struct qentry **q)
+{
+#endif
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            item->blocking = 1;
+        }
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_pml_ob1_recv_request_t *recvreq = NULL;
     int rc;
 
@@ -131,8 +185,14 @@ int mca_pml_ob1_recv(void *addr,
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &(recvreq->req_recv.req_base),
                              PERUSE_RECV);
-
+#ifndef ENABLE_ANALYSIS
     MCA_PML_OB1_RECV_REQUEST_START(recvreq);
+#else
+    MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
+#endif
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->requestWaitCompletion = time(NULL);
+#endif
     ompi_request_wait_completion(&recvreq->req_recv.req_base.req_ompi);
 
     if (recvreq->req_recv.req_base.req_pml_complete) {
@@ -173,20 +233,45 @@ int mca_pml_ob1_recv(void *addr,
         MCA_PML_OB1_RECV_REQUEST_RETURN(recvreq);
     } else {
         mca_pml_ob1_recv_request_fini (recvreq);
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->requestFini = time(NULL);
+#endif
         mca_pml_ob1_recvreq = recvreq;
     }
-
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) qentryIntoQueue(&item);
+#endif
     return rc;
 }
 
-
+#ifndef ENABLE_ANALYSIS
 int
 mca_pml_ob1_imrecv( void *buf,
                     size_t count,
                     ompi_datatype_t *datatype,
                     struct ompi_message_t **message,
-                    struct ompi_request_t **request )
+                    struct ompi_request_t **request)
 {
+#else
+int
+mca_pml_ob1_imrecv( void *buf,
+                    size_t count,
+                    ompi_datatype_t *datatype,
+                    struct ompi_message_t **message,
+                    struct ompi_request_t **request, struct qentry **q )
+{
+#endif
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item=NULL;
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;
     mca_pml_ob1_hdr_t *hdr;
@@ -272,14 +357,34 @@ mca_pml_ob1_imrecv( void *buf,
     return OMPI_SUCCESS;
 }
 
-
+#ifndef ENABLE_ANALYSIS
 int
 mca_pml_ob1_mrecv( void *buf,
                    size_t count,
                    ompi_datatype_t *datatype,
                    struct ompi_message_t **message,
-                   ompi_status_public_t* status )
+                   ompi_status_public_t* status)
 {
+#else
+int
+mca_pml_ob1_mrecv( void *buf,
+                   size_t count,
+                   ompi_datatype_t *datatype,
+                   struct ompi_message_t **message,
+                   ompi_status_public_t* status, struct qentry **q )
+{
+#endif
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } item = NULL;
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;
     mca_pml_ob1_hdr_t *hdr;

@@ -810,6 +810,7 @@ int mca_common_ompio_merge_initial_groups(ompio_file_t *fh,
 	       continue;
 	   }
            //new aggregator sends new procs_per_group to all its members
+#ifndef ENABLE_ANALYSIS
 	   ret = MCA_PML_CALL(isend(&fh->f_procs_per_group,
                                     1,
                                     MPI_INT,
@@ -818,11 +819,22 @@ int mca_common_ompio_merge_initial_groups(ompio_file_t *fh,
                                     MCA_PML_BASE_SEND_STANDARD,
                                     fh->f_comm,
                                     sendreqs + r++));
+#else
+	   ret = MCA_PML_CALL(isend(&fh->f_procs_per_group,
+                                    1,
+                                    MPI_INT,
+                                    fh->f_procs_in_group[j],
+                                    OMPIO_PROCS_PER_GROUP_TAG,
+                                    MCA_PML_BASE_SEND_STANDARD,
+                                    fh->f_comm,
+                                    sendreqs + r++, NULL));
+#endif
            if ( OMPI_SUCCESS != ret ) {
                opal_output (1, "mca_common_ompio_merge_initial_groups: error in Isend\n");
                goto exit;
            }
 	   //new aggregator sends distribution of process to all its new members
+#ifndef ENABLE_ANALYSIS
 	   ret = MCA_PML_CALL(isend(fh->f_procs_in_group,
                                     fh->f_procs_per_group,
                                     MPI_INT,
@@ -831,6 +843,16 @@ int mca_common_ompio_merge_initial_groups(ompio_file_t *fh,
                                     MCA_PML_BASE_SEND_STANDARD,
                                     fh->f_comm,
                                     sendreqs + r++));
+#else
+	   ret = MCA_PML_CALL(isend(fh->f_procs_in_group,
+                                    fh->f_procs_per_group,
+                                    MPI_INT,
+                                    fh->f_procs_in_group[j],
+                                    OMPIO_PROCS_IN_GROUP_TAG,
+                                    MCA_PML_BASE_SEND_STANDARD,
+                                    fh->f_comm,
+                                    sendreqs + r++, NULL));
+#endif
            if ( OMPI_SUCCESS != ret ) {
                opal_output (1, "mca_common_ompio_merge_initial_groups: error in Isend 2\n");
                goto exit;
@@ -841,6 +863,7 @@ int mca_common_ompio_merge_initial_groups(ompio_file_t *fh,
     else {
 	//All non aggregators
 	//All processes receive initial process distribution from aggregators
+#ifndef ENABLE_ANALYSIS
 	ret = MCA_PML_CALL(recv(&fh->f_procs_per_group,
                                 1,
                                 MPI_INT,
@@ -848,6 +871,15 @@ int mca_common_ompio_merge_initial_groups(ompio_file_t *fh,
                                 OMPIO_PROCS_PER_GROUP_TAG,
                                 fh->f_comm,
                                 MPI_STATUS_IGNORE));
+#else
+        ret = MCA_PML_CALL(recv(&fh->f_procs_per_group,
+                                1,
+                                MPI_INT,
+                                MPI_ANY_SOURCE,
+                                OMPIO_PROCS_PER_GROUP_TAG,
+                                fh->f_comm,
+                                MPI_STATUS_IGNORE, NULL));
+#endif
         if ( OMPI_SUCCESS != ret ) {
             opal_output (1, "mca_common_ompio_merge_initial_groups: error in Recv\n");
             return ret;
@@ -858,7 +890,7 @@ int mca_common_ompio_merge_initial_groups(ompio_file_t *fh,
 	    opal_output (1, "OUT OF MEMORY\n");
 	    return OMPI_ERR_OUT_OF_RESOURCE;
 	}
-
+#ifndef ENABLE_ANALYSIS
 	ret = MCA_PML_CALL(recv(fh->f_procs_in_group,
                                 fh->f_procs_per_group,
                                 MPI_INT,
@@ -866,6 +898,15 @@ int mca_common_ompio_merge_initial_groups(ompio_file_t *fh,
                                 OMPIO_PROCS_IN_GROUP_TAG,
                                 fh->f_comm,
                                 MPI_STATUS_IGNORE));
+#else
+        ret = MCA_PML_CALL(recv(fh->f_procs_in_group,
+                                fh->f_procs_per_group,
+                                MPI_INT,
+                                MPI_ANY_SOURCE,
+                                OMPIO_PROCS_IN_GROUP_TAG,
+                                fh->f_comm,
+                                MPI_STATUS_IGNORE, NULL));
+#endif
         if ( OMPI_SUCCESS != ret ) {
             opal_output (1, "mca_common_ompio_merge_initial_groups: error in Recv 2\n");
             return ret;

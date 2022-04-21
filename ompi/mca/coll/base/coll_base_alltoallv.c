@@ -114,32 +114,54 @@ mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts
             if (1 != err) { goto error_hndl; }
 
             /* Receive data from the right */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv ((char *) rbuf + rdisps[right] * extent, rcounts[right], rdtype,
                                       right, MCA_COLL_BASE_TAG_ALLTOALLV, comm, &req));
+#else
+            err = MCA_PML_CALL(irecv ((char *) rbuf + rdisps[right] * extent, rcounts[right], rdtype,
+                                      right, MCA_COLL_BASE_TAG_ALLTOALLV, comm, &req, NULL));
+#endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
         }
 
         if( (left != right) && (0 != rcounts[left]) ) {
             /* Send data to the left */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send ((char *) rbuf + rdisps[left] * extent, rcounts[left], rdtype,
                                      left, MCA_COLL_BASE_TAG_ALLTOALLV, MCA_PML_BASE_SEND_STANDARD,
                                      comm));
+#else
+            err = MCA_PML_CALL(send ((char *) rbuf + rdisps[left] * extent, rcounts[left], rdtype,
+                                     left, MCA_COLL_BASE_TAG_ALLTOALLV, MCA_PML_BASE_SEND_STANDARD,
+                                     comm, NULL));
+#endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
 
             err = ompi_request_wait (&req, MPI_STATUSES_IGNORE);
             if (MPI_SUCCESS != err) { goto error_hndl; }
 
             /* Receive data from the left */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv ((char *) rbuf + rdisps[left] * extent, rcounts[left], rdtype,
                                       left, MCA_COLL_BASE_TAG_ALLTOALLV, comm, &req));
+#else
+            err = MCA_PML_CALL(irecv ((char *) rbuf + rdisps[left] * extent, rcounts[left], rdtype,
+                                      left, MCA_COLL_BASE_TAG_ALLTOALLV, comm, &req, NULL));
+#endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
         }
 
         if( 0 != rcounts[right] ) {  /* nothing to exchange with the peer on the right */
             /* Send data to the right */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send ((char *) tmp_buffer,  packed_size, MPI_PACKED,
                                      right, MCA_COLL_BASE_TAG_ALLTOALLV, MCA_PML_BASE_SEND_STANDARD,
                                      comm));
+#else
+            err = MCA_PML_CALL(send ((char *) tmp_buffer,  packed_size, MPI_PACKED,
+                                     right, MCA_COLL_BASE_TAG_ALLTOALLV, MCA_PML_BASE_SEND_STANDARD,
+                                     comm, NULL));
+#endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
         }
 

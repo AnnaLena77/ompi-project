@@ -63,8 +63,11 @@ mca_coll_basic_allreduce_intra(const void *sbuf, void *rbuf, int count,
     if (MPI_SUCCESS != err) {
         return err;
     }
-
+#ifndef ENABLE_ANALYSIS
     return comm->c_coll->coll_bcast(rbuf, count, dtype, 0, comm, comm->c_coll->coll_bcast_module);
+#else
+    return comm->c_coll->coll_bcast(rbuf, count, dtype, 0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
 }
 
 
@@ -124,9 +127,15 @@ mca_coll_basic_allreduce_inter(const void *sbuf, void *rbuf, int count,
 
         /* Loop receiving and calling reduction function (C or Fortran). */
         for (i = 1; i < rsize; i++) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(pml_buffer, count, dtype, i,
                                     MCA_COLL_BASE_TAG_ALLREDUCE, comm,
                                     MPI_STATUS_IGNORE));
+#else
+	   err = MCA_PML_CALL(recv(pml_buffer, count, dtype, i,
+                                    MCA_COLL_BASE_TAG_ALLREDUCE, comm,
+                                    MPI_STATUS_IGNORE, NULL));
+#endif
             if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 
             /* Perform the reduction */
@@ -134,9 +143,15 @@ mca_coll_basic_allreduce_inter(const void *sbuf, void *rbuf, int count,
         }
     } else {
         /* If not root, send data to the root. */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(sbuf, count, dtype, root,
                                 MCA_COLL_BASE_TAG_ALLREDUCE,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err = MCA_PML_CALL(send(sbuf, count, dtype, root,
+                                MCA_COLL_BASE_TAG_ALLREDUCE,
+                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
     }
 
@@ -162,10 +177,17 @@ mca_coll_basic_allreduce_inter(const void *sbuf, void *rbuf, int count,
          */
         if (rsize > 1) {
             for (i = 1; i < rsize; i++) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(isend(pml_buffer, count, dtype, i,
                                          MCA_COLL_BASE_TAG_ALLREDUCE,
                                          MCA_PML_BASE_SEND_STANDARD, comm,
                                          &reqs[i - 1]));
+#else
+                err = MCA_PML_CALL(isend(pml_buffer, count, dtype, i,
+                                         MCA_COLL_BASE_TAG_ALLREDUCE,
+                                         MCA_PML_BASE_SEND_STANDARD, comm,
+                                         &reqs[i - 1], NULL));
+#endif
                 if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
             }
 
@@ -175,9 +197,15 @@ mca_coll_basic_allreduce_inter(const void *sbuf, void *rbuf, int count,
             if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
         }
     } else {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, count, dtype, root,
                                 MCA_COLL_BASE_TAG_ALLREDUCE,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(rbuf, count, dtype, root,
+                                MCA_COLL_BASE_TAG_ALLREDUCE,
+                                comm, MPI_STATUS_IGNORE, NULL));
+#endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
     }
 

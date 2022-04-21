@@ -33,7 +33,6 @@
 #include "ompi/request/request.h"
 #include "ompi/memchecker.h"
 #include "ompi/runtime/ompi_spc.h"
-#include "ompi/mpi/c/init.h"
 #include <time.h>
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -51,18 +50,20 @@ int MPI_Irsend(const void *buf, int count, MPI_Datatype type, int dest,
 {
     #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
     //item->start
     time_t current_time = time(NULL);
     item->start = current_time;
     //item->operation
-    item->operation = "ibsend";
+    strcpy(item->operation, "MPI_Irsend");
     //item->blocking
     item->blocking = 0;
     //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
-    item->datatype=type_name;
+    strcpy(item->datatype, type_name);
+    free(type_name);
     //item->count
     item->count = count;
     //item->datasize
@@ -71,7 +72,8 @@ int MPI_Irsend(const void *buf, int count, MPI_Datatype type, int dest,
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    item->communicator=comm_name;
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
     //item->processrank
     int processrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
@@ -125,8 +127,13 @@ int MPI_Irsend(const void *buf, int count, MPI_Datatype type, int dest,
     MEMCHECKER (
         memchecker_call(&opal_memchecker_base_mem_noaccess, buf, count, type);
     );
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(isend(buf,count,type,dest,tag,
-                            MCA_PML_BASE_SEND_READY,comm,request, NULL));
+                            MCA_PML_BASE_SEND_READY,comm,request));
+#else
+    rc = MCA_PML_CALL(isend(buf,count,type,dest,tag,
+                            MCA_PML_BASE_SEND_READY,comm,request, &item));
+#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
 

@@ -33,7 +33,6 @@
 #include "ompi/mca/pml/base/pml_base_bsend.h"
 #include "ompi/memchecker.h"
 #include "ompi/runtime/ompi_spc.h"
-#include "ompi/mpi/c/init.h"
 #include <time.h>
 
 
@@ -49,20 +48,41 @@ static const char FUNC_NAME[] = "MPI_Bsend";
 
 int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm)
 {
-    #ifdef ENABLE_ANALYSIS
+        
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    //item->start
     time_t current_time = time(NULL);
-    char *operation = "bsend";
-    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int comm_name_length;
-    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    item->start = current_time;
+    //item->operation
+    strcpy(item->operation, "MPI_Bsend");
+    //item->blocking
+    item->blocking = 1;
+    //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
-    //rank of actual process
+    strcpy(item->datatype, type_name);
+    free(type_name);
+    //item->count
+    item->count = count;
+    //item->datasize
+    item->datasize = count * sizeof(type);
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
+    //item->processrank
     int processrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
-    enqueue(&operation, &type_name, count, count*sizeof(type), &comm_name, processrank, dest, current_time);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = dest;
     #endif
+    
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_BSEND, 1);
@@ -108,8 +128,11 @@ int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
     if (MPI_PROC_NULL == dest) {
         return MPI_SUCCESS;
     }
-
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm));
+#else
+    rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, &item));
+#endif   
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
 

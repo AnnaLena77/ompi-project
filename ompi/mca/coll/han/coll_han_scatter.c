@@ -73,7 +73,11 @@ mca_coll_han_scatter_intra(const void *sbuf, int scount,
                            void *rbuf, int rcount,
                            struct ompi_datatype_t *rdtype,
                            int root,
-                           struct ompi_communicator_t *comm, mca_coll_base_module_t * module)
+                           struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           )
 {
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *) module;
     int w_rank, w_size;
@@ -86,8 +90,13 @@ mca_coll_han_scatter_intra(const void *sbuf, int scount,
                              "han cannot handle scatter with this communicator. Fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
                                           comm, comm->c_coll->coll_scatter_module);
+#else
+        return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, comm->c_coll->coll_scatter_module, NULL);
+#endif
     }
 
     /* Topo must be initialized to know rank distribution which then is used to
@@ -100,8 +109,13 @@ mca_coll_han_scatter_intra(const void *sbuf, int scount,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, scatter);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
                                           comm, comm->c_coll->coll_scatter_module);
+#else
+        return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, comm->c_coll->coll_scatter_module, NULL);
+#endif
     }
 
     ompi_communicator_t *low_comm =
@@ -212,9 +226,15 @@ int mca_coll_han_scatter_us_task(void *task_args)
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "[%d] Han Scatter:  us scatter\n", t->w_rank));
         /* Inter node scatter */
+#ifndef ENABLE_ANALYSIS
         t->up_comm->c_coll->coll_scatter((char *) t->sbuf, t->scount * low_size, t->sdtype,
                                          tmp_rbuf, count * low_size, dtype, t->root_up_rank,
                                          t->up_comm, t->up_comm->c_coll->coll_scatter_module);
+#else
+        t->up_comm->c_coll->coll_scatter((char *) t->sbuf, t->scount * low_size, t->sdtype,
+                                         tmp_rbuf, count * low_size, dtype, t->root_up_rank,
+                                         t->up_comm, t->up_comm->c_coll->coll_scatter_module, NULL);
+#endif
         t->sbuf = tmp_rbuf;
         t->sbuf_inter_free = tmp_buf;
     }
@@ -241,9 +261,15 @@ int mca_coll_han_scatter_ls_task(void *task_args)
                          t->w_rank));
     OBJ_RELEASE(t->cur_task);
 
+#ifndef ENABLE_ANALYSIS
     t->low_comm->c_coll->coll_scatter((char *) t->sbuf, t->scount, t->sdtype, (char *) t->rbuf,
                                       t->rcount, t->rdtype, t->root_low_rank, t->low_comm,
                                       t->low_comm->c_coll->coll_scatter_module);
+#else
+    t->low_comm->c_coll->coll_scatter((char *) t->sbuf, t->scount, t->sdtype, (char *) t->rbuf,
+                                      t->rcount, t->rdtype, t->root_low_rank, t->low_comm,
+                                      t->low_comm->c_coll->coll_scatter_module, NULL);
+#endif
 
     if (t->sbuf_inter_free != NULL && t->noop != true) {
         free(t->sbuf_inter_free);
@@ -265,7 +291,11 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                                   struct ompi_datatype_t *rdtype,
                                   int root,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t * module)
+                                  mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			       , qentry **q
+#endif
+                                  )
 {
     int w_rank, w_size;
     struct ompi_datatype_t * dtype;
@@ -282,8 +312,13 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                              " Fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
                                             comm, han_module->previous_scatter_module);
+#else
+        return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                            comm, han_module->previous_scatter_module, NULL);
+#endif
     }
     /* Topo must be initialized to know rank distribution which then is used to
      * determine if han can be used */
@@ -292,8 +327,13 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "han cannot handle scatter with this communicator. It needs to fall back on another component\n"));
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
                                             comm, han_module->previous_scatter_module);
+#else
+        return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                            comm, han_module->previous_scatter_module, NULL);
+#endif
     }
     ompi_communicator_t *low_comm = han_module->sub_comm[INTRA_NODE];
     ompi_communicator_t *up_comm = han_module->sub_comm[INTER_NODE];
@@ -370,6 +410,7 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
         tmp_buf = (char *) malloc(block_size * low_size);
 
         /* 1. up scatter (internode) between node leaders */
+#ifndef ENABLE_ANALYSIS
         up_comm->c_coll->coll_scatter((char*) reorder_buf,
                     count * low_size,
                     dtype,
@@ -379,6 +420,17 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                     root_up_rank,
                     up_comm,
                     up_comm->c_coll->coll_scatter_module);
+#else
+        up_comm->c_coll->coll_scatter((char*) reorder_buf,
+                    count * low_size,
+                    dtype,
+                    (char *)tmp_buf,
+                    block_size * low_size,
+                    MPI_BYTE,
+                    root_up_rank,
+                    up_comm,
+                    up_comm->c_coll->coll_scatter_module, NULL);
+#endif
         if(reorder_buf != sbuf){
             free(reorder_buf);
             reorder_buf = NULL;
@@ -386,6 +438,7 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
     }
 
     /* 2. low scatter on nodes leaders */
+#ifndef ENABLE_ANALYSIS
     low_comm->c_coll->coll_scatter((char *)tmp_buf,
                      block_size,
                      MPI_BYTE,
@@ -395,6 +448,17 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                      root_low_rank,
                      low_comm,
                      low_comm->c_coll->coll_scatter_module);
+#else
+    low_comm->c_coll->coll_scatter((char *)tmp_buf,
+                     block_size,
+                     MPI_BYTE,
+                     (char*)rbuf,
+                     rcount,
+                     rdtype,
+                     root_low_rank,
+                     low_comm,
+                     low_comm->c_coll->coll_scatter_module, NULL);
+#endif
 
     if (low_rank == root_low_rank) {
         free(tmp_buf);

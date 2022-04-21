@@ -114,10 +114,17 @@ OMPI_DECLSPEC int ompi_comm_allreduce_pml(void *sbuf, void *rbuf, int count,
                 ** Receive data from extra node
                 */
                 extra_rank=my_exchange_node.rank_extra_source;
+#ifndef ENABLE_ANALYSIS
                 rc=MCA_PML_CALL(recv(scratch_bufers[recv_buffer],
                             count_this_stripe,dtype,ranks_in_comm[extra_rank],
                             -OMPI_COMMON_TAG_ALLREDUCE, comm,
                             MPI_STATUSES_IGNORE));
+#else
+	       rc=MCA_PML_CALL(recv(scratch_bufers[recv_buffer],
+                            count_this_stripe,dtype,ranks_in_comm[extra_rank],
+                            -OMPI_COMMON_TAG_ALLREDUCE, comm,
+                            MPI_STATUSES_IGNORE, NULL));
+#endif
                 if( 0 > rc ) {
                     fprintf(stderr,"  first recv failed in ompi_comm_allreduce_pml \n");
                     fflush(stderr);
@@ -140,10 +147,17 @@ OMPI_DECLSPEC int ompi_comm_allreduce_pml(void *sbuf, void *rbuf, int count,
                 ** Send data to "partner" node
                 */
                 extra_rank=my_exchange_node.rank_extra_source;
+#ifndef ENABLE_ANALYSIS
                 rc=MCA_PML_CALL(send(scratch_bufers[send_buffer],
                             count_this_stripe,dtype,ranks_in_comm[extra_rank],
                             -OMPI_COMMON_TAG_ALLREDUCE, MCA_PML_BASE_SEND_STANDARD,
                             comm));
+#else
+	      rc=MCA_PML_CALL(send(scratch_bufers[send_buffer],
+                            count_this_stripe,dtype,ranks_in_comm[extra_rank],
+                            -OMPI_COMMON_TAG_ALLREDUCE, MCA_PML_BASE_SEND_STANDARD,
+                            comm, NULL));
+#endif
                 if( 0 > rc ) {
                     fprintf(stderr,"  first send failed in ompi_comm_allreduce_pml \n");
                     fflush(stderr);
@@ -201,10 +215,17 @@ OMPI_DECLSPEC int ompi_comm_allreduce_pml(void *sbuf, void *rbuf, int count,
                 ** receive the data
                 ** */
                 extra_rank=my_exchange_node.rank_extra_source;
+#ifndef ENABLE_ANALYSIS
                 rc=MCA_PML_CALL(recv(scratch_bufers[recv_buffer],
                             count_this_stripe,dtype,ranks_in_comm[extra_rank],
                             -OMPI_COMMON_TAG_ALLREDUCE, comm,
                             MPI_STATUSES_IGNORE));
+#else
+	      rc=MCA_PML_CALL(recv(scratch_bufers[recv_buffer],
+                            count_this_stripe,dtype,ranks_in_comm[extra_rank],
+                            -OMPI_COMMON_TAG_ALLREDUCE, comm,
+                            MPI_STATUSES_IGNORE, NULL));
+#endif
                 if( 0 > rc ) {
                     fprintf(stderr,"  last recv failed in ompi_comm_allreduce_pml \n");
                     fflush(stderr);
@@ -219,10 +240,17 @@ OMPI_DECLSPEC int ompi_comm_allreduce_pml(void *sbuf, void *rbuf, int count,
                 */
 
                 extra_rank=my_exchange_node.rank_extra_source;
+#ifndef ENABLE_ANALYSIS
                 rc=MCA_PML_CALL(send((char *)scratch_bufers[send_buffer],
                             count_this_stripe,dtype,ranks_in_comm[extra_rank],
                             -OMPI_COMMON_TAG_ALLREDUCE, MCA_PML_BASE_SEND_STANDARD,
                             comm));
+#else
+	      rc=MCA_PML_CALL(send((char *)scratch_bufers[send_buffer],
+                            count_this_stripe,dtype,ranks_in_comm[extra_rank],
+                            -OMPI_COMMON_TAG_ALLREDUCE, MCA_PML_BASE_SEND_STANDARD,
+                            comm, NULL));
+#endif
                 if( 0 > rc ) {
                     fprintf(stderr,"  last send failed in ompi_comm_allreduce_pml \n");
                     fflush(stderr);

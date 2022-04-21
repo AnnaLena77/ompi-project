@@ -313,9 +313,13 @@ component_select(struct ompi_win_t *win, void **base, size_t size, int disp_unit
 
             unlink_needed = true;
         }
-
+#ifndef ENABLE_ANALYSIS
         ret = module->comm->c_coll->coll_bcast (&module->seg_ds, sizeof (module->seg_ds), MPI_BYTE, 0,
                                                 module->comm, module->comm->c_coll->coll_bcast_module);
+#else
+        ret = module->comm->c_coll->coll_bcast (&module->seg_ds, sizeof (module->seg_ds), MPI_BYTE, 0,
+                                                module->comm, module->comm->c_coll->coll_bcast_module, NULL);
+#endif
         if (OMPI_SUCCESS != ret) {
             free(rbuf);
             goto error;

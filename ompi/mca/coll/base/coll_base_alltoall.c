@@ -110,30 +110,52 @@ mca_coll_base_alltoall_intra_basic_inplace(const void *rbuf, int rcount,
         if (1 != err) { goto error_hndl; }
 
         /* Receive data from the right */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv ((char *) rbuf + right * rcount * extent, rcount, rdtype,
                                   right, MCA_COLL_BASE_TAG_ALLTOALL, comm, &req));
+#else
+        err = MCA_PML_CALL(irecv ((char *) rbuf + right * rcount * extent, rcount, rdtype,
+                                  right, MCA_COLL_BASE_TAG_ALLTOALL, comm, &req, NULL));
+#endif
         if (MPI_SUCCESS != err) { goto error_hndl; }
 
         if( left != right ) {
             /* Send data to the left */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send ((char *) rbuf + left * rcount * extent, rcount, rdtype,
                                      left, MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
                                      comm));
+#else
+            err = MCA_PML_CALL(send ((char *) rbuf + left * rcount * extent, rcount, rdtype,
+                                     left, MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
+                                     comm, NULL));
+#endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
 
             err = ompi_request_wait (&req, MPI_STATUSES_IGNORE);
             if (MPI_SUCCESS != err) { goto error_hndl; }
 
             /* Receive data from the left */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv ((char *) rbuf + left * rcount * extent, rcount, rdtype,
                                       left, MCA_COLL_BASE_TAG_ALLTOALL, comm, &req));
+#else
+            err = MCA_PML_CALL(irecv ((char *) rbuf + left * rcount * extent, rcount, rdtype,
+                                      left, MCA_COLL_BASE_TAG_ALLTOALL, comm, &req, NULL));
+#endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
         }
 
         /* Send data to the right */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send ((char *) tmp_buffer,  packed_size, MPI_PACKED,
                                  right, MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
                                  comm));
+#else
+        err = MCA_PML_CALL(send ((char *) tmp_buffer,  packed_size, MPI_PACKED,
+                                 right, MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
+                                 comm, NULL));
+#endif
         if (MPI_SUCCESS != err) { goto error_hndl; }
 
         err = ompi_request_wait (&req, MPI_STATUSES_IGNORE);
@@ -429,18 +451,31 @@ int ompi_coll_base_alltoall_intra_linear_sync(const void *sbuf, int scount,
     /* Post first batch of irecv and isend requests  */
     for (nreqs = 0, nrreqs = 0, ri = (rank + 1) % size; nreqs < total_reqs;
          ri = (ri + 1) % size, ++nrreqs) {
+#ifndef ENABLE_ANALYSIS
         error = MCA_PML_CALL(irecv
                              (prcv + (ptrdiff_t)ri * rext, rcount, rdtype, ri,
                               MCA_COLL_BASE_TAG_ALLTOALL, comm, &reqs[nreqs]));
+#else
+        error = MCA_PML_CALL(irecv
+                             (prcv + (ptrdiff_t)ri * rext, rcount, rdtype, ri,
+                              MCA_COLL_BASE_TAG_ALLTOALL, comm, &reqs[nreqs], NULL));
+#endif
         nreqs++;
         if (MPI_SUCCESS != error) { line = __LINE__; goto error_hndl; }
     }
     for (nsreqs = 0, si =  (rank + size - 1) % size; nreqs < 2 * total_reqs;
          si = (si + size - 1) % size, ++nsreqs) {
+#ifndef ENABLE_ANALYSIS
         error = MCA_PML_CALL(isend
                              (psnd + (ptrdiff_t)si * sext, scount, sdtype, si,
                               MCA_COLL_BASE_TAG_ALLTOALL,
                               MCA_PML_BASE_SEND_STANDARD, comm, &reqs[nreqs]));
+#else
+        error = MCA_PML_CALL(isend
+                             (psnd + (ptrdiff_t)si * sext, scount, sdtype, si,
+                              MCA_COLL_BASE_TAG_ALLTOALL,
+                              MCA_PML_BASE_SEND_STANDARD, comm, &reqs[nreqs], NULL));
+#endif
         nreqs++;
         if (MPI_SUCCESS != error) { line = __LINE__; goto error_hndl; }
     }
@@ -469,21 +504,36 @@ int ompi_coll_base_alltoall_intra_linear_sync(const void *sbuf, int scount,
             ncreqs++;
             if (completed < total_reqs) {
                 if (nrreqs < (size - 1)) {
+#ifndef ENABLE_ANALYSIS
                     error = MCA_PML_CALL(irecv
                                          (prcv + (ptrdiff_t)ri * rext, rcount, rdtype, ri,
                                           MCA_COLL_BASE_TAG_ALLTOALL, comm,
                                           &reqs[completed]));
+#else
+                    error = MCA_PML_CALL(irecv
+                                         (prcv + (ptrdiff_t)ri * rext, rcount, rdtype, ri,
+                                          MCA_COLL_BASE_TAG_ALLTOALL, comm,
+                                          &reqs[completed], NULL));
+#endif
                     if (MPI_SUCCESS != error) { line = __LINE__; goto error_hndl; }
                     ++nrreqs;
                     ri = (ri + 1) % size;
                 }
             } else {
                 if (nsreqs < (size - 1)) {
+#ifndef ENABLE_ANALYSIS
                     error = MCA_PML_CALL(isend
                                          (psnd + (ptrdiff_t)si * sext, scount, sdtype, si,
                                           MCA_COLL_BASE_TAG_ALLTOALL,
                                           MCA_PML_BASE_SEND_STANDARD, comm,
                                           &reqs[completed]));
+#else
+                    error = MCA_PML_CALL(isend
+                                         (psnd + (ptrdiff_t)si * sext, scount, sdtype, si,
+                                          MCA_COLL_BASE_TAG_ALLTOALL,
+                                          MCA_PML_BASE_SEND_STANDARD, comm,
+                                          &reqs[completed], NULL));
+#endif
                     if (MPI_SUCCESS != error) { line = __LINE__; goto error_hndl; }
                     ++nsreqs;
                     si = (si + size - 1) % size;
@@ -664,9 +714,11 @@ int ompi_coll_base_alltoall_intra_basic_linear(const void *sbuf, int scount,
     for (nreqs = 0, i = (rank + 1) % size; i != rank;
          i = (i + 1) % size, ++rreq) {
         nreqs++;
+
         err = MCA_PML_CALL(irecv_init
                            (prcv + (ptrdiff_t)i * rcvinc, rcount, rdtype, i,
                            MCA_COLL_BASE_TAG_ALLTOALL, comm, rreq));
+
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
     }
 

@@ -47,6 +47,52 @@ int MPI_Iscatterv(const void *sendbuf, const int sendcounts[], const int displs[
                   MPI_Datatype sendtype, void *recvbuf, int recvcount,
                   MPI_Datatype recvtype, int root, MPI_Comm comm, MPI_Request *request)
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    item->start = time(NULL);
+    strcpy(item->operation, "MPI_Iscatterv");
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    if(processrank==root){
+    	item->partnerrank = -1;
+    	//item->datatype
+         char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+         int type_name_length;
+         MPI_Type_get_name(sendtype, type_name, &type_name_length);
+         strcpy(item->datatype, type_name);
+         free(type_name);
+         //item->sendcount
+         //item->count = sendcount;
+         //item->datasize
+         //item->datasize = sendcount * sizeof(sendtype);
+    }
+    else{
+    	item->partnerrank = root;
+    	//item->datatype
+         char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+         int type_name_length;
+         MPI_Type_get_name(recvtype, type_name, &type_name_length);
+         strcpy(item->datatype, type_name);
+         free(type_name);
+         //item->count
+         item->count = recvcount;
+         //item->datasize
+         item->datasize = recvcount * sizeof(recvtype);
+    }
+    
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
+    item->blocking = 0;
+#endif 
+
     int i, size, err;
 
     SPC_RECORD(OMPI_SPC_ISCATTERV, 1);
@@ -192,9 +238,16 @@ int MPI_Iscatterv(const void *sendbuf, const int sendcounts[], const int displs[
     }
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_iscatterv(sendbuf, sendcounts, displs,
                                       sendtype, recvbuf, recvcount, recvtype, root, comm,
                                       request, comm->c_coll->coll_iscatterv_module);
+#else
+    err = comm->c_coll->coll_iscatterv(sendbuf, sendcounts, displs,
+                                      sendtype, recvbuf, recvcount, recvtype, root, comm,
+                                      request, comm->c_coll->coll_iscatterv_module, &item);
+#endif            
+                                      
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         if (OMPI_COMM_IS_INTRA(comm)) {
             if (MPI_IN_PLACE == recvbuf) {
@@ -214,5 +267,8 @@ int MPI_Iscatterv(const void *sendbuf, const int sendcounts[], const int displs[
         }
         ompi_coll_base_retain_datatypes(*request, sendtype, recvtype);
     }
+#ifdef ENABLE_ANALYSIS
+    qentryIntoQueue(&item);
+#endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

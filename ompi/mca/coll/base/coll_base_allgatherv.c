@@ -329,9 +329,15 @@ int ompi_coll_base_allgatherv_intra_sparbit(const void *sbuf, int scount,
            /* As base OpenMPI only provides one tag for allgather, we are forced to use a tag space
             * from other components in the send and recv calls */
            if(rcounts[send_disp] > 0)
+#ifndef ENABLE_ANALYSIS
                MCA_PML_CALL(isend(tmpsend + (ptrdiff_t) rdispls[send_disp] * rext, rcounts[send_disp], rdtype, sendto, MCA_COLL_BASE_TAG_HCOLL_BASE - send_disp, MCA_PML_BASE_SEND_STANDARD, comm, requests + step_requests++));
            if(rcounts[recv_disp] > 0)
                MCA_PML_CALL(irecv(tmprecv + (ptrdiff_t) rdispls[recv_disp] * rext, rcounts[recv_disp], rdtype, recvfrom, MCA_COLL_BASE_TAG_HCOLL_BASE - recv_disp, comm, requests + step_requests++));
+#else
+                MCA_PML_CALL(isend(tmpsend + (ptrdiff_t) rdispls[send_disp] * rext, rcounts[send_disp], rdtype, sendto, MCA_COLL_BASE_TAG_HCOLL_BASE - send_disp, MCA_PML_BASE_SEND_STANDARD, comm, requests + step_requests++, NULL));
+           if(rcounts[recv_disp] > 0)
+               MCA_PML_CALL(irecv(tmprecv + (ptrdiff_t) rdispls[recv_disp] * rext, rcounts[recv_disp], rdtype, recvfrom, MCA_COLL_BASE_TAG_HCOLL_BASE - recv_disp, comm, requests + step_requests++, NULL));
+#endif
        }
        ompi_request_wait_all(step_requests, requests, MPI_STATUSES_IGNORE);
 
@@ -760,11 +766,17 @@ ompi_coll_base_allgatherv_intra_basic_default(const void *sbuf, int scount,
         send_buf = (char*)sbuf;
         send_type = sdtype;
     }
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_gatherv(send_buf,
                                     scount, send_type,rbuf,
                                     rcounts, disps, rdtype, 0,
                                     comm, comm->c_coll->coll_gatherv_module);
+#else
+    err = comm->c_coll->coll_gatherv(send_buf,
+                                    scount, send_type,rbuf,
+                                    rcounts, disps, rdtype, 0,
+                                    comm, comm->c_coll->coll_gatherv_module, NULL);
+#endif
     if (MPI_SUCCESS != err) {
         return err;
     }
@@ -790,9 +802,13 @@ ompi_coll_base_allgatherv_intra_basic_default(const void *sbuf, int scount,
     if(MPI_SUCCESS != err) {
         return err;
     }
-
+#ifndef ENABLE_ANALYSIS
     comm->c_coll->coll_bcast(rbuf, 1, newtype, 0, comm,
                             comm->c_coll->coll_bcast_module);
+#else
+    comm->c_coll->coll_bcast(rbuf, 1, newtype, 0, comm,
+                            comm->c_coll->coll_bcast_module, NULL);
+#endif
 
     ompi_datatype_destroy (&newtype);
 

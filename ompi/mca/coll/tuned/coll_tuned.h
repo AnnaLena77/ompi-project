@@ -135,15 +135,27 @@ int ompi_coll_tuned_barrier_intra_do_this(BARRIER_ARGS, int algorithm, int fanin
 int ompi_coll_tuned_barrier_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Bcast */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_bcast_intra_dec_fixed(BCAST_ARGS);
 int ompi_coll_tuned_bcast_intra_dec_dynamic(BCAST_ARGS);
 int ompi_coll_tuned_bcast_intra_do_this(BCAST_ARGS, int algorithm, int faninout, int segsize);
+#else
+int ompi_coll_tuned_bcast_intra_dec_fixed(BCAST_ARGS, qentry **q);
+int ompi_coll_tuned_bcast_intra_dec_dynamic(BCAST_ARGS, qentry **q);
+int ompi_coll_tuned_bcast_intra_do_this(BCAST_ARGS, int algorithm, int faninout, int segsize, qentry **q);
+#endif
 int ompi_coll_tuned_bcast_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Gather */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_gather_intra_dec_fixed(GATHER_ARGS);
 int ompi_coll_tuned_gather_intra_dec_dynamic(GATHER_ARGS);
 int ompi_coll_tuned_gather_intra_do_this(GATHER_ARGS, int algorithm, int faninout, int segsize);
+#else
+int ompi_coll_tuned_gather_intra_dec_fixed(GATHER_ARGS, qentry **q);
+int ompi_coll_tuned_gather_intra_dec_dynamic(GATHER_ARGS, qentry **q);
+int ompi_coll_tuned_gather_intra_do_this(GATHER_ARGS, int algorithm, int faninout, int segsize, qentry **q);
+#endif
 int ompi_coll_tuned_gather_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Reduce */
@@ -165,9 +177,15 @@ int ompi_coll_tuned_reduce_scatter_block_intra_do_this(REDUCESCATTERBLOCK_ARGS, 
 int ompi_coll_tuned_reduce_scatter_block_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Scatter */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_scatter_intra_dec_fixed(SCATTER_ARGS);
 int ompi_coll_tuned_scatter_intra_dec_dynamic(SCATTER_ARGS);
 int ompi_coll_tuned_scatter_intra_do_this(SCATTER_ARGS, int algorithm, int faninout, int segsize);
+#else
+int ompi_coll_tuned_scatter_intra_dec_fixed(SCATTER_ARGS, qentry **q);
+int ompi_coll_tuned_scatter_intra_dec_dynamic(SCATTER_ARGS, qentry **q);
+int ompi_coll_tuned_scatter_intra_do_this(SCATTER_ARGS, int algorithm, int faninout, int segsize, qentry **q);
+#endif
 int ompi_coll_tuned_scatter_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Exscan */

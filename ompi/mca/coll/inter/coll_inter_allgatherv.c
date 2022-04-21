@@ -65,10 +65,17 @@ mca_coll_inter_allgatherv_inter(const void *sbuf, int scount,
 	}
     }
     /* Local gather to get the scount of each process */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_gather(&scount, 1, MPI_INT,
 						 count, 1, MPI_INT,
 						 0, comm->c_local_comm,
                                                  comm->c_local_comm->c_coll->coll_gather_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_gather(&scount, 1, MPI_INT,
+						 count, 1, MPI_INT,
+						 0, comm->c_local_comm,
+                                                 comm->c_local_comm->c_coll->coll_gather_module, NULL);
+#endif
     if (OMPI_SUCCESS != err) {
         goto exit;
     }
@@ -92,10 +99,17 @@ mca_coll_inter_allgatherv_inter(const void *sbuf, int scount,
             ptmp = ptmp_free - gap;
 	}
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_gatherv(sbuf, scount, sdtype,
 						  ptmp, count, displace,
 						  sdtype,0, comm->c_local_comm,
                                                   comm->c_local_comm->c_coll->coll_gatherv_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_gatherv(sbuf, scount, sdtype,
+						  ptmp, count, displace,
+						  sdtype,0, comm->c_local_comm,
+                                                  comm->c_local_comm->c_coll->coll_gatherv_module, NULL);
+#endif
     if (OMPI_SUCCESS != err) {
         goto exit;
     }
@@ -116,9 +130,15 @@ mca_coll_inter_allgatherv_inter(const void *sbuf, int scount,
     }
 
     /* bcast the message to all the local processes */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_bcast(rbuf, 1, ndtype,
 						0, comm->c_local_comm,
                                                 comm->c_local_comm->c_coll->coll_bcast_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_bcast(rbuf, 1, ndtype,
+						0, comm->c_local_comm,
+                                                comm->c_local_comm->c_coll->coll_bcast_module, NULL);
+#endif
   exit:
     if( NULL != ndtype ) {
         ompi_datatype_destroy(&ndtype);

@@ -47,6 +47,57 @@ int MPI_Gatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                 void *recvbuf, const int recvcounts[], const int displs[],
                 MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    item->start = time(NULL);
+    strcpy(item->operation, "MPI_Gatherv");
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    if(processrank==root){
+    	item->partnerrank = -1;
+    	//item->datatype
+         char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+         int type_name_length;
+         MPI_Type_get_name(recvtype, type_name, &type_name_length);
+         strcpy(item->datatype, type_name);
+         free(type_name);
+         //item->sendcount
+         int recvcount = 0;
+         //size_t arrsize = sizeof(recvcounts)/sizeof(recvcounts[0]);
+         /*if(recvcounts != NULL){
+            for(int i = 0; i<arrsize; i++){
+                recvcount = recvcount + recvcounts[i];
+            }
+         item->count = recvcount;
+         item->datasize = recvcount * sizeof(recvtype);*/
+    }
+    else{
+    	item->partnerrank = root;
+    	//item->datatype
+         char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+         int type_name_length;
+         MPI_Type_get_name(sendtype, type_name, &type_name_length);
+         strcpy(item->datatype, type_name);
+         free(type_name);
+         //item->count
+         item->count = sendcount;
+         //item->datasize
+         item->datasize = sendcount * sizeof(sendtype);
+    }
+    
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
+    item->blocking = 1;
+#endif 
+
     int i, size, err;
 
     SPC_RECORD(OMPI_SPC_GATHERV, 1);
@@ -203,9 +254,17 @@ int MPI_Gatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 #endif
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_gatherv(sendbuf, sendcount, sendtype, recvbuf,
                                     recvcounts, displs,
                                     recvtype, root, comm,
                                     comm->c_coll->coll_gatherv_module);
+#else
+    err = comm->c_coll->coll_gatherv(sendbuf, sendcount, sendtype, recvbuf,
+                                    recvcounts, displs,
+                                    recvtype, root, comm,
+                                    comm->c_coll->coll_gatherv_module, &item);
+    qentryIntoQueue(&item);
+#endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

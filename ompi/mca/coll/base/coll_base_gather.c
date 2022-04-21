@@ -44,7 +44,11 @@ ompi_coll_base_gather_intra_binomial(const void *sbuf, int scount,
                                       struct ompi_datatype_t *rdtype,
                                       int root,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module)
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
     int line = -1, i, rank, vrank, size, total_recv = 0, err;
     char *ptmp     = NULL, *tempbuf  = NULL;
@@ -144,10 +148,15 @@ ompi_coll_base_gather_intra_binomial(const void *sbuf, int scount,
             OPAL_OUTPUT((ompi_coll_base_framework.framework_output,
                          "ompi_coll_base_gather_intra_binomial rank %d recv %d mycount = %d",
                          rank, bmtree->tree_next[i], mycount));
-
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(ptmp + total_recv*rextent, (ptrdiff_t)rcount * size - total_recv, rdtype,
                                     bmtree->tree_next[i], MCA_COLL_BASE_TAG_GATHER,
                                     comm, &status));
+#else
+            err = MCA_PML_CALL(recv(ptmp + total_recv*rextent, (ptrdiff_t)rcount * size - total_recv, rdtype,
+                                    bmtree->tree_next[i], MCA_COLL_BASE_TAG_GATHER,
+                                    comm, &status, NULL));
+#endif
             if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
             total_recv += mycount;
@@ -159,11 +168,17 @@ ompi_coll_base_gather_intra_binomial(const void *sbuf, int scount,
         OPAL_OUTPUT((ompi_coll_base_framework.framework_output,
                      "ompi_coll_base_gather_intra_binomial rank %d send %d count %d\n",
                      rank, bmtree->tree_prev, total_recv));
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(ptmp, total_recv, sdtype,
                                 bmtree->tree_prev,
                                 MCA_COLL_BASE_TAG_GATHER,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err = MCA_PML_CALL(send(ptmp, total_recv, sdtype,
+                                bmtree->tree_prev,
+                                MCA_COLL_BASE_TAG_GATHER,
+                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
     }
 
@@ -212,7 +227,11 @@ ompi_coll_base_gather_intra_linear_sync(const void *sbuf, int scount,
                                          int root,
                                          struct ompi_communicator_t *comm,
                                          mca_coll_base_module_t *module,
-                                         int first_segment_size)
+                                         int first_segment_size
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif  
+                                         )
 {
     int i, ret, line, rank, size, first_segment_count;
     ompi_request_t **reqs = NULL;
@@ -237,21 +256,37 @@ ompi_coll_base_gather_intra_linear_sync(const void *sbuf, int scount,
         first_segment_count = scount;
         COLL_BASE_COMPUTED_SEGCOUNT( (size_t) first_segment_size, typelng,
                                       first_segment_count );
-
+#ifndef ENABLE_ANALYSIS
         ret = MCA_PML_CALL(recv(rbuf, 0, MPI_BYTE, root,
                                 MCA_COLL_BASE_TAG_GATHER,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        ret = MCA_PML_CALL(recv(rbuf, 0, MPI_BYTE, root,
+                                MCA_COLL_BASE_TAG_GATHER,
+                                comm, MPI_STATUS_IGNORE, NULL));
+#endif
         if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
-
+#ifndef ENABLE_ANALYSIS
         ret = MCA_PML_CALL(send(sbuf, first_segment_count, sdtype, root,
                                 MCA_COLL_BASE_TAG_GATHER,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        ret = MCA_PML_CALL(send(sbuf, first_segment_count, sdtype, root,
+                                MCA_COLL_BASE_TAG_GATHER,
+                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
         if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
-
+#ifndef ENABLE_ANALYSIS
         ret = MCA_PML_CALL(send((char*)sbuf + extent * first_segment_count,
                                 (scount - first_segment_count), sdtype,
                                 root, MCA_COLL_BASE_TAG_GATHER,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        ret = MCA_PML_CALL(send((char*)sbuf + extent * first_segment_count,
+                                (scount - first_segment_count), sdtype,
+                                root, MCA_COLL_BASE_TAG_GATHER,
+                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
         if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
     } else {
@@ -286,22 +321,40 @@ ompi_coll_base_gather_intra_linear_sync(const void *sbuf, int scount,
 
             /* irecv for the first segment from i */
             ptmp = (char*)rbuf + (ptrdiff_t)i * (ptrdiff_t)rcount * extent;
+#ifndef ENABLE_ANALYSIS
             ret = MCA_PML_CALL(irecv(ptmp, first_segment_count, rdtype, i,
                                      MCA_COLL_BASE_TAG_GATHER, comm,
                                      &first_segment_req));
+#else
+            ret = MCA_PML_CALL(irecv(ptmp, first_segment_count, rdtype, i,
+                                     MCA_COLL_BASE_TAG_GATHER, comm,
+                                     &first_segment_req, NULL));
+#endif
             if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
             /* send sync message */
+#ifndef ENABLE_ANALYSIS
             ret = MCA_PML_CALL(send(rbuf, 0, MPI_BYTE, i,
                                     MCA_COLL_BASE_TAG_GATHER,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+            ret = MCA_PML_CALL(send(rbuf, 0, MPI_BYTE, i,
+                                    MCA_COLL_BASE_TAG_GATHER,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
             if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
             /* irecv for the second segment */
             ptmp = (char*)rbuf + ((ptrdiff_t)i * (ptrdiff_t)rcount + first_segment_count) * extent;
+#ifndef ENABLE_ANALYSIS
             ret = MCA_PML_CALL(irecv(ptmp, (rcount - first_segment_count),
                                      rdtype, i, MCA_COLL_BASE_TAG_GATHER, comm,
                                      &reqs[i]));
+#else
+            ret = MCA_PML_CALL(irecv(ptmp, (rcount - first_segment_count),
+                                     rdtype, i, MCA_COLL_BASE_TAG_GATHER, comm,
+                                     &reqs[i], NULL));
+#endif
             if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
             /* wait on the first segment to complete */
@@ -373,7 +426,11 @@ ompi_coll_base_gather_intra_basic_linear(const void *sbuf, int scount,
                                           struct ompi_datatype_t *rdtype,
                                           int root,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif 
+                                          )
 {
     int i, err, rank, size;
     char *ptmp;
@@ -387,9 +444,15 @@ ompi_coll_base_gather_intra_basic_linear(const void *sbuf, int scount,
                  "ompi_coll_base_gather_intra_basic_linear rank %d", rank));
 
     if (rank != root) {
+#ifndef ENABLE_ANALYSIS
         return MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                  MCA_COLL_BASE_TAG_GATHER,
                                  MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        return MCA_PML_CALL(send(sbuf, scount, sdtype, root,
+                                 MCA_COLL_BASE_TAG_GATHER,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     }
 
     /* I am the root, loop receiving the data. */
@@ -405,9 +468,15 @@ ompi_coll_base_gather_intra_basic_linear(const void *sbuf, int scount,
                 err = MPI_SUCCESS;
             }
         } else {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(ptmp, rcount, rdtype, i,
                                     MCA_COLL_BASE_TAG_GATHER,
                                     comm, MPI_STATUS_IGNORE));
+#else
+            err = MCA_PML_CALL(recv(ptmp, rcount, rdtype, i,
+                                    MCA_COLL_BASE_TAG_GATHER,
+                                    comm, MPI_STATUS_IGNORE, NULL));
+#endif
         }
         if (MPI_SUCCESS != err) {
             return err;

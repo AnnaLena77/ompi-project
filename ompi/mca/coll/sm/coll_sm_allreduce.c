@@ -57,6 +57,11 @@ int mca_coll_sm_allreduce_intra(const void *sbuf, void *rbuf, int count,
         ret = mca_coll_sm_reduce_intra(sbuf, rbuf, count, dtype, op, 0,
                                        comm, module);
     }
+#ifndef ENABLE_ANALYSIS
     return (ret == OMPI_SUCCESS) ?
         mca_coll_sm_bcast_intra(rbuf, count, dtype, 0, comm, module) : ret;
+#else
+    return (ret == OMPI_SUCCESS) ?
+        mca_coll_sm_bcast_intra(rbuf, count, dtype, 0, comm, module, NULL) : ret;
+#endif
 }

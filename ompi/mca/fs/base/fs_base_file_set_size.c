@@ -42,13 +42,21 @@ int mca_fs_base_file_set_size (ompio_file_t *fh,
     int err = 0;
 
     err = ftruncate(fh->fd, size);
-
+#ifndef ENABLE_ANALYSIS
     fh->f_comm->c_coll->coll_bcast (&err,
                                    1,
                                    MPI_INT,
                                    OMPIO_ROOT,
                                    fh->f_comm,
                                    fh->f_comm->c_coll->coll_bcast_module);
+#else
+    fh->f_comm->c_coll->coll_bcast (&err,
+                                   1,
+                                   MPI_INT,
+                                   OMPIO_ROOT,
+                                   fh->f_comm,
+                                   fh->f_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (-1 == err) {
         return OMPI_ERROR;
     }

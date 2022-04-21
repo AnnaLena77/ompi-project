@@ -49,14 +49,24 @@ int ompi_coll_base_sendrecv_actual( const void* sendbuf, size_t scount,
 
     /* post new irecv */
     ompi_datatype_type_size(rdatatype, &rtypesize);
+#ifndef ENABLE_ANALYSIS
     err = MCA_PML_CALL(irecv( recvbuf, rcount, rdatatype, source, rtag,
                               comm, &req));
+#else
+    err = MCA_PML_CALL(irecv( recvbuf, rcount, rdatatype, source, rtag,
+                              comm, &req, NULL));
+#endif
     if (err != MPI_SUCCESS) { line = __LINE__; goto error_handler; }
 
     /* send data to children */
     ompi_datatype_type_size(sdatatype, &stypesize);
+#ifndef ENABLE_ANALYSIS 
     err = MCA_PML_CALL(send( sendbuf, scount, sdatatype, dest, stag,
                              MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+    err = MCA_PML_CALL(send( sendbuf, scount, sdatatype, dest, stag,
+                             MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     if (err != MPI_SUCCESS) { line = __LINE__; goto error_handler; }
 
     err = ompi_request_wait( &req, &rstatus);

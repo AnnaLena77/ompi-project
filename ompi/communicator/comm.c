@@ -1386,15 +1386,25 @@ static int ompi_comm_allgather_emulate_intra( void *inbuf, int incount,
         }
 
         for ( i=0; i<rsize; i++) {
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(irecv( &tmpbuf[outcount*i], outcount, outtype, i,
-                                     OMPI_COMM_ALLGATHER_TAG, comm, &req[i] ));
+                                     OMPI_COMM_ALLGATHER_TAG, comm, &req[i]));
+#else
+            rc = MCA_PML_CALL(irecv( &tmpbuf[outcount*i], outcount, outtype, i,
+                                     OMPI_COMM_ALLGATHER_TAG, comm, &req[i], NULL ));
+#endif
             if ( OMPI_SUCCESS != rc ) {
                 goto exit;
             }
         }
     }
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(isend( inbuf, incount, intype, 0, OMPI_COMM_ALLGATHER_TAG,
-                             MCA_PML_BASE_SEND_STANDARD, comm, &sendreq ));
+                             MCA_PML_BASE_SEND_STANDARD, comm, &sendreq));
+#else
+    rc = MCA_PML_CALL(isend( inbuf, incount, intype, 0, OMPI_COMM_ALLGATHER_TAG,
+                             MCA_PML_BASE_SEND_STANDARD, comm, &sendreq, NULL ));
+#endif
     if ( OMPI_SUCCESS != rc ) {
         goto exit;
     }
@@ -1412,17 +1422,28 @@ static int ompi_comm_allgather_emulate_intra( void *inbuf, int incount,
     }
 
     /* Step 2: the inter-bcast step */
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(irecv (outbuf, size*outcount, outtype, 0,
                              OMPI_COMM_ALLGATHER_TAG, comm, &sendreq));
+#else
+    rc = MCA_PML_CALL(irecv (outbuf, size*outcount, outtype, 0,
+                             OMPI_COMM_ALLGATHER_TAG, comm, &sendreq, NULL));
+#endif
     if ( OMPI_SUCCESS != rc ) {
         goto exit;
     }
 
     if ( 0 == rank ) {
         for ( i=0; i < rsize; i++ ){
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(send (tmpbuf, rsize*outcount, outtype, i,
                                     OMPI_COMM_ALLGATHER_TAG,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+             rc = MCA_PML_CALL(send (tmpbuf, rsize*outcount, outtype, i,
+                                    OMPI_COMM_ALLGATHER_TAG,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
             if ( OMPI_SUCCESS != rc ) {
                 goto exit;
             }
@@ -1586,15 +1607,24 @@ int ompi_comm_get_rprocs ( ompi_communicator_t *local_comm,
         }
 
         /* send the remote_leader the length of the buffer */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv (&rlen, 1, MPI_INT, remote_leader, tag,
-                                 bridge_comm, &req ));
+                                 bridge_comm, &req));
+#else
+        rc = MCA_PML_CALL(irecv (&rlen, 1, MPI_INT, remote_leader, tag,
+                                 bridge_comm, &req, NULL ));
+#endif
         if ( OMPI_SUCCESS != rc ) {
             goto err_exit;
         }
         int_len = (int)size_len;
-
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(send (&int_len, 1, MPI_INT, remote_leader, tag,
-                                MCA_PML_BASE_SEND_STANDARD, bridge_comm ));
+                                MCA_PML_BASE_SEND_STANDARD, bridge_comm));
+#else
+        rc = MCA_PML_CALL(send (&int_len, 1, MPI_INT, remote_leader, tag,
+                                MCA_PML_BASE_SEND_STANDARD, bridge_comm, NULL ));
+#endif
         if ( OMPI_SUCCESS != rc ) {
             rlen = 0;  /* complete the recv and then the collectives */
         }
@@ -1605,9 +1635,15 @@ int ompi_comm_get_rprocs ( ompi_communicator_t *local_comm,
     }
 
     /* broadcast buffer length to all processes in local_comm */
+#ifndef ENABLE_ANALYSIS
     rc = local_comm->c_coll->coll_bcast( &rlen, 1, MPI_INT,
                                         local_leader, local_comm,
                                         local_comm->c_coll->coll_bcast_module );
+#else
+    rc = local_comm->c_coll->coll_bcast( &rlen, 1, MPI_INT,
+                                        local_leader, local_comm,
+                                        local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != rc ) {
 #if OPAL_ENABLE_FT_MPI
         if ( local_rank != local_leader ) {
@@ -1628,13 +1664,23 @@ int ompi_comm_get_rprocs ( ompi_communicator_t *local_comm,
 
     if ( local_rank == local_leader ) {
         /* local leader exchange name lists */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv (recvbuf, rlen, MPI_BYTE, remote_leader, tag,
-                                 bridge_comm, &req ));
+                                 bridge_comm, &req));
+#else
+        rc = MCA_PML_CALL(irecv (recvbuf, rlen, MPI_BYTE, remote_leader, tag,
+                                 bridge_comm, &req, NULL ));
+#endif
         if ( OMPI_SUCCESS != rc ) {
             goto err_exit;
         }
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(send(sendbuf, int_len, MPI_BYTE, remote_leader, tag,
-                               MCA_PML_BASE_SEND_STANDARD, bridge_comm ));
+                               MCA_PML_BASE_SEND_STANDARD, bridge_comm));
+#else
+        rc = MCA_PML_CALL(send(sendbuf, int_len, MPI_BYTE, remote_leader, tag,
+                               MCA_PML_BASE_SEND_STANDARD, bridge_comm, NULL ));
+#endif
 #if OPAL_ENABLE_FT_MPI
         /* let it flow even if there are errors */
         if ( OMPI_SUCCESS != rc && MPI_ERR_PROC_FAILED != rc && MPI_ERR_REVOKED != rc ) {
@@ -1657,9 +1703,15 @@ int ompi_comm_get_rprocs ( ompi_communicator_t *local_comm,
     }
 
     /* broadcast name list to all proceses in local_comm */
+#ifndef ENABLE_ANALYSIS
     rc = local_comm->c_coll->coll_bcast( recvbuf, rlen, MPI_BYTE,
                                         local_leader, local_comm,
                                         local_comm->c_coll->coll_bcast_module);
+#else
+    rc = local_comm->c_coll->coll_bcast( recvbuf, rlen, MPI_BYTE,
+                                        local_leader, local_comm,
+                                        local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != rc ) {
         goto err_exit;
     }

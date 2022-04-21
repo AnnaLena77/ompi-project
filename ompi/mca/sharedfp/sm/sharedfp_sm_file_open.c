@@ -117,7 +117,11 @@ int mca_sharedfp_sm_file_open (struct ompi_communicator_t *comm,
         my_pid = getpid();
         int_pid = (int) my_pid;
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_bcast (&int_pid, 1, MPI_INT, 0, comm, comm->c_coll->coll_bcast_module );
+#else
+    err = comm->c_coll->coll_bcast (&int_pid, 1, MPI_INT, 0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != err ) {
         opal_output(0,"mca_sharedfp_sm_file_open: Error in bcast operation \n");
         free(sm_filename);

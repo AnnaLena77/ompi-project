@@ -290,9 +290,15 @@ int mca_coll_han_allreduce_t2_task(void *task_args)
     if (!t->noop) {
         int up_rank = ompi_comm_rank(t->up_comm);
         /* ub of cur_seg */
+#ifndef ENABLE_ANALYSIS
         t->up_comm->c_coll->coll_ibcast((char *) t->rbuf, t->seg_count, t->dtype, t->root_up_rank,
                                         t->up_comm, &(reqs[0]),
                                         t->up_comm->c_coll->coll_ibcast_module);
+#else
+        t->up_comm->c_coll->coll_ibcast((char *) t->rbuf, t->seg_count, t->dtype, t->root_up_rank,
+                                        t->up_comm, &(reqs[0]),
+                                        t->up_comm->c_coll->coll_ibcast_module, NULL);
+#endif
         req_count++;
         /* ur of cur_seg+1 */
         if (t->cur_seg <= t->num_segments - 2) {
@@ -353,9 +359,15 @@ int mca_coll_han_allreduce_t3_task(void *task_args)
             if (t->cur_seg == t->num_segments - 2 && t->last_seg_count != t->seg_count) {
                 tmp_count = t->last_seg_count;
             }
+#ifndef ENABLE_ANALYSIS
             t->up_comm->c_coll->coll_ibcast((char *) t->rbuf + extent * t->seg_count, t->seg_count,
                                             t->dtype, t->root_up_rank, t->up_comm, &(reqs[0]),
                                             t->up_comm->c_coll->coll_ibcast_module);
+#else
+	   t->up_comm->c_coll->coll_ibcast((char *) t->rbuf + extent * t->seg_count, t->seg_count,
+                                            t->dtype, t->root_up_rank, t->up_comm, &(reqs[0]),
+                                            t->up_comm->c_coll->coll_ibcast_module, NULL);
+#endif
             req_count++;
         }
         /* ur of cur_seg+2 */
@@ -390,8 +402,13 @@ int mca_coll_han_allreduce_t3_task(void *task_args)
                                          t->low_comm->c_coll->coll_reduce_module);
     }
     /* lb of cur_seg */
+#ifndef ENABLE_ANALYSIS
     t->low_comm->c_coll->coll_bcast((char *) t->rbuf, t->seg_count, t->dtype, t->root_low_rank,
                                     t->low_comm, t->low_comm->c_coll->coll_bcast_module);
+#else
+    t->low_comm->c_coll->coll_bcast((char *) t->rbuf, t->seg_count, t->dtype, t->root_low_rank,
+                                    t->low_comm, t->low_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (!t->noop && req_count > 0) {
         ompi_request_wait_all(req_count, reqs, MPI_STATUSES_IGNORE);
     }
@@ -494,8 +511,13 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
     }
 
     /* Low_comm bcast */
+#ifndef ENABLE_ANALYSIS
     ret = low_comm->c_coll->coll_bcast(rbuf, count, dtype,
                 root_low_rank, low_comm, low_comm->c_coll->coll_bcast_module);
+#else
+    ret = low_comm->c_coll->coll_bcast(rbuf, count, dtype,
+                root_low_rank, low_comm, low_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
         OPAL_OUTPUT_VERBOSE((30, cs->han_output,
                              "HAN/ALLREDUCE: low comm bcast failed. "

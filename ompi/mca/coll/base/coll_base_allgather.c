@@ -458,8 +458,13 @@ int ompi_coll_base_allgather_intra_sparbit(const void *sbuf, int scount,
 
            /* Since each process sends several non-contiguos blocks of data, each block sent (and therefore each send and recv call) needs a different tag. */
            /* As base OpenMPI only provides one tag for allgather, we are forced to use a tag space from other components in the send and recv calls */
+#ifndef ENABLE_ANALYSIS
            MCA_PML_CALL(isend(tmpsend + (ptrdiff_t) send_disp * scount * rext, scount, rdtype, sendto, MCA_COLL_BASE_TAG_HCOLL_BASE - send_disp, MCA_PML_BASE_SEND_STANDARD, comm, requests + transfer_count));
            MCA_PML_CALL(irecv(tmprecv + (ptrdiff_t) recv_disp * rcount * rext, rcount, rdtype, recvfrom, MCA_COLL_BASE_TAG_HCOLL_BASE - recv_disp, comm, requests + data_expected - exclusion + transfer_count));
+#else
+	MCA_PML_CALL(isend(tmpsend + (ptrdiff_t) send_disp * scount * rext, scount, rdtype, sendto, MCA_COLL_BASE_TAG_HCOLL_BASE - send_disp, MCA_PML_BASE_SEND_STANDARD, comm, requests + transfer_count, NULL));
+           MCA_PML_CALL(irecv(tmprecv + (ptrdiff_t) recv_disp * rcount * rext, rcount, rdtype, recvfrom, MCA_COLL_BASE_TAG_HCOLL_BASE - recv_disp, comm, requests + data_expected - exclusion + transfer_count, NULL));
+#endif
        }
        ompi_request_wait_all(transfer_count * 2, requests, MPI_STATUSES_IGNORE);
 
@@ -842,21 +847,36 @@ ompi_coll_base_allgather_intra_basic_linear(const void *sbuf, int scount,
     }
 
     /* Gather and broadcast. */
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_gather(sbuf, scount, sdtype,
                                    rbuf, rcount, rdtype,
                                    0, comm, comm->c_coll->coll_gather_module);
+#else
+    err = comm->c_coll->coll_gather(sbuf, scount, sdtype,
+                                   rbuf, rcount, rdtype,
+                                   0, comm, comm->c_coll->coll_gather_module, NULL);
+#endif
     if (MPI_SUCCESS == err) {
         size_t length = (ptrdiff_t)rcount * ompi_comm_size(comm);
         if( length < (size_t)INT_MAX ) {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_bcast(rbuf, (ptrdiff_t)rcount * ompi_comm_size(comm), rdtype,
                                           0, comm, comm->c_coll->coll_bcast_module);
+#else
+	   err = comm->c_coll->coll_bcast(rbuf, (ptrdiff_t)rcount * ompi_comm_size(comm), rdtype,
+                                          0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
         } else {
             ompi_datatype_t* temptype;
             ompi_datatype_create_contiguous(ompi_comm_size(comm), rdtype, &temptype);
             ompi_datatype_commit(&temptype);
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_bcast(rbuf, rcount, temptype,
                                           0, comm, comm->c_coll->coll_bcast_module);
+#else
+	   err = comm->c_coll->coll_bcast(rbuf, rcount, temptype,
+                                          0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
             ompi_datatype_destroy(&temptype);
         }
     }

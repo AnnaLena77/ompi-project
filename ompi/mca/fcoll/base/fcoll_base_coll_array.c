@@ -140,6 +140,7 @@ int ompi_fcoll_base_coll_gatherv_array (void *sbuf,
 
     if (procs_in_group[root_index] != rank)  {
         if (scount > 0) {
+#ifndef ENABLE_ANALYSIS
             return MCA_PML_CALL(send(sbuf,
                                      scount,
                                      sdtype,
@@ -147,6 +148,15 @@ int ompi_fcoll_base_coll_gatherv_array (void *sbuf,
                                      FCOLL_TAG_GATHERV,
                                      MCA_PML_BASE_SEND_STANDARD,
                                      comm));
+#else
+	   return MCA_PML_CALL(send(sbuf,
+                                     scount,
+                                     sdtype,
+                                     procs_in_group[root_index],
+                                     FCOLL_TAG_GATHERV,
+                                     MCA_PML_BASE_SEND_STANDARD,
+                                     comm, NULL));
+#endif
         }
         return err;
     }
@@ -181,6 +191,7 @@ int ompi_fcoll_base_coll_gatherv_array (void *sbuf,
         else {
             /* Only receive if there is something to receive */
             if (rcounts[i] > 0) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(irecv(ptmp,
                                          rcounts[i],
                                          rdtype,
@@ -188,6 +199,15 @@ int ompi_fcoll_base_coll_gatherv_array (void *sbuf,
                                          FCOLL_TAG_GATHERV,
                                          comm,
                                          &reqs[i]));
+#else
+	       err = MCA_PML_CALL(irecv(ptmp,
+                                         rcounts[i],
+                                         rdtype,
+                                         procs_in_group[i],
+                                         FCOLL_TAG_GATHERV,
+                                         comm,
+                                         &reqs[i], NULL));
+#endif
             }
 	    else {
 		reqs[i] = MPI_REQUEST_NULL;
@@ -229,6 +249,7 @@ int ompi_fcoll_base_coll_scatterv_array (void *sbuf,
 
     if (procs_in_group[root_index] != rank) {
         if (rcount > 0) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(rbuf,
                                     rcount,
                                     rdtype,
@@ -236,6 +257,15 @@ int ompi_fcoll_base_coll_scatterv_array (void *sbuf,
                                     FCOLL_TAG_SCATTERV,
                                     comm,
                                     MPI_STATUS_IGNORE));
+#else
+	   err = MCA_PML_CALL(recv(rbuf,
+                                    rcount,
+                                    rdtype,
+                                    procs_in_group[root_index],
+                                    FCOLL_TAG_SCATTERV,
+                                    comm,
+                                    MPI_STATUS_IGNORE, NULL));
+#endif
         }
         return err;
     }
@@ -271,6 +301,7 @@ int ompi_fcoll_base_coll_scatterv_array (void *sbuf,
         else {
             /* Only receive if there is something to receive */
             if (scounts[i] > 0) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(isend(ptmp,
                                          scounts[i],
                                          sdtype,
@@ -279,6 +310,16 @@ int ompi_fcoll_base_coll_scatterv_array (void *sbuf,
                                          MCA_PML_BASE_SEND_STANDARD,
                                          comm,
 				         &reqs[i]));
+#else
+	       err = MCA_PML_CALL(isend(ptmp,
+                                         scounts[i],
+                                         sdtype,
+                                         procs_in_group[i],
+                                         FCOLL_TAG_SCATTERV,
+                                         MCA_PML_BASE_SEND_STANDARD,
+                                         comm,
+				         &reqs[i], NULL));
+#endif
             }
 	    else {
 		reqs[i] = MPI_REQUEST_NULL;
@@ -373,6 +414,7 @@ int ompi_fcoll_base_coll_gather_array (void *sbuf,
 
     /* Everyone but the writers sends data and returns. */
     if (procs_in_group[root_index] != rank) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(sbuf,
                                 scount,
                                 sdtype,
@@ -380,6 +422,15 @@ int ompi_fcoll_base_coll_gather_array (void *sbuf,
                                 FCOLL_TAG_GATHER,
                                 MCA_PML_BASE_SEND_STANDARD,
                                 comm));
+#else
+        err = MCA_PML_CALL(send(sbuf,
+                                scount,
+                                sdtype,
+                                procs_in_group[root_index],
+                                FCOLL_TAG_GATHER,
+                                MCA_PML_BASE_SEND_STANDARD,
+                                comm, NULL));
+#endif
         return err;
     }
 
@@ -410,6 +461,7 @@ int ompi_fcoll_base_coll_gather_array (void *sbuf,
 	    reqs[i] = MPI_REQUEST_NULL;
         }
         else {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv(ptmp,
                                      rcount,
                                      rdtype,
@@ -417,6 +469,15 @@ int ompi_fcoll_base_coll_gather_array (void *sbuf,
                                      FCOLL_TAG_GATHER,
                                      comm,
                                      &reqs[i]));
+#else   
+	   err = MCA_PML_CALL(irecv(ptmp,
+                                     rcount,
+                                     rdtype,
+                                     procs_in_group[i],
+                                     FCOLL_TAG_GATHER,
+                                     comm,
+                                     &reqs[i], NULL));
+#endif
             /*
             for (k=0 ; k<4 ; k++)
                 printf ("RECV %p  %d \n",
@@ -456,6 +517,7 @@ int ompi_fcoll_base_coll_bcast_array (void *buff,
 
     /* Non-writers receive the data. */
     if (procs_in_group[root_index] != rank) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(buff,
                                 count,
                                 datatype,
@@ -463,6 +525,15 @@ int ompi_fcoll_base_coll_bcast_array (void *buff,
                                 FCOLL_TAG_BCAST,
                                 comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(buff,
+                                count,
+                                datatype,
+                                procs_in_group[root_index],
+                                FCOLL_TAG_BCAST,
+                                comm,
+                                MPI_STATUS_IGNORE, NULL));
+#endif
         return err;
     }
 
@@ -478,6 +549,7 @@ int ompi_fcoll_base_coll_bcast_array (void *buff,
             continue;
         }
 
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(isend(buff,
                                  count,
                                  datatype,
@@ -486,6 +558,16 @@ int ompi_fcoll_base_coll_bcast_array (void *buff,
                                  MCA_PML_BASE_SEND_STANDARD,
                                  comm,
 			         &reqs[i]));
+#else
+        err = MCA_PML_CALL(isend(buff,
+                                 count,
+                                 datatype,
+                                 procs_in_group[i],
+                                 FCOLL_TAG_BCAST,
+                                 MCA_PML_BASE_SEND_STANDARD,
+                                 comm,
+			         &reqs[i], NULL));
+#endif
         if (OMPI_SUCCESS != err) {
 	    free ( reqs );
             return err;

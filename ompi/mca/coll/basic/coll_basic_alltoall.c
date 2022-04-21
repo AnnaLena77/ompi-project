@@ -87,8 +87,13 @@ mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
 
     /* Post all receives first */
     for (i = 0; i < size; i++, ++rreq) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(prcv + (i * rcvinc), rcount, rdtype, i,
                                  MCA_COLL_BASE_TAG_ALLTOALL, comm, rreq));
+#else
+        err = MCA_PML_CALL(irecv(prcv + (i * rcvinc), rcount, rdtype, i,
+                                 MCA_COLL_BASE_TAG_ALLTOALL, comm, rreq, NULL));
+#endif
         if (OMPI_SUCCESS != err) {
             ompi_coll_base_free_reqs(req, i + 1);
             return err;
@@ -97,9 +102,15 @@ mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
 
     /* Now post all sends */
     for (i = 0; i < size; i++, ++sreq) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(isend(psnd + (i * sndinc), scount, sdtype, i,
                                  MCA_COLL_BASE_TAG_ALLTOALL,
                                  MCA_PML_BASE_SEND_STANDARD, comm, sreq));
+#else
+        err = MCA_PML_CALL(isend(psnd + (i * sndinc), scount, sdtype, i,
+                                 MCA_COLL_BASE_TAG_ALLTOALL,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, sreq, NULL));
+#endif
         if (OMPI_SUCCESS != err) {
             ompi_coll_base_free_reqs(req, i + size + 1);
             return err;

@@ -171,10 +171,15 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
             if (ompi_op_is_commute(op)) {
                 peer = (peer + root) % size;
             }
-
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(snd_buffer, count,
                                     dtype, peer, MCA_COLL_BASE_TAG_REDUCE,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+	   err = MCA_PML_CALL(send(snd_buffer, count,
+                                    dtype, peer, MCA_COLL_BASE_TAG_REDUCE,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
             if (MPI_SUCCESS != err) {
                 goto cleanup_and_return;
             }
@@ -202,10 +207,15 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
              * apply the operation, so for the first time we can receive
              * the data in the pml_buffer and then apply to operation
              * between this buffer and the user provided data. */
-
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(rcv_buffer, count, dtype, peer,
                                     MCA_COLL_BASE_TAG_REDUCE, comm,
                                     MPI_STATUS_IGNORE));
+#else
+	   err = MCA_PML_CALL(recv(rcv_buffer, count, dtype, peer,
+                                    MCA_COLL_BASE_TAG_REDUCE, comm,
+                                    MPI_STATUS_IGNORE, NULL));
+#endif
             if (MPI_SUCCESS != err) {
                 goto cleanup_and_return;
             }
@@ -243,14 +253,26 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
         if (root == rank) {
             ompi_datatype_copy_content_same_ddt(dtype, count, (char*)rbuf, snd_buffer);
         } else {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(snd_buffer, count,
                                     dtype, root, MCA_COLL_BASE_TAG_REDUCE,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else 
+	   err = MCA_PML_CALL(send(snd_buffer, count,
+                                    dtype, root, MCA_COLL_BASE_TAG_REDUCE,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
         }
     } else if (rank == root) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rcv_buffer, count, dtype, 0,
                                 MCA_COLL_BASE_TAG_REDUCE,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(rcv_buffer, count, dtype, 0,
+                                MCA_COLL_BASE_TAG_REDUCE,
+                                comm, MPI_STATUS_IGNORE, NULL));
+#endif
         if (rcv_buffer != rbuf) {
             ompi_op_reduce(op, rcv_buffer, rbuf, count, dtype);
         }
@@ -300,9 +322,15 @@ mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
         err = OMPI_SUCCESS;
     } else if (MPI_ROOT != root) {
         /* If not root, send data to the root. */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(sbuf, count, dtype, root,
                                 MCA_COLL_BASE_TAG_REDUCE,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+       err = MCA_PML_CALL(send(sbuf, count, dtype, root,
+                                MCA_COLL_BASE_TAG_REDUCE,
+                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+#endif
     } else {
         /* Root receives and reduces messages  */
         dsize = opal_datatype_span(&dtype->super, count, &gap);
@@ -315,9 +343,15 @@ mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
 
 
         /* Initialize the receive buffer. */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, count, dtype, 0,
                                 MCA_COLL_BASE_TAG_REDUCE, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(rbuf, count, dtype, 0,
+                                MCA_COLL_BASE_TAG_REDUCE, comm,
+                                MPI_STATUS_IGNORE, NULL));
+#endif
         if (MPI_SUCCESS != err) {
             if (NULL != free_buffer) {
                 free(free_buffer);
@@ -327,9 +361,15 @@ mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
 
         /* Loop receiving and calling reduction function (C or Fortran). */
         for (i = 1; i < size; i++) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(pml_buffer, count, dtype, i,
                                     MCA_COLL_BASE_TAG_REDUCE, comm,
                                     MPI_STATUS_IGNORE));
+#else
+	   err = MCA_PML_CALL(recv(pml_buffer, count, dtype, i,
+                                    MCA_COLL_BASE_TAG_REDUCE, comm,
+                                    MPI_STATUS_IGNORE, NULL));
+#endif
             if (MPI_SUCCESS != err) {
                 if (NULL != free_buffer) {
                     free(free_buffer);

@@ -31,3 +31,6 @@ $ sudo ldconfig
 Compile and run MPI-Program:
 $ mpicc mpitest.c -o mpitest
 $ mpirun -n 2 --oversubscribe ./mpitest
+
+
+

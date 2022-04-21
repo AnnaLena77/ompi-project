@@ -255,23 +255,41 @@ static inline void mca_bml_base_free( mca_bml_base_btl_t* bml_btl,
 
 int mca_bml_base_send( mca_bml_base_btl_t* bml_btl,
                        mca_btl_base_descriptor_t* des,
-                       mca_btl_base_tag_t tag );
+                       mca_btl_base_tag_t tag,
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q
+#endif
+                        );
 
 
 #else
-
 static inline int mca_bml_base_send( mca_bml_base_btl_t* bml_btl,
                                      mca_btl_base_descriptor_t* des,
-                                     mca_btl_base_tag_t tag )
+                                     mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                      )
 {
     int rc;
     mca_btl_base_module_t* btl = bml_btl->btl;
 
     des->des_context = (void*) bml_btl;
+#ifndef ENABLE_ANALYSIS
     rc = btl->btl_send(btl, bml_btl->btl_endpoint, des, tag);
+#else
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+    rc = btl->btl_send(btl, bml_btl->btl_endpoint, des, tag, &item);
+#endif
     if (rc == OMPI_ERR_RESOURCE_BUSY)
         rc = OMPI_SUCCESS;
-
     return rc;
 }
 
@@ -279,14 +297,28 @@ static inline int mca_bml_base_send( mca_bml_base_btl_t* bml_btl,
 
 static inline int mca_bml_base_send_status( mca_bml_base_btl_t* bml_btl,
                                             mca_btl_base_descriptor_t* des,
-                                            mca_btl_base_tag_t tag )
+                                            mca_btl_base_tag_t tag 
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
     mca_btl_base_module_t* btl = bml_btl->btl;
 
     des->des_context = (void*) bml_btl;
+#ifndef ENABLE_ANALYSIS
     return btl->btl_send(btl, bml_btl->btl_endpoint, des, tag);
+#else
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+    return btl->btl_send(btl, bml_btl->btl_endpoint, des, tag, &item);
+#endif
 }
-
+#ifndef ENABLE_ANALYSIS
 static inline int  mca_bml_base_sendi( mca_bml_base_btl_t* bml_btl,
                                        struct opal_convertor_t* convertor,
                                        void* header,
@@ -296,11 +328,39 @@ static inline int  mca_bml_base_sendi( mca_bml_base_btl_t* bml_btl,
                                        uint32_t flags,
                                        mca_btl_base_tag_t tag,
                                        mca_btl_base_descriptor_t** descriptor )
+#else
+static inline int  mca_bml_base_sendi( mca_bml_base_btl_t* bml_btl,
+                                       struct opal_convertor_t* convertor,
+                                       void* header,
+                                       size_t header_size,
+                                       size_t payload_size,
+                                       uint8_t order,
+                                       uint32_t flags,
+                                       mca_btl_base_tag_t tag,
+                                       mca_btl_base_descriptor_t** descriptor,
+                                       qentry **q )
+#endif
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_btl_base_module_t* btl = bml_btl->btl;
+#ifndef ENABLE_ANALYSIS
     return btl->btl_sendi(btl, bml_btl->btl_endpoint,
                           convertor, header, header_size,
                           payload_size, order, flags, tag, descriptor);
+#else 
+    return btl->btl_sendi(btl, bml_btl->btl_endpoint,
+                          convertor, header, header_size,
+                          payload_size, order, flags, tag, descriptor, &item);
+#endif
 }
 
 static inline int mca_bml_base_put( mca_bml_base_btl_t* bml_btl, void *local_address, uint64_t remote_address,

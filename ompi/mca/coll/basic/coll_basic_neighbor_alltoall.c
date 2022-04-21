@@ -71,9 +71,15 @@ mca_coll_basic_neighbor_alltoall_cart(const void *sbuf, int scount, struct ompi_
 
         if (MPI_PROC_NULL != srank) {
             nreqs++;
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, srank,
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim,
                                     comm, preqs++));
+#else
+            rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, srank,
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim,
+                                    comm, preqs++, NULL));
+#endif
             if (OMPI_SUCCESS != rc) break;
         }
 
@@ -81,9 +87,15 @@ mca_coll_basic_neighbor_alltoall_cart(const void *sbuf, int scount, struct ompi_
 
         if (MPI_PROC_NULL != drank) {
             nreqs++;
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, drank,
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1,
                                     comm, preqs++));
+#else
+            rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, drank,
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1,
+                                    comm, preqs++, NULL));
+#endif
             if (OMPI_SUCCESS != rc) break;
         }
 
@@ -108,10 +120,17 @@ mca_coll_basic_neighbor_alltoall_cart(const void *sbuf, int scount, struct ompi_
             /* remove cast from const when the pml layer is updated to take
              * a const for the send buffer. */
             nreqs++;
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, srank,
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1,
                                     MCA_PML_BASE_SEND_STANDARD,
                                     comm, preqs++));
+#else
+            rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, srank,
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1,
+                                    MCA_PML_BASE_SEND_STANDARD,
+                                    comm, preqs++, NULL));
+#endif
             if (OMPI_SUCCESS != rc) break;
         }
 
@@ -119,10 +138,17 @@ mca_coll_basic_neighbor_alltoall_cart(const void *sbuf, int scount, struct ompi_
 
         if (MPI_PROC_NULL != drank) {
             nreqs++;
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, drank,
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim,
                                     MCA_PML_BASE_SEND_STANDARD,
                                     comm, preqs++));
+#else
+            rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, drank,
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim,
+                                    MCA_PML_BASE_SEND_STANDARD,
+                                    comm, preqs++, NULL));
+#endif
             if (OMPI_SUCCESS != rc) break;
         }
 
@@ -168,8 +194,13 @@ mca_coll_basic_neighbor_alltoall_graph(const void *sbuf, int scount, struct ompi
 
     /* post receives first */
     for (neighbor = 0; neighbor < degree ; ++neighbor) {
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, edges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL,
                                 comm, preqs++));
+#else
+        rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, edges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL,
+                                comm, preqs++, NULL));
+#endif
         if (OMPI_SUCCESS != rc) break;
         rbuf = (char *) rbuf + rdextent * rcount;
     }
@@ -181,9 +212,15 @@ mca_coll_basic_neighbor_alltoall_graph(const void *sbuf, int scount, struct ompi
     for (neighbor = 0 ; neighbor < degree ; ++neighbor) {
         /* remove cast from const when the pml layer is updated to take
          * a const for the send buffer. */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, edges[neighbor],
                                 MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
                                 comm, preqs++));
+#else
+        rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, edges[neighbor],
+                                MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
+                                comm, preqs++, NULL));
+#endif
         if (OMPI_SUCCESS != rc) break;
         sbuf = (const char *) sbuf + sdextent * scount;
     }
@@ -226,9 +263,15 @@ mca_coll_basic_neighbor_alltoall_dist_graph(const void *sbuf, int scount,struct 
 
     /* post receives first */
     for (neighbor = 0; neighbor < indegree ; ++neighbor) {
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, inedges[neighbor],
                                 MCA_COLL_BASE_TAG_ALLTOALL,
                                 comm, preqs++));
+#else
+        rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, inedges[neighbor],
+                                MCA_COLL_BASE_TAG_ALLTOALL,
+                                comm, preqs++, NULL));
+#endif
         if (OMPI_SUCCESS != rc) break;
         rbuf = (char *) rbuf + rdextent * rcount;
     }
@@ -240,9 +283,15 @@ mca_coll_basic_neighbor_alltoall_dist_graph(const void *sbuf, int scount,struct 
 
     for (neighbor = 0 ; neighbor < outdegree ; ++neighbor) {
         /* remove cast from const when the pml layer is updated to take a const for the send buffer */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, outedges[neighbor],
                                 MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
                                 comm, preqs++));
+#else
+        rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, outedges[neighbor],
+                                MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
+                                comm, preqs++, NULL));
+#endif
         if (OMPI_SUCCESS != rc) break;
         sbuf = (char *) sbuf + sdextent * scount;
     }

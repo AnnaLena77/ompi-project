@@ -226,7 +226,11 @@ mca_part_persist_progress(void)
             int done = 0; 
             
             if(true == req->flag_post_setup_recv) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(irecv(&(req->setup_info[1]), sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, OMPI_ANY_SOURCE, req->my_recv_tag, ompi_part_persist.part_comm_setup, &req->setup_req[1]));
+#else
+	       err = MCA_PML_CALL(irecv(&(req->setup_info[1]), sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, OMPI_ANY_SOURCE, req->my_recv_tag, ompi_part_persist.part_comm_setup, &req->setup_req[1], NULL));
+#endif
                 req->flag_post_setup_recv = false;
             } 
  
@@ -277,7 +281,11 @@ mca_part_persist_progress(void)
 
                     /* Send back a message */
                     req->setup_info[0].world_rank = ompi_part_persist.my_world_rank;
+#ifndef ENABLE_ANALYSIS
                     err = MCA_PML_CALL(isend(&(req->setup_info[0]), sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, req->world_peer, req->my_recv_tag, MCA_PML_BASE_SEND_STANDARD, ompi_part_persist.part_comm_setup, &req->setup_req[0]));
+#else
+		  err = MCA_PML_CALL(isend(&(req->setup_info[0]), sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, req->world_peer, req->my_recv_tag, MCA_PML_BASE_SEND_STANDARD, ompi_part_persist.part_comm_setup, &req->setup_req[0], NULL));
+#endif
                     if(OMPI_SUCCESS != err) return OMPI_ERROR;
                 } 
             }
@@ -363,7 +371,11 @@ mca_part_persist_precv_init(void *buf,
     req->flag_post_setup_recv = false;
     req->flags = NULL;
     /* Non-blocking recive on setup info */
-    err	= MCA_PML_CALL(irecv(&req->setup_info[1], sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, src, tag, comm, &req->setup_req[1])); 
+#ifndef ENABLE_ANALYSIS
+    err	= MCA_PML_CALL(irecv(&req->setup_info[1], sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, src, tag, comm, &req->setup_req[1]));
+#else
+    err	= MCA_PML_CALL(irecv(&req->setup_info[1], sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, src, tag, comm, &req->setup_req[1], NULL));
+#endif
     if(OMPI_SUCCESS != err) return OMPI_ERROR;
 
     /* Compute total number of bytes */
@@ -448,13 +460,20 @@ mca_part_persist_psend_init(const void* buf,
 
 
     req->flags = (int*) calloc(req->real_parts, sizeof(int));
-
+#ifndef ENABLE_ANALYSIS
     err = MCA_PML_CALL(isend(&(req->setup_info[0]), sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, dst, tag, MCA_PML_BASE_SEND_STANDARD, comm, &req->setup_req[0]));
+#else
+    err = MCA_PML_CALL(isend(&(req->setup_info[0]), sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, dst, tag, MCA_PML_BASE_SEND_STANDARD, comm, &req->setup_req[0], NULL));
+#endif
     if(OMPI_SUCCESS != err) return OMPI_ERROR;
 
     /* Non-blocking recive on setup info */
     if(1 == ompi_part_persist.init_comms) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(&(req->setup_info[1]), sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, MPI_ANY_SOURCE, req->my_recv_tag, ompi_part_persist.part_comm_setup, &req->setup_req[1]));
+#else
+        err = MCA_PML_CALL(irecv(&(req->setup_info[1]), sizeof(struct ompi_mca_persist_setup_t), MPI_BYTE, MPI_ANY_SOURCE, req->my_recv_tag, ompi_part_persist.part_comm_setup, &req->setup_req[1], NULL));
+#endif
         if(OMPI_SUCCESS != err) return OMPI_ERROR;
         req->flag_post_setup_recv = false;
     } else {
