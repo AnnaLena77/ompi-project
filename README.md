@@ -20,6 +20,13 @@ Collective-communication:
 - gatherv, igatherv
 - scatter, iscatter
 - scatterv, iscatterv
+- allgather, iallgather
+- allgatherv, iallgatherv
+- reduce, ireduce
+- allreduce, iallreduce
+- alltoall, ialltoall
+- alltoallv, ialltoallv
+
 
 One-sided-communication:
 

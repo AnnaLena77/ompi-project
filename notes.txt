@@ -1,0 +1,20 @@
+Umgang mit Allgather, Allgatherv, Alltoall, Alltoallv -> Empfangen und Senden gleichzeitig. Lösung für Speicherung Datasize, etc.
+
+Unterschied Allgather, Alltoall:
+
+rank    send buf                        recv buf
+----    --------                        --------
+ 0      a,a,a          MPI_Alltoall     a,A,#
+ 1      A,A,A        ---------------->  a,A,#
+ 2      #,#,#                           a,A,#
+ 
+ rank    send buf                        recv buf
+----    --------                        --------
+ 0      a             MPI_Allgather     a,A,#
+ 1      A            ---------------->  a,A,#
+ 2      #                               a,A,#
+ 
+ Umgang mit barrier, ibarrier?
+ Umgang mit reduce_scatter und reduce_scatter_block?
+ Umgang mit scan, iscan, exscan, iexscan
+

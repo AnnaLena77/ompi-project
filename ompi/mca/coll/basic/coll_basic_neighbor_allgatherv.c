@@ -259,7 +259,11 @@ mca_coll_basic_neighbor_allgatherv_dist_graph(const void *sbuf, int scount, stru
 
 int mca_coll_basic_neighbor_allgatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                                        void *rbuf, const int rcounts[], const int disps[], struct ompi_datatype_t *rdtype,
-                                       struct ompi_communicator_t *comm, mca_coll_base_module_t *module)
+                                       struct ompi_communicator_t *comm, mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       )
 {
     if (OMPI_COMM_IS_INTER(comm)) {
         return OMPI_ERR_NOT_SUPPORTED;

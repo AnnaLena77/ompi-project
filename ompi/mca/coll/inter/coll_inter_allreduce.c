@@ -45,8 +45,22 @@ mca_coll_inter_allreduce_inter(const void *sbuf, void *rbuf, int count,
                                struct ompi_datatype_t *dtype,
                                struct ompi_op_t *op,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int err, rank, root = 0;
     char *tmpbuf = NULL, *pml_buffer = NULL;
     ptrdiff_t gap, span;
@@ -61,11 +75,17 @@ mca_coll_inter_allreduce_inter(const void *sbuf, void *rbuf, int count,
 	return OMPI_ERR_OUT_OF_RESOURCE;
     }
     pml_buffer = tmpbuf - gap;
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_reduce(sbuf, pml_buffer, count,
 						 dtype, op, root,
 						 comm->c_local_comm,
                                                  comm->c_local_comm->c_coll->coll_reduce_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_reduce(sbuf, pml_buffer, count,
+						 dtype, op, root,
+						 comm->c_local_comm,
+                                                 comm->c_local_comm->c_coll->coll_reduce_module, &item);
+#endif
     if (OMPI_SUCCESS != err) {
 	goto exit;
     }

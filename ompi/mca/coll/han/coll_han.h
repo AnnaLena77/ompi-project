@@ -420,13 +420,25 @@ mca_coll_han_get_all_coll_modules(struct ompi_communicator_t *comm,
 
 int
 mca_coll_han_allgather_intra_dynamic(ALLGATHER_BASE_ARGS,
-                                     mca_coll_base_module_t *module);
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				 , qentry **q
+#endif
+                                     );
 int
 mca_coll_han_allgatherv_intra_dynamic(ALLGATHERV_BASE_ARGS,
-                                      mca_coll_base_module_t *module);
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				  , qentry **q
+#endif
+                                      );
 int
 mca_coll_han_allreduce_intra_dynamic(ALLREDUCE_BASE_ARGS,
-                                     mca_coll_base_module_t *module);
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				 , qentry **q
+#endif
+                                     );
 int
 mca_coll_han_barrier_intra_dynamic(BARRIER_BASE_ARGS,
                                  mca_coll_base_module_t *module);
@@ -446,7 +458,11 @@ mca_coll_han_gather_intra_dynamic(GATHER_BASE_ARGS,
                                   );
 int
 mca_coll_han_reduce_intra_dynamic(REDUCE_BASE_ARGS,
-                                  mca_coll_base_module_t *module);
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			       , qentry **q
+#endif
+                                  );
 int
 mca_coll_han_scatter_intra_dynamic(SCATTER_BASE_ARGS,
                                    mca_coll_base_module_t *module
@@ -484,7 +500,11 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
                                  ompi_op_t *op,
                                  int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 );
 int
 mca_coll_han_reduce_reproducible_decision(struct ompi_communicator_t *comm,
                                           mca_coll_base_module_t *module);
@@ -496,7 +516,11 @@ mca_coll_han_reduce_reproducible(const void *sbuf,
                                  struct ompi_op_t *op,
                                  int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 );
 
 int mca_coll_han_reduce_intra(const void *sbuf,
                               void *rbuf,
@@ -505,7 +529,11 @@ int mca_coll_han_reduce_intra(const void *sbuf,
                               ompi_op_t* op,
                               int root,
                               struct ompi_communicator_t *comm,
-                              mca_coll_base_module_t * module);
+                              mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			   , qentry **q
+#endif
+                              );
 
 /* Allreduce */
 int
@@ -515,7 +543,11 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    );
 int
 mca_coll_han_allreduce_reproducible_decision(struct ompi_communicator_t *comm,
                                              mca_coll_base_module_t *module);
@@ -526,14 +558,22 @@ mca_coll_han_allreduce_reproducible(const void *sbuf,
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    );
 
 int mca_coll_han_allreduce_intra(const void *sbuf,
                                  void *rbuf,
                                  int count,
                                  struct ompi_datatype_t *dtype,
                                  struct ompi_op_t *op,
-                                 struct ompi_communicator_t *comm, mca_coll_base_module_t * module);
+                                 struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 );
 
 /* Scatter */
 int
@@ -600,13 +640,21 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
                              struct ompi_datatype_t *sdtype,
                              void *rbuf, int rcount,
                              struct ompi_datatype_t *rdtype,
-                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module);
+                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             );
 int
 mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
                                     struct ompi_datatype_t *sdtype,
                                     void* rbuf, int rcount,
                                     struct ompi_datatype_t *rdtype,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    );
 
 #endif                          /* MCA_COLL_HAN_EXPORT_H */

@@ -50,7 +50,11 @@ int
 mca_coll_base_alltoall_intra_basic_inplace(const void *rbuf, int rcount,
                                            struct ompi_datatype_t *rdtype,
                                            struct ompi_communicator_t *comm,
-                                           mca_coll_base_module_t *module)
+                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           )
 {
     int i, size, rank, left, right, err = MPI_SUCCESS, line;
     ptrdiff_t extent;
@@ -183,15 +187,34 @@ int ompi_coll_base_alltoall_intra_pairwise(const void *sbuf, int scount,
                                             void* rbuf, int rcount,
                                             struct ompi_datatype_t *rdtype,
                                             struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int line = -1, err = 0, rank, size, step, sendto, recvfrom;
     void * tmpsend, *tmprecv;
     ptrdiff_t lb, sext, rext;
 
     if (MPI_IN_PLACE == sbuf) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
                                                             comm, module);
+#else
+        return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
+                                                            comm, module, &item);
+#endif
     }
 
     size = ompi_comm_size(comm);
@@ -242,8 +265,22 @@ int ompi_coll_base_alltoall_intra_bruck(const void *sbuf, int scount,
                                          void* rbuf, int rcount,
                                          struct ompi_datatype_t *rdtype,
                                          struct ompi_communicator_t *comm,
-                                         mca_coll_base_module_t *module)
+                                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int i, k, line = -1, rank, size, err = 0;
     int sendto, recvfrom, distance, *displs = NULL, *blen = NULL;
     char *tmpbuf = NULL, *tmpbuf_free = NULL;
@@ -251,8 +288,13 @@ int ompi_coll_base_alltoall_intra_bruck(const void *sbuf, int scount,
     struct ompi_datatype_t *new_ddt;
 
     if (MPI_IN_PLACE == sbuf) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
                                                             comm, module);
+#else
+        return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
+                                                            comm, module, &item);
+#endif
     }
 
     size = ompi_comm_size(comm);
@@ -385,8 +427,22 @@ int ompi_coll_base_alltoall_intra_linear_sync(const void *sbuf, int scount,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
                                                mca_coll_base_module_t *module,
-                                               int max_outstanding_reqs)
+                                               int max_outstanding_reqs
+#ifdef ENABLE_ANALYSIS
+                                               , qentry **q
+#endif
+                                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int line, error, ri, si, rank, size, nrreqs, nsreqs, total_reqs;
     int nreqs = 0;
     char *psnd, *prcv;
@@ -395,8 +451,13 @@ int ompi_coll_base_alltoall_intra_linear_sync(const void *sbuf, int scount,
     ompi_request_t **reqs = NULL;
 
     if (MPI_IN_PLACE == sbuf) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
                                                             comm, module);
+#else
+        return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
+                                                            comm, module, &item);
+#endif
     }
 
     /* Initialize. */
@@ -571,15 +632,34 @@ int ompi_coll_base_alltoall_intra_two_procs(const void *sbuf, int scount,
                                              void* rbuf, int rcount,
                                              struct ompi_datatype_t *rdtype,
                                              struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                             , qentry **q
+#endif
+                                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int line = -1, err = 0, rank, remote;
     void * tmpsend, *tmprecv;
     ptrdiff_t sext, rext, lb;
 
     if (MPI_IN_PLACE == sbuf) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
                                                             comm, module);
+#else
+        return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
+                                                            comm, module, &item);
+#endif
     }
 
     rank = ompi_comm_rank(comm);
@@ -650,8 +730,22 @@ int ompi_coll_base_alltoall_intra_basic_linear(const void *sbuf, int scount,
                                                void* rbuf, int rcount,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
-                                               mca_coll_base_module_t *module)
+                                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                               , qentry **q
+#endif
+                                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int i, rank, size, err, line;
     int nreqs = 0;
     char *psnd, *prcv;
@@ -661,8 +755,13 @@ int ompi_coll_base_alltoall_intra_basic_linear(const void *sbuf, int scount,
     mca_coll_base_comm_t *data = base_module->base_data;
 
     if (MPI_IN_PLACE == sbuf) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
                                                             comm, module);
+#else
+        return mca_coll_base_alltoall_intra_basic_inplace (rbuf, rcount, rdtype,
+                                                            comm, module, &item);
+#endif
     }
 
     /* Initialize. */

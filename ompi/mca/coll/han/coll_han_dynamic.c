@@ -315,8 +315,22 @@ mca_coll_han_allgather_intra_dynamic(const void *sbuf, int scount,
                                      void *rbuf, int rcount,
                                      struct ompi_datatype_t *rdtype,
                                      struct ompi_communicator_t *comm,
-                                     mca_coll_base_module_t *module)
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t*) module;
     TOPO_LVL_T topo_lvl = han_module->topologic_level;
     mca_coll_base_module_allgather_fn_t allgather;
@@ -402,10 +416,17 @@ mca_coll_han_allgather_intra_dynamic(const void *sbuf, int scount,
          */
         allgather = sub_module->coll_allgather;
     }
+#ifndef ENABLE_ANALYSIS
     return allgather(sbuf, scount, sdtype,
                      rbuf, rcount, rdtype,
                      comm,
                      sub_module);
+#else
+    return allgather(sbuf, scount, sdtype,
+                     rbuf, rcount, rdtype,
+                     comm,
+                     sub_module, &item);
+#endif
 }
 
 
@@ -423,8 +444,22 @@ mca_coll_han_allgatherv_intra_dynamic(const void *sbuf, int scount,
                                       const int *displs,
                                       struct ompi_datatype_t *rdtype,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module)
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t*) module;
     TOPO_LVL_T topo_lvl = han_module->topologic_level;
     mca_coll_base_module_allgatherv_fn_t allgatherv;
@@ -520,10 +555,17 @@ mca_coll_han_allgatherv_intra_dynamic(const void *sbuf, int scount,
          */
         allgatherv = sub_module->coll_allgatherv;
     }
+#ifndef ENABLE_ANALYSIS
     return allgatherv(sbuf, scount, sdtype,
                       rbuf, rcounts, displs,
                       rdtype, comm,
                       sub_module);
+#else
+    return allgatherv(sbuf, scount, sdtype,
+                      rbuf, rcounts, displs,
+                      rdtype, comm,
+                      sub_module, &item);
+#endif
 }
 
 
@@ -540,8 +582,22 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
                                      struct ompi_datatype_t *dtype,
                                      struct ompi_op_t *op,
                                      struct ompi_communicator_t *comm,
-                                     mca_coll_base_module_t *module)
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t*) module;
     TOPO_LVL_T topo_lvl = han_module->topologic_level;
     mca_coll_base_module_allreduce_fn_t allreduce;
@@ -632,8 +688,13 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
          */
         allreduce = mca_coll_han_allreduce_intra;
     }
+#ifndef ENABLE_ANALYSIS
     return allreduce(sbuf, rbuf, count, dtype,
                      op, comm, sub_module);
+#else
+    return allreduce(sbuf, rbuf, count, dtype,
+                     op, comm, sub_module, &item);
+#endif
 }
 
 
@@ -996,8 +1057,22 @@ mca_coll_han_reduce_intra_dynamic(const void *sbuf,
                                   struct ompi_op_t *op,
                                   int root,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module)
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t*) module;
     TOPO_LVL_T topo_lvl = han_module->topologic_level;
     mca_coll_base_module_reduce_fn_t reduce;
@@ -1088,8 +1163,13 @@ mca_coll_han_reduce_intra_dynamic(const void *sbuf,
          */
         reduce = sub_module->coll_reduce;
     }
+#ifndef ENABLE_ANALYSIS
     return reduce(sbuf, rbuf, count, dtype,
                   op, root, comm, sub_module);
+#else
+    return reduce(sbuf, rbuf, count, dtype,
+                  op, root, comm, sub_module, &item);
+#endif
 }
 
 

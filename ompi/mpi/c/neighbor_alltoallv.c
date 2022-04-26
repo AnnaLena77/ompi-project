@@ -154,9 +154,15 @@ int MPI_Neighbor_alltoallv(const void *sendbuf, const int sendcounts[], const in
 #endif
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype,
                                                recvbuf, recvcounts, rdispls, recvtype,
                                                comm, comm->c_coll->coll_neighbor_alltoallv_module);
+#else
+    err = comm->c_coll->coll_neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype,
+                                               recvbuf, recvcounts, rdispls, recvtype,
+                                               comm, comm->c_coll->coll_neighbor_alltoallv_module, NULL);
+#endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }
 

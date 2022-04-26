@@ -117,10 +117,15 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
         }
 
         int reduce_vals[] = {ranks_non_consecutive, low_size, -low_size};
-
+#ifndef ENABLE_ANALYSIS
         up_comm->c_coll->coll_allreduce(MPI_IN_PLACE, &reduce_vals, 3,
                                         MPI_INT, MPI_MAX, up_comm,
                                         up_comm->c_coll->coll_allreduce_module);
+#else
+        up_comm->c_coll->coll_allreduce(MPI_IN_PLACE, &reduce_vals, 3,
+                                        MPI_INT, MPI_MAX, up_comm,
+                                        up_comm->c_coll->coll_allreduce_module, NULL);
+#endif
 
         /* is the distribution of processes balanced per node? */
         is_imbalanced = (reduce_vals[1] == -reduce_vals[2]) ? 0 : 1;
@@ -129,9 +134,15 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
         if ( ranks_non_consecutive && !is_imbalanced ) {
             /* kick off up_comm allgather to collect non-consecutive rank information at node leaders */
             ranks_map = malloc(sizeof(int)*size);
+#ifndef ENABLE_ANALYSIS
             up_comm->c_coll->coll_iallgather(my_low_rank_map, low_size, MPI_INT,
                                              ranks_map, low_size, MPI_INT, up_comm, &request,
                                              up_comm->c_coll->coll_iallgather_module);
+#else
+            up_comm->c_coll->coll_iallgather(my_low_rank_map, low_size, MPI_INT,
+                                             ranks_map, low_size, MPI_INT, up_comm, &request,
+                                             up_comm->c_coll->coll_iallgather_module, NULL);
+#endif
         }
     }
 

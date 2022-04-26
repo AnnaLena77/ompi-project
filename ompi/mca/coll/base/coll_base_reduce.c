@@ -64,7 +64,11 @@ int ompi_coll_base_reduce_generic( const void* sendbuf, void* recvbuf, int origi
                                     int root, ompi_communicator_t* comm,
                                     mca_coll_base_module_t *module,
                                     ompi_coll_tree_t* tree, int count_by_segment,
-                                    int max_outstanding_reqs )
+                                    int max_outstanding_reqs 
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    )
 {
     char *inbuf[2] = {NULL, NULL}, *inbuf_free[2] = {NULL, NULL};
     char *accumbuf = NULL, *accumbuf_free = NULL;
@@ -430,8 +434,22 @@ int ompi_coll_base_reduce_intra_chain( const void *sendbuf, void *recvbuf, int c
                                         ompi_communicator_t* comm,
                                         mca_coll_base_module_t *module,
                                         uint32_t segsize, int fanout,
-                                        int max_outstanding_reqs )
+                                        int max_outstanding_reqs 
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int segcount = count;
     size_t typelng;
     mca_coll_base_module_t *base_module = (mca_coll_base_module_t*) module;
@@ -446,11 +464,17 @@ int ompi_coll_base_reduce_intra_chain( const void *sendbuf, void *recvbuf, int c
      */
     ompi_datatype_type_size( datatype, &typelng );
     COLL_BASE_COMPUTED_SEGCOUNT( segsize, typelng, segcount );
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_reduce_generic( sendbuf, recvbuf, count, datatype,
                                            op, root, comm, module,
                                            data->cached_chain,
                                            segcount, max_outstanding_reqs );
+#else
+    return ompi_coll_base_reduce_generic( sendbuf, recvbuf, count, datatype,
+                                           op, root, comm, module,
+                                           data->cached_chain,
+                                           segcount, max_outstanding_reqs, &item);
+#endif
 }
 
 
@@ -460,8 +484,22 @@ int ompi_coll_base_reduce_intra_pipeline( const void *sendbuf, void *recvbuf,
                                            ompi_communicator_t* comm,
                                            mca_coll_base_module_t *module,
                                            uint32_t segsize,
-                                           int max_outstanding_reqs  )
+                                           int max_outstanding_reqs  
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int segcount = count;
     size_t typelng;
     mca_coll_base_module_t *base_module = (mca_coll_base_module_t*) module;
@@ -478,11 +516,18 @@ int ompi_coll_base_reduce_intra_pipeline( const void *sendbuf, void *recvbuf,
      */
     ompi_datatype_type_size( datatype, &typelng );
     COLL_BASE_COMPUTED_SEGCOUNT( segsize, typelng, segcount );
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_reduce_generic( sendbuf, recvbuf, count, datatype,
                                            op, root, comm, module,
                                            data->cached_pipeline,
                                            segcount, max_outstanding_reqs );
+#else
+    return ompi_coll_base_reduce_generic( sendbuf, recvbuf, count, datatype,
+                                           op, root, comm, module,
+                                           data->cached_pipeline,
+                                           segcount, max_outstanding_reqs, &item );
+#endif
+
 }
 
 int ompi_coll_base_reduce_intra_binary( const void *sendbuf, void *recvbuf,
@@ -491,8 +536,22 @@ int ompi_coll_base_reduce_intra_binary( const void *sendbuf, void *recvbuf,
                                          ompi_communicator_t* comm,
                                          mca_coll_base_module_t *module,
                                          uint32_t segsize,
-                                         int max_outstanding_reqs  )
+                                         int max_outstanding_reqs  
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int segcount = count;
     size_t typelng;
     mca_coll_base_module_t *base_module = (mca_coll_base_module_t*) module;
@@ -509,11 +568,17 @@ int ompi_coll_base_reduce_intra_binary( const void *sendbuf, void *recvbuf,
      */
     ompi_datatype_type_size( datatype, &typelng );
     COLL_BASE_COMPUTED_SEGCOUNT( segsize, typelng, segcount );
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_reduce_generic( sendbuf, recvbuf, count, datatype,
                                            op, root, comm, module,
                                            data->cached_bintree,
                                            segcount, max_outstanding_reqs );
+#else
+    return ompi_coll_base_reduce_generic( sendbuf, recvbuf, count, datatype,
+                                           op, root, comm, module,
+                                           data->cached_bintree,
+                                           segcount, max_outstanding_reqs, &item);
+#endif
 }
 
 int ompi_coll_base_reduce_intra_binomial( const void *sendbuf, void *recvbuf,
@@ -522,8 +587,22 @@ int ompi_coll_base_reduce_intra_binomial( const void *sendbuf, void *recvbuf,
                                            ompi_communicator_t* comm,
                                            mca_coll_base_module_t *module,
                                            uint32_t segsize,
-                                           int max_outstanding_reqs  )
+                                           int max_outstanding_reqs  
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int segcount = count;
     size_t typelng;
     mca_coll_base_module_t *base_module = (mca_coll_base_module_t*) module;
@@ -540,11 +619,17 @@ int ompi_coll_base_reduce_intra_binomial( const void *sendbuf, void *recvbuf,
      */
     ompi_datatype_type_size( datatype, &typelng );
     COLL_BASE_COMPUTED_SEGCOUNT( segsize, typelng, segcount );
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_reduce_generic( sendbuf, recvbuf, count, datatype,
                                            op, root, comm, module,
                                            data->cached_in_order_bmtree,
                                            segcount, max_outstanding_reqs );
+#else
+    return ompi_coll_base_reduce_generic( sendbuf, recvbuf, count, datatype,
+                                           op, root, comm, module,
+                                           data->cached_in_order_bmtree,
+                                           segcount, max_outstanding_reqs, &item);
+#endif
 }
 
 /*
@@ -561,8 +646,22 @@ int ompi_coll_base_reduce_intra_in_order_binary( const void *sendbuf, void *recv
                                                   ompi_communicator_t* comm,
                                                   mca_coll_base_module_t *module,
                                                   uint32_t segsize,
-                                                  int max_outstanding_reqs  )
+                                                  int max_outstanding_reqs  
+#ifdef ENABLE_ANALYSIS
+                                                  , qentry **q
+#endif
+                                                  )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int ret, rank, size, io_root, segcount = count;
     void *use_this_sendbuf = NULL;
     void *use_this_recvbuf = NULL;
@@ -622,10 +721,17 @@ int ompi_coll_base_reduce_intra_in_order_binary( const void *sendbuf, void *recv
     }
 
     /* Use generic reduce with in-order binary tree topology and io_root */
+#ifndef ENABLE_ANALYSIS
     ret = ompi_coll_base_reduce_generic( use_this_sendbuf, use_this_recvbuf, count, datatype,
                                           op, io_root, comm, module,
                                           data->cached_in_order_bintree,
                                           segcount, max_outstanding_reqs );
+#else
+    ret = ompi_coll_base_reduce_generic( use_this_sendbuf, use_this_recvbuf, count, datatype,
+                                          op, io_root, comm, module,
+                                          data->cached_in_order_bintree,
+                                          segcount, max_outstanding_reqs, &item);
+#endif
     if (MPI_SUCCESS != ret) { return ret; }
 
     /* Clean up */
@@ -689,7 +795,11 @@ ompi_coll_base_reduce_intra_basic_linear(const void *sbuf, void *rbuf, int count
                                          struct ompi_op_t *op,
                                          int root,
                                          struct ompi_communicator_t *comm,
-                                         mca_coll_base_module_t *module)
+                                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         )
 {
     int i, rank, err, size;
     ptrdiff_t extent, dsize, gap = 0;
@@ -875,8 +985,22 @@ ompi_coll_base_reduce_intra_basic_linear(const void *sbuf, void *rbuf, int count
 int ompi_coll_base_reduce_intra_redscat_gather(
     const void *sbuf, void *rbuf, int count, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, int root, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int comm_size = ompi_comm_size(comm);
     int rank = ompi_comm_rank(comm);
 
@@ -893,8 +1017,13 @@ int ompi_coll_base_reduce_intra_redscat_gather(
         OPAL_OUTPUT((ompi_coll_base_framework.framework_output,
                      "coll:base:reduce_intra_redscat_gather: rank %d/%d count %d "
                      "switching to basic linear reduce", rank, comm_size, count));
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_reduce_intra_basic_linear(sbuf, rbuf, count, dtype,
                                                         op, root, comm, module);
+#else
+        return ompi_coll_base_reduce_intra_basic_linear(sbuf, rbuf, count, dtype,
+                                                        op, root, comm, module, &item);
+#endif
     }
 
     int err = MPI_SUCCESS;

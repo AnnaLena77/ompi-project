@@ -372,9 +372,15 @@ mca_coll_basic_reduce_scatter_intra(const void *sbuf, void *rbuf, const int *rco
         }
 
         /* reduction */
+#ifndef ENABLE_ANALYSIS
         err =
             comm->c_coll->coll_reduce(sbuf, recv_buf, count, dtype, op, 0,
                                      comm, comm->c_coll->coll_reduce_module);
+#else
+        err =
+            comm->c_coll->coll_reduce(sbuf, recv_buf, count, dtype, op, 0,
+                                     comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
 
         /* scatter */
         if (MPI_SUCCESS == err) {

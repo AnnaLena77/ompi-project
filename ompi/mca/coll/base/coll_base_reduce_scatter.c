@@ -67,11 +67,21 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
     if (MPI_IN_PLACE == sbuf) {
         /* rbuf on root (0) is big enough to hold whole data */
         if (root == rank) {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce (MPI_IN_PLACE, tmprbuf, total_count,
                                             dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce (MPI_IN_PLACE, tmprbuf, total_count,
+                                            dtype, op, root, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
         } else {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce(tmprbuf, NULL, total_count,
                                            dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce(tmprbuf, NULL, total_count,
+                                           dtype, op, root, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
         }
     } else {
         if (root == rank) {
@@ -83,8 +93,13 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
             tmprbuf_free = (char*) malloc(dsize);
             tmprbuf = tmprbuf_free - gap;
         }
+#ifndef ENABLE_ANALYSIS
         err = comm->c_coll->coll_reduce (sbuf, tmprbuf, total_count,
                                         dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+        err = comm->c_coll->coll_reduce (sbuf, tmprbuf, total_count,
+                                        dtype, op, root, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
     }
     if (MPI_SUCCESS != err) {
         if (NULL != tmprbuf_free) free(tmprbuf_free);

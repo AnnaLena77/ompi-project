@@ -187,6 +187,7 @@ typedef enum COLLTYPE {
 BEGIN_C_DECLS
 
 /* All Gather */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_allgather_intra_bruck(ALLGATHER_ARGS);
 int ompi_coll_base_allgather_intra_recursivedoubling(ALLGATHER_ARGS);
 int ompi_coll_base_allgather_intra_sparbit(ALLGATHER_ARGS);
@@ -194,24 +195,52 @@ int ompi_coll_base_allgather_intra_ring(ALLGATHER_ARGS);
 int ompi_coll_base_allgather_intra_neighborexchange(ALLGATHER_ARGS);
 int ompi_coll_base_allgather_intra_basic_linear(ALLGATHER_ARGS);
 int ompi_coll_base_allgather_intra_two_procs(ALLGATHER_ARGS);
+#else
+int ompi_coll_base_allgather_intra_bruck(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_recursivedoubling(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_sparbit(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_ring(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_neighborexchange(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_basic_linear(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_two_procs(ALLGATHER_ARGS, qentry **q);
+#endif
 
 /* All GatherV */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_allgatherv_intra_bruck(ALLGATHERV_ARGS);
 int ompi_coll_base_allgatherv_intra_sparbit(ALLGATHERV_ARGS);
 int ompi_coll_base_allgatherv_intra_ring(ALLGATHERV_ARGS);
 int ompi_coll_base_allgatherv_intra_neighborexchange(ALLGATHERV_ARGS);
 int ompi_coll_base_allgatherv_intra_basic_default(ALLGATHERV_ARGS);
 int ompi_coll_base_allgatherv_intra_two_procs(ALLGATHERV_ARGS);
+#else
+int ompi_coll_base_allgatherv_intra_bruck(ALLGATHERV_ARGS, qentry **q);
+int ompi_coll_base_allgatherv_intra_sparbit(ALLGATHERV_ARGS, qentry **q);
+int ompi_coll_base_allgatherv_intra_ring(ALLGATHERV_ARGS, qentry **q);
+int ompi_coll_base_allgatherv_intra_neighborexchange(ALLGATHERV_ARGS, qentry **q);
+int ompi_coll_base_allgatherv_intra_basic_default(ALLGATHERV_ARGS, qentry **q);
+int ompi_coll_base_allgatherv_intra_two_procs(ALLGATHERV_ARGS, qentry **q);
+#endif
 
 /* All Reduce */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_allreduce_intra_nonoverlapping(ALLREDUCE_ARGS);
 int ompi_coll_base_allreduce_intra_recursivedoubling(ALLREDUCE_ARGS);
 int ompi_coll_base_allreduce_intra_ring(ALLREDUCE_ARGS);
 int ompi_coll_base_allreduce_intra_ring_segmented(ALLREDUCE_ARGS, uint32_t segsize);
 int ompi_coll_base_allreduce_intra_basic_linear(ALLREDUCE_ARGS);
 int ompi_coll_base_allreduce_intra_redscat_allgather(ALLREDUCE_ARGS);
+#else
+int ompi_coll_base_allreduce_intra_nonoverlapping(ALLREDUCE_ARGS, qentry **q);
+int ompi_coll_base_allreduce_intra_recursivedoubling(ALLREDUCE_ARGS, qentry **q);
+int ompi_coll_base_allreduce_intra_ring(ALLREDUCE_ARGS, qentry **q);
+int ompi_coll_base_allreduce_intra_ring_segmented(ALLREDUCE_ARGS, uint32_t segsize, qentry **q);
+int ompi_coll_base_allreduce_intra_basic_linear(ALLREDUCE_ARGS, qentry **q);
+int ompi_coll_base_allreduce_intra_redscat_allgather(ALLREDUCE_ARGS, qentry **q);
+#endif
 
 /* AlltoAll */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_alltoall_intra_pairwise(ALLTOALL_ARGS);
 int ompi_coll_base_alltoall_intra_bruck(ALLTOALL_ARGS);
 int ompi_coll_base_alltoall_intra_basic_linear(ALLTOALL_ARGS);
@@ -221,14 +250,34 @@ int mca_coll_base_alltoall_intra_basic_inplace(const void *rbuf, int rcount,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
                                                mca_coll_base_module_t *module);  /* special version for INPLACE */
+#else
+int ompi_coll_base_alltoall_intra_pairwise(ALLTOALL_ARGS, qentry **q);
+int ompi_coll_base_alltoall_intra_bruck(ALLTOALL_ARGS, qentry **q);
+int ompi_coll_base_alltoall_intra_basic_linear(ALLTOALL_ARGS, qentry **q);
+int ompi_coll_base_alltoall_intra_linear_sync(ALLTOALL_ARGS, int max_requests, qentry **q);
+int ompi_coll_base_alltoall_intra_two_procs(ALLTOALL_ARGS, qentry **q);
+int mca_coll_base_alltoall_intra_basic_inplace(const void *rbuf, int rcount,
+                                               struct ompi_datatype_t *rdtype,
+                                               struct ompi_communicator_t *comm,
+                                               mca_coll_base_module_t *module, qentry **q);  /* special version for INPLACE */
+#endif
 
 /* AlltoAllV */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_alltoallv_intra_pairwise(ALLTOALLV_ARGS);
 int ompi_coll_base_alltoallv_intra_basic_linear(ALLTOALLV_ARGS);
 int mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts, const int *rdisps,
                                                 struct ompi_datatype_t *rdtype,
                                                 struct ompi_communicator_t *comm,
                                                 mca_coll_base_module_t *module);  /* special version for INPLACE */
+#else
+int ompi_coll_base_alltoallv_intra_pairwise(ALLTOALLV_ARGS, qentry **q);
+int ompi_coll_base_alltoallv_intra_basic_linear(ALLTOALLV_ARGS, qentry **q);
+int mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts, const int *rdisps,
+                                                struct ompi_datatype_t *rdtype,
+                                                struct ompi_communicator_t *comm,
+                                                mca_coll_base_module_t *module, qentry **q);  /* special version for INPLACE */
+#endif
 
 /* AlltoAllW */
 
@@ -288,6 +337,7 @@ int ompi_coll_base_gather_intra_linear_sync(GATHER_ARGS, int first_segment_size,
 /* GatherV */
 
 /* Reduce */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_reduce_generic(REDUCE_ARGS, ompi_coll_tree_t* tree, int count_by_segment, int max_outstanding_reqs);
 int ompi_coll_base_reduce_intra_basic_linear(REDUCE_ARGS);
 int ompi_coll_base_reduce_intra_chain(REDUCE_ARGS, uint32_t segsize, int fanout, int max_outstanding_reqs );
@@ -296,6 +346,16 @@ int ompi_coll_base_reduce_intra_binary(REDUCE_ARGS, uint32_t segsize, int max_ou
 int ompi_coll_base_reduce_intra_binomial(REDUCE_ARGS, uint32_t segsize, int max_outstanding_reqs );
 int ompi_coll_base_reduce_intra_in_order_binary(REDUCE_ARGS, uint32_t segsize, int max_outstanding_reqs );
 int ompi_coll_base_reduce_intra_redscat_gather(REDUCE_ARGS);
+#else
+int ompi_coll_base_reduce_generic(REDUCE_ARGS, ompi_coll_tree_t* tree, int count_by_segment, int max_outstanding_reqs, qentry **q);
+int ompi_coll_base_reduce_intra_basic_linear(REDUCE_ARGS, qentry **q);
+int ompi_coll_base_reduce_intra_chain(REDUCE_ARGS, uint32_t segsize, int fanout, int max_outstanding_reqs, qentry **q);
+int ompi_coll_base_reduce_intra_pipeline(REDUCE_ARGS, uint32_t segsize, int max_outstanding_reqs, qentry **q);
+int ompi_coll_base_reduce_intra_binary(REDUCE_ARGS, uint32_t segsize, int max_outstanding_reqs, qentry **q);
+int ompi_coll_base_reduce_intra_binomial(REDUCE_ARGS, uint32_t segsize, int max_outstanding_reqs, qentry **q);
+int ompi_coll_base_reduce_intra_in_order_binary(REDUCE_ARGS, uint32_t segsize, int max_outstanding_reqs, qentry **q);
+int ompi_coll_base_reduce_intra_redscat_gather(REDUCE_ARGS, qentry **q);
+#endif
 
 /* Reduce_scatter */
 int ompi_coll_base_reduce_scatter_intra_nonoverlapping(REDUCESCATTER_ARGS);

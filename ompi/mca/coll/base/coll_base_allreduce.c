@@ -55,8 +55,24 @@ ompi_coll_base_allreduce_intra_nonoverlapping(const void *sbuf, void *rbuf, int 
                                                struct ompi_datatype_t *dtype,
                                                struct ompi_op_t *op,
                                                struct ompi_communicator_t *comm,
-                                               mca_coll_base_module_t *module)
+                                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                               , qentry **q
+#endif
+                                               )
 {
+
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
+
     int err, rank;
 
     rank = ompi_comm_rank(comm);
@@ -67,15 +83,30 @@ ompi_coll_base_allreduce_intra_nonoverlapping(const void *sbuf, void *rbuf, int 
 
     if (MPI_IN_PLACE == sbuf) {
         if (0 == rank) {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce (MPI_IN_PLACE, rbuf, count, dtype,
                                             op, 0, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce (MPI_IN_PLACE, rbuf, count, dtype,
+                                            op, 0, comm, comm->c_coll->coll_reduce_module, &item);
+#endif
         } else {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce (rbuf, NULL, count, dtype, op, 0,
                                             comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce (rbuf, NULL, count, dtype, op, 0,
+                                            comm, comm->c_coll->coll_reduce_module, &item);
+#endif
         }
     } else {
+#ifndef ENABLE_ANALYSIS
         err = comm->c_coll->coll_reduce (sbuf, rbuf, count, dtype, op, 0,
                                         comm, comm->c_coll->coll_reduce_module);
+#else
+        err = comm->c_coll->coll_reduce (sbuf, rbuf, count, dtype, op, 0,
+                                        comm, comm->c_coll->coll_reduce_module, &item);
+#endif
     }
     if (MPI_SUCCESS != err) {
         return err;
@@ -136,7 +167,11 @@ ompi_coll_base_allreduce_intra_recursivedoubling(const void *sbuf, void *rbuf,
                                                   struct ompi_datatype_t *dtype,
                                                   struct ompi_op_t *op,
                                                   struct ompi_communicator_t *comm,
-                                                  mca_coll_base_module_t *module)
+                                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                  , qentry **q
+#endif
+                                                  )
 {
     int ret, line, rank, size, adjsize, remote, distance;
     int newrank, newremote, extra_ranks;
@@ -370,8 +405,22 @@ ompi_coll_base_allreduce_intra_ring(const void *sbuf, void *rbuf, int count,
                                      struct ompi_datatype_t *dtype,
                                      struct ompi_op_t *op,
                                      struct ompi_communicator_t *comm,
-                                     mca_coll_base_module_t *module)
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int ret, line, rank, size, k, recv_from, send_to, block_count, inbi;
     int early_segcount, late_segcount, split_rank, max_segcount;
     size_t typelng;
@@ -398,10 +447,17 @@ ompi_coll_base_allreduce_intra_ring(const void *sbuf, void *rbuf, int count,
     /* Special case for count less than size - use recursive doubling */
     if (count < size) {
         OPAL_OUTPUT((ompi_coll_base_framework.framework_output, "coll:base:allreduce_ring rank %d/%d, count %d, switching to recursive doubling", rank, size, count));
+#ifndef ENABLE_ANALYSIS
         return (ompi_coll_base_allreduce_intra_recursivedoubling(sbuf, rbuf,
                                                                   count,
                                                                   dtype, op,
                                                                   comm, module));
+#else
+        return (ompi_coll_base_allreduce_intra_recursivedoubling(sbuf, rbuf,
+                                                                  count,
+                                                                  dtype, op,
+                                                                  comm, module, &item));
+#endif
     }
 
     /* Allocate and initialize temporary buffers */
@@ -670,8 +726,22 @@ ompi_coll_base_allreduce_intra_ring_segmented(const void *sbuf, void *rbuf, int 
                                                struct ompi_op_t *op,
                                                struct ompi_communicator_t *comm,
                                                mca_coll_base_module_t *module,
-                                               uint32_t segsize)
+                                               uint32_t segsize
+#ifdef ENABLE_ANALYSIS
+                                               , qentry **q
+#endif
+                                               )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int ret, line, rank, size, k, recv_from, send_to;
     int early_blockcount, late_blockcount, split_rank;
     int segcount, max_segcount, num_phases, phase, block_count, inbi;
@@ -705,8 +775,13 @@ ompi_coll_base_allreduce_intra_ring_segmented(const void *sbuf, void *rbuf, int 
         /* Special case for count less than size * segcount - use regular ring */
         if (count < (size * segcount)) {
             OPAL_OUTPUT((ompi_coll_base_framework.framework_output, "coll:base:allreduce_ring_segmented rank %d/%d, count %d, switching to regular ring", rank, size, count));
+#ifndef ENABLE_ANALYSIS
             return (ompi_coll_base_allreduce_intra_ring(sbuf, rbuf, count, dtype, op,
                                                          comm, module));
+#else
+return (ompi_coll_base_allreduce_intra_ring(sbuf, rbuf, count, dtype, op,
+                                                         comm, module, &item));
+#endif
         }
 
     /* Determine the number of phases of the algorithm */
@@ -955,8 +1030,22 @@ ompi_coll_base_allreduce_intra_basic_linear(const void *sbuf, void *rbuf, int co
                                              struct ompi_datatype_t *dtype,
                                              struct ompi_op_t *op,
                                              struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                             , qentry **q
+#endif
+                                             )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int err, rank;
 
     rank = ompi_comm_rank(comm);
@@ -967,15 +1056,30 @@ ompi_coll_base_allreduce_intra_basic_linear(const void *sbuf, void *rbuf, int co
 
     if (MPI_IN_PLACE == sbuf) {
         if (0 == rank) {
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_reduce_intra_basic_linear (MPI_IN_PLACE, rbuf, count, dtype,
                                                              op, 0, comm, module);
+#else
+            err = ompi_coll_base_reduce_intra_basic_linear (MPI_IN_PLACE, rbuf, count, dtype,
+                                                             op, 0, comm, module, &item);
+#endif
         } else {
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_reduce_intra_basic_linear(rbuf, NULL, count, dtype,
                                                             op, 0, comm, module);
+#else
+            err = ompi_coll_base_reduce_intra_basic_linear(rbuf, NULL, count, dtype,
+                                                            op, 0, comm, module, &item);
+#endif
         }
     } else {
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_reduce_intra_basic_linear(sbuf, rbuf, count, dtype,
                                                         op, 0, comm, module);
+#else
+        err = ompi_coll_base_reduce_intra_basic_linear(sbuf, rbuf, count, dtype,
+                                                        op, 0, comm, module, &item);
+#endif
     }
     if (MPI_SUCCESS != err) {
         return err;
@@ -1046,8 +1150,22 @@ ompi_coll_base_allreduce_intra_basic_linear(const void *sbuf, void *rbuf, int co
 int ompi_coll_base_allreduce_intra_redscat_allgather(
     const void *sbuf, void *rbuf, int count, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int *rindex = NULL, *rcount = NULL, *sindex = NULL, *scount = NULL;
 
     int comm_size = ompi_comm_size(comm);
@@ -1066,8 +1184,13 @@ int ompi_coll_base_allreduce_intra_redscat_allgather(
                      "coll:base:allreduce_intra_redscat_allgather: rank %d/%d "
                      "count %d switching to basic linear allreduce",
                      rank, comm_size, count));
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_allreduce_intra_basic_linear(sbuf, rbuf, count, dtype,
                                                            op, comm, module);
+#else
+        return ompi_coll_base_allreduce_intra_basic_linear(sbuf, rbuf, count, dtype,
+                                                           op, comm, module, &item);
+#endif
     }
 
     int err = MPI_SUCCESS;

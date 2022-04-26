@@ -68,8 +68,22 @@ int mca_coll_sm_reduce_intra(const void *sbuf, void* rbuf, int count,
                              struct ompi_datatype_t *dtype,
                              struct ompi_op_t *op,
                              int root, struct ompi_communicator_t *comm,
-                             mca_coll_base_module_t *module)
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		           , qentry **q
+#endif
+                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     size_t size;
     mca_coll_sm_module_t *sm_module = (mca_coll_sm_module_t*) module;
 
@@ -87,9 +101,15 @@ int mca_coll_sm_reduce_intra(const void *sbuf, void* rbuf, int count,
 
     ompi_datatype_type_size(dtype, &size);
     if ((int)size > mca_coll_sm_component.sm_control_size) {
+#ifndef ENABLE_ANALYSIS
         return sm_module->previous_reduce(sbuf, rbuf, count,
                                           dtype, op, root, comm,
                                           sm_module->previous_reduce_module);
+#else
+        return sm_module->previous_reduce(sbuf, rbuf, count,
+                                          dtype, op, root, comm,
+                                          sm_module->previous_reduce_module, &item);
+#endif
     }
 #if WANT_REDUCE_NO_ORDER
     else {

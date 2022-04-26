@@ -140,10 +140,17 @@ int MPI_Ineighbor_allgatherv(const void *sendbuf, int sendcount, MPI_Datatype se
     }
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_ineighbor_allgatherv(sendbuf, sendcount, sendtype,
                                                  recvbuf, (int *) recvcounts, (int *) displs,
                                                  recvtype, comm, request,
                                                  comm->c_coll->coll_ineighbor_allgatherv_module);
+#else
+    err = comm->c_coll->coll_ineighbor_allgatherv(sendbuf, sendcount, sendtype,
+                                                 recvbuf, (int *) recvcounts, (int *) displs,
+                                                 recvtype, comm, request,
+                                                 comm->c_coll->coll_ineighbor_allgatherv_module, NULL);
+#endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         ompi_coll_base_retain_datatypes(*request, sendtype, recvtype);
     }

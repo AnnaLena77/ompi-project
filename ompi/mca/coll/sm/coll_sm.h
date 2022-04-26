@@ -222,31 +222,51 @@ BEGIN_C_DECLS
 				    void *rbuf, int rcount,
 				    struct ompi_datatype_t *rdtype,
 				    struct ompi_communicator_t *comm,
-				    mca_coll_base_module_t *module);
+				    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				    , qentry **q
+#endif
+				    );
 
     int mca_coll_sm_allgatherv_intra(const void *sbuf, int scount,
 				     struct ompi_datatype_t *sdtype,
 				     void * rbuf, const int *rcounts, const int *disps,
 				     struct ompi_datatype_t *rdtype,
 				     struct ompi_communicator_t *comm,
-				     mca_coll_base_module_t *module);
+				     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				     , qentry **q
+#endif
+				     );
     int mca_coll_sm_allreduce_intra(const void *sbuf, void *rbuf, int count,
 				    struct ompi_datatype_t *dtype,
 				    struct ompi_op_t *op,
 				    struct ompi_communicator_t *comm,
-				    mca_coll_base_module_t *module);
+				    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				    , qentry **q
+#endif
+				    );
     int mca_coll_sm_alltoall_intra(const void *sbuf, int scount,
 				   struct ompi_datatype_t *sdtype,
 				   void* rbuf, int rcount,
 				   struct ompi_datatype_t *rdtype,
 				   struct ompi_communicator_t *comm,
-				   mca_coll_base_module_t *module);
+				   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				   , qentry **q
+#endif
+				   );
     int mca_coll_sm_alltoallv_intra(const void *sbuf, const int *scounts, const int *sdisps,
 				    struct ompi_datatype_t *sdtype,
 				    void *rbuf, const int *rcounts, const int *rdisps,
 				    struct ompi_datatype_t *rdtype,
 				    struct ompi_communicator_t *comm,
-				    mca_coll_base_module_t *module);
+				    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				    , qentry **q
+#endif
+				    );
     int mca_coll_sm_alltoallw_intra(const void *sbuf, const int *scounts, const int *sdisps,
 				    struct ompi_datatype_t * const *sdtypes,
 				    void *rbuf, const int *rcounts, const int *rdisps,
@@ -278,19 +298,31 @@ BEGIN_C_DECLS
 				 struct ompi_datatype_t *sdtype, void *rbuf,
 				 int rcount, struct ompi_datatype_t *rdtype,
 				 int root, struct ompi_communicator_t *comm,
-				 mca_coll_base_module_t *module);
+				 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				 , qentry **q
+#endif
+				 );
     int mca_coll_sm_gatherv_intra(void *sbuf, int scount,
 				  struct ompi_datatype_t *sdtype, void *rbuf,
 				  int *rcounts, int *disps,
 				  struct ompi_datatype_t *rdtype, int root,
 				  struct ompi_communicator_t *comm,
-				  mca_coll_base_module_t *module);
+				  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				  , qentry **q
+#endif
+				  );
     int mca_coll_sm_reduce_intra(const void *sbuf, void* rbuf, int count,
 				 struct ompi_datatype_t *dtype,
 				 struct ompi_op_t *op,
 				 int root,
 				 struct ompi_communicator_t *comm,
-				 mca_coll_base_module_t *module);
+				 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				 , qentry **q
+#endif
+				 );
     int mca_coll_sm_reduce_log_intra(const void *sbuf, void* rbuf, int count,
 				     struct ompi_datatype_t *dtype,
 				     struct ompi_op_t *op,
@@ -312,13 +344,21 @@ BEGIN_C_DECLS
 				  struct ompi_datatype_t *sdtype, void *rbuf,
 				  int rcount, struct ompi_datatype_t *rdtype,
 				  int root, struct ompi_communicator_t *comm,
-				  mca_coll_base_module_t *module);
+				  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				  , qentry **q
+#endif
+				  );
     int mca_coll_sm_scatterv_intra(const void *sbuf, const int *scounts, const int *disps,
 				   struct ompi_datatype_t *sdtype,
 				   void* rbuf, int rcount,
 				   struct ompi_datatype_t *rdtype, int root,
 				   struct ompi_communicator_t *comm,
-				   mca_coll_base_module_t *module);
+				   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				   , qentry **q
+#endif
+				   );
 
 /**
  * Global variables used in the macros (essentially constants, so

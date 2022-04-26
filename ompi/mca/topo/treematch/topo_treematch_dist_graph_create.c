@@ -63,9 +63,13 @@ static int check_oversubscribing(int rank,
         if(num_objs_in_node < num_procs_in_node)
             local_oversub = 1;
 
-
+#ifndef ENABLE_ANALYSIS
     if (OMPI_SUCCESS != (err = comm_old->c_coll->coll_allreduce(&local_oversub, &oversubscribed, 1, MPI_INT,
                                                                 MPI_SUM, comm_old, comm_old->c_coll->coll_allreduce_module)))
+#else
+    if (OMPI_SUCCESS != (err = comm_old->c_coll->coll_allreduce(&local_oversub, &oversubscribed, 1, MPI_INT,
+                                                                MPI_SUM, comm_old, comm_old->c_coll->coll_allreduce_module, NULL)))
+#endif
         return err;
 
     return oversubscribed;
@@ -776,9 +780,15 @@ int mca_topo_treematch_dist_graph_create(mca_topo_base_module_t* topo_module,
         }
 
         lrank_to_grank = (int *)calloc(num_procs_in_node, sizeof(int));
+#ifndef ENABLE_ANALYSIS
         if (OMPI_SUCCESS != (err = localcomm->c_coll->coll_allgather(&rank, 1, MPI_INT,
                                                                      lrank_to_grank, 1, MPI_INT,
                                                                      localcomm, localcomm->c_coll->coll_allgather_module))) {
+#else
+        if (OMPI_SUCCESS != (err = localcomm->c_coll->coll_allgather(&rank, 1, MPI_INT,
+                                                                     lrank_to_grank, 1, MPI_INT,
+                                                                     localcomm, localcomm->c_coll->coll_allgather_module, NULL))) {
+#endif
             free(lrank_to_grank);
             ompi_comm_free(&localcomm);
             goto release_and_return;

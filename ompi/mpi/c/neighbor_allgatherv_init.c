@@ -141,6 +141,7 @@ int MPI_Neighbor_allgatherv_init(const void *sendbuf, int sendcount, MPI_Datatyp
     }
 
     /* Invoke the coll component to perform the back-end operation */
+
     err = comm->c_coll->coll_neighbor_allgatherv_init(sendbuf, sendcount, sendtype,
                                                       recvbuf, (int *) recvcounts, (int *) displs,
                                                       recvtype, comm, info, request,

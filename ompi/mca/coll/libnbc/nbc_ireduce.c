@@ -209,7 +209,7 @@ static int nbc_reduce_init(const void* sendbuf, void* recvbuf, int count, MPI_Da
       res = hb_tree_insert ((hb_tree *) libnbc_module->NBC_Dict[NBC_REDUCE], args, args, 0);
       if (0 == res) {
         OBJ_RETAIN(schedule);
-
+  
         /* increase number of elements for Reduce */
         if (++libnbc_module->NBC_Dict_size[NBC_REDUCE] > NBC_SCHED_DICT_UPPER) {
           NBC_SchedCache_dictwipe ((hb_tree *) libnbc_module->NBC_Dict[NBC_REDUCE],
@@ -239,7 +239,11 @@ static int nbc_reduce_init(const void* sendbuf, void* recvbuf, int count, MPI_Da
 
 int ompi_coll_libnbc_ireduce(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
                              MPI_Op op, int root, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                             mca_coll_base_module_t *module) {
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             ) {
     int res = nbc_reduce_init(sendbuf, recvbuf, count, datatype, op, root,
                               comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {
@@ -305,7 +309,11 @@ static int nbc_reduce_inter_init(const void* sendbuf, void* recvbuf, int count, 
 
 int ompi_coll_libnbc_ireduce_inter(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
                                    MPI_Op op, int root, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                   mca_coll_base_module_t *module) {
+                                   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                   , qentry **q
+#endif
+                                   ) {
     int res = nbc_reduce_inter_init(sendbuf, recvbuf, count, datatype, op, root,
                                     comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {

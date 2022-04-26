@@ -118,9 +118,15 @@ int MPI_Ineighbor_allgather(const void *sendbuf, int sendcount, MPI_Datatype sen
     }
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_ineighbor_allgather(sendbuf, sendcount, sendtype, recvbuf,
                                                 recvcount, recvtype, comm, request,
                                                 comm->c_coll->coll_ineighbor_allgather_module);
+#else
+    err = comm->c_coll->coll_ineighbor_allgather(sendbuf, sendcount, sendtype, recvbuf,
+                                                recvcount, recvtype, comm, request,
+                                                comm->c_coll->coll_ineighbor_allgather_module, NULL);
+#endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         ompi_coll_base_retain_datatypes(*request, sendtype, recvtype);
     }

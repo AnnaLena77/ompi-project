@@ -282,7 +282,11 @@ mca_coll_basic_neighbor_alltoallv_dist_graph(const void *sbuf, const int scounts
 int mca_coll_basic_neighbor_alltoallv(const void *sbuf, const int scounts[], const int sdisps[],
                                       struct ompi_datatype_t *sdtype, void *rbuf, const int rcounts[],
                                       const int rdisps[], struct ompi_datatype_t *rdtype,
-                                      struct ompi_communicator_t *comm, mca_coll_base_module_t *module)
+                                      struct ompi_communicator_t *comm, mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
     if (OMPI_COMM_IS_INTER(comm)) {
         return OMPI_ERR_NOT_SUPPORTED;
