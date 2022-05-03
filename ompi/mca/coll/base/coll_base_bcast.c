@@ -113,7 +113,7 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
                                          tree->tree_next[i],
                                          MCA_COLL_BASE_TAG_BCAST,
                                          MCA_PML_BASE_SEND_STANDARD, comm,
-                                         &send_reqs[i], &item));
+                                         &send_reqs[i], NULL));
 #endif
                 if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
             }
