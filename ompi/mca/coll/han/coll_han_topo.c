@@ -129,9 +129,15 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
         if ( ranks_non_consecutive && !is_imbalanced ) {
             /* kick off up_comm allgather to collect non-consecutive rank information at node leaders */
             ranks_map = malloc(sizeof(int)*size);
+#ifndef ENABLE_ANALYSIS
             up_comm->c_coll->coll_iallgather(my_low_rank_map, low_size, MPI_INT,
                                              ranks_map, low_size, MPI_INT, up_comm, &request,
                                              up_comm->c_coll->coll_iallgather_module);
+#else
+            up_comm->c_coll->coll_iallgather(my_low_rank_map, low_size, MPI_INT,
+                                             ranks_map, low_size, MPI_INT, up_comm, &request,
+                                             up_comm->c_coll->coll_iallgather_module, NULL);
+#endif
         }
     }
 

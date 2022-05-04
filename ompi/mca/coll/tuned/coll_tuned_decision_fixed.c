@@ -1124,8 +1124,20 @@ int ompi_coll_tuned_allgather_intra_dec_fixed(const void *sbuf, int scount,
                                               void* rbuf, int rcount,
                                               struct ompi_datatype_t *rdtype,
                                               struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int communicator_size, alg;
     size_t dsize, total_dsize;
     if (MPI_IN_PLACE != sbuf) {
@@ -1250,10 +1262,23 @@ int ompi_coll_tuned_allgather_intra_dec_fixed(const void *sbuf, int scount,
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "ompi_coll_tuned_allgather_intra_dec_fixed"
                  " rank %d com_size %d", ompi_comm_rank(comm), communicator_size));
-
+//#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allgather_intra_do_this(sbuf, scount, sdtype,
                                                    rbuf, rcount, rdtype,
                                                    comm, module, alg, 0, 0);
+/*#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "bruck");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "recursive_doubling");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "ring");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "neighbor");
+        else if(alg == 6) strcpy(item->usedAlgorithm, "two_proc");
+    }
+    return ompi_coll_tuned_allgather_intra_do_this(sbuf, scount, sdtype,
+                                                   rbuf, rcount, rdtype,
+                                                   comm, module, alg, 0, 0, &item);
+#endif*/
 }
 
 /*
@@ -1271,8 +1296,21 @@ int ompi_coll_tuned_allgatherv_intra_dec_fixed(const void *sbuf, int scount,
                                                const int *rdispls,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
-                                               mca_coll_base_module_t *module)
+                                               mca_coll_base_module_t *module
+
+/*#ifdef ENABLE_ANALYSIS
+                                               , qentry **q
+#endif*/
+                                               )
 {
+/*#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif*/
     int communicator_size, alg, i;
     size_t dsize, total_dsize, per_rank_dsize;
 
@@ -1389,11 +1427,26 @@ int ompi_coll_tuned_allgatherv_intra_dec_fixed(const void *sbuf, int scount,
                  "ompi_coll_tuned_allgatherv_intra_dec_fixed"
                  " rank %d com_size %d", ompi_comm_rank(comm), communicator_size));
 
+//#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allgatherv_intra_do_this (sbuf, scount, sdtype,
                                                      rbuf, rcounts,
                                                      rdispls, rdtype,
                                                      comm, module,
                                                      alg, 0, 0);
+/*#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "default");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "bruck");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "ring");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "neighbor");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "two_proc");
+    }
+    return ompi_coll_tuned_allgatherv_intra_do_this (sbuf, scount, sdtype,
+                                                     rbuf, rcounts,
+                                                     rdispls, rdtype,
+                                                     comm, module,
+                                                     alg, 0, 0, &item);
+#endif*/
 }
 
 /*

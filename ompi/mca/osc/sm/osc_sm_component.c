@@ -276,10 +276,17 @@ component_select(struct ompi_win_t *win, void **base, size_t size, int disp_unit
         } else {
             total = size;
         }
+#ifndef ENABLE_ANALYSIS
         ret = module->comm->c_coll->coll_allgather(&total, 1, MPI_UNSIGNED_LONG,
                                                   rbuf, 1, MPI_UNSIGNED_LONG,
                                                   module->comm,
                                                   module->comm->c_coll->coll_allgather_module);
+#else
+        ret = module->comm->c_coll->coll_allgather(&total, 1, MPI_UNSIGNED_LONG,
+                                                  rbuf, 1, MPI_UNSIGNED_LONG,
+                                                  module->comm,
+                                                  module->comm->c_coll->coll_allgather_module, NULL);
+#endif
         if (OMPI_SUCCESS != ret) return ret;
 
         total = 0;
@@ -382,10 +389,17 @@ component_select(struct ompi_win_t *win, void **base, size_t size, int disp_unit
 
     /* share everyone's displacement units. */
     module->disp_units = malloc(sizeof(int) * comm_size);
+#ifndef ENABLE_ANALYSIS
     ret = module->comm->c_coll->coll_allgather(&disp_unit, 1, MPI_INT,
                                               module->disp_units, 1, MPI_INT,
                                               module->comm,
                                               module->comm->c_coll->coll_allgather_module);
+#else
+    ret = module->comm->c_coll->coll_allgather(&disp_unit, 1, MPI_INT,
+                                              module->disp_units, 1, MPI_INT,
+                                              module->comm,
+                                              module->comm->c_coll->coll_allgather_module, NULL);
+#endif
     if (OMPI_SUCCESS != ret) goto error;
 
     module->start_group = NULL;

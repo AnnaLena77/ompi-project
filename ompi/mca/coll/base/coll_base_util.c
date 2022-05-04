@@ -68,14 +68,12 @@ int ompi_coll_base_sendrecv_actual( const void* sendbuf, size_t scount,
                              MCA_PML_BASE_SEND_STANDARD, comm, NULL));
 #endif
     if (err != MPI_SUCCESS) { line = __LINE__; goto error_handler; }
-
     err = ompi_request_wait( &req, &rstatus);
     if (err != MPI_SUCCESS) { line = __LINE__; goto error_handler; }
 
     if (MPI_STATUS_IGNORE != status) {
         *status = rstatus;
     }
-
     return (MPI_SUCCESS);
 
  error_handler:

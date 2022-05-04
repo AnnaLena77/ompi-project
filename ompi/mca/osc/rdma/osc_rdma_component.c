@@ -645,8 +645,13 @@ static int allocate_state_shared (ompi_osc_rdma_module_t *module, void **base, s
         temp[local_rank].size = size;
 
         /* gather the local sizes and ranks */
+#ifndef ENABLE_ANALYSIS
         ret = shared_comm->c_coll->coll_allgather (MPI_IN_PLACE, sizeof (*temp), MPI_BYTE, temp, sizeof (*temp),
                                                   MPI_BYTE, shared_comm, shared_comm->c_coll->coll_allgather_module);
+#else
+        ret = shared_comm->c_coll->coll_allgather (MPI_IN_PLACE, sizeof (*temp), MPI_BYTE, temp, sizeof (*temp),
+                                                  MPI_BYTE, shared_comm, shared_comm->c_coll->coll_allgather_module, NULL);
+#endif
         if (OMPI_SUCCESS != ret) {
             break;
         }
@@ -1167,8 +1172,13 @@ static int ompi_osc_rdma_share_data (ompi_osc_rdma_module_t *module)
         temp[my_rank].node_id = module->node_id;
         temp[my_rank].rank = ompi_comm_rank (module->shared_comm);
 
+#ifndef ENABLE_ANALYSIS
         ret = module->comm->c_coll->coll_allgather (MPI_IN_PLACE, 1, MPI_2INT, temp, 1, MPI_2INT,
                                                    module->comm, module->comm->c_coll->coll_allgather_module);
+#else
+        ret = module->comm->c_coll->coll_allgather (MPI_IN_PLACE, 1, MPI_2INT, temp, 1, MPI_2INT,
+                                                   module->comm, module->comm->c_coll->coll_allgather_module, NULL);     
+#endif
         if (OMPI_SUCCESS != ret) {
             break;
         }
@@ -1188,9 +1198,15 @@ static int ompi_osc_rdma_share_data (ompi_osc_rdma_module_t *module)
 
             /* gather state data at each node leader */
             if (ompi_comm_size (module->local_leaders) > 1) {
+#ifndef ENABLE_ANALYSIS
                 ret = module->local_leaders->c_coll->coll_allgather (MPI_IN_PLACE, module->region_size, MPI_BYTE, module->node_comm_info,
                                                                     module->region_size, MPI_BYTE, module->local_leaders,
                                                                     module->local_leaders->c_coll->coll_allgather_module);
+#else
+                ret = module->local_leaders->c_coll->coll_allgather (MPI_IN_PLACE, module->region_size, MPI_BYTE, module->node_comm_info,
+                                                                    module->region_size, MPI_BYTE, module->local_leaders,
+                                                                    module->local_leaders->c_coll->coll_allgather_module, NULL);
+#endif
                 if (OMPI_SUCCESS != ret) {
                     OSC_RDMA_VERBOSE(MCA_BASE_VERBOSE_ERROR, "leader allgather failed with ompi error code %d", ret);
                     break;

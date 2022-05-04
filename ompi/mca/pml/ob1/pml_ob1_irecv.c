@@ -74,32 +74,25 @@ int mca_pml_ob1_irecv_init(void *addr,
     *request = (ompi_request_t *) recvreq;
     return OMPI_SUCCESS;
 }
-#ifndef ENABLE_ANALYSIS
 int mca_pml_ob1_irecv(void *addr,
                       size_t count,
                       ompi_datatype_t * datatype,
                       int src,
                       int tag,
                       struct ompi_communicator_t *comm,
-                      struct ompi_request_t **request)
-{
-#else
-int mca_pml_ob1_irecv(void *addr,
-                      size_t count,
-                      ompi_datatype_t * datatype,
-                      int src,
-                      int tag,
-                      struct ompi_communicator_t *comm,
-                      struct ompi_request_t **request, struct qentry **q)
-{
+                      struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                      , qentry **q
 #endif
+                      )
+{
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
             item->blocking = 0;
-        }
+        } else item = NULL;
     }
     else {
         item = NULL;
@@ -158,7 +151,7 @@ int mca_pml_ob1_recv(void *addr,
         if(*q!=NULL){
             item = *q;
             item->blocking = 1;
-        }
+        } else item = NULL;
     }
     else {
         item = NULL;
@@ -266,11 +259,8 @@ mca_pml_ob1_imrecv( void *buf,
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-        } else item=NULL;
-    }
-    else {
-        item = NULL;
-    }
+        } else item = NULL;
+    } else item = NULL;
 #endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;
@@ -379,11 +369,9 @@ mca_pml_ob1_mrecv( void *buf,
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-        } item = NULL;
-    }
-    else {
-        item = NULL;
-    }
+        } else item = NULL;
+    } else item = NULL;
+
 #endif
     mca_pml_ob1_recv_frag_t* frag;
     mca_pml_ob1_recv_request_t *recvreq;
