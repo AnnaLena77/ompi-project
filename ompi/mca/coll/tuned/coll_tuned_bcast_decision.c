@@ -145,7 +145,7 @@ int ompi_coll_tuned_bcast_intra_do_this(void *buf, int count,
                                         )
 {
 #ifdef ENABLE_ANALYSIS
-     qentry *item;
+    qentry *item;
     if(q!=NULL){
         if(*q!=NULL) {
             item = *q;

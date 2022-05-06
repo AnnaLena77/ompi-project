@@ -670,6 +670,7 @@ int ompi_coll_tuned_bcast_intra_dec_fixed(void *buff, int count,
         else if(alg == 7) strcpy(item->usedAlgorithm, "scatter_allgather");
         else if(alg == 8) strcpy(item->usedAlgorithm, "scatter_allgather_ring");
     }
+    
     return ompi_coll_tuned_bcast_intra_do_this (buff, count, datatype, root,
                                                 comm, module,
                                                 alg, 0, 0, &item);
