@@ -488,7 +488,7 @@ static inline void ompi_request_wait_completion(ompi_request_t *req)
      }
      opal_atomic_rmb();
     } else {
-        while(!REQUEST_COMPLETE(req)) {
+        while(!REQUEST_COMPLETE(req)) {            
             opal_progress();
 #if OPAL_ENABLE_FT_MPI
             /* Check to make sure that process failure did not break the

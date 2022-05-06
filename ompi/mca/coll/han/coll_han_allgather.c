@@ -73,8 +73,20 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
                              void *rbuf, int rcount,
                              struct ompi_datatype_t *rdtype,
                              struct ompi_communicator_t *comm,
-                             mca_coll_base_module_t * module)
+                             mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     /* Create the subcommunicators */
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *) module;
     if( OMPI_SUCCESS != mca_coll_han_comm_create_new(comm, han_module) ) {
@@ -82,8 +94,13 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
                              "han cannot handle allgather within this communicator. Fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
                                             comm, comm->c_coll->coll_allgather_module);
+#else
+        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                            comm, comm->c_coll->coll_allgather_module, &item);
+#endif
     }
     ompi_communicator_t *low_comm = han_module->sub_comm[INTRA_NODE];
     ompi_communicator_t *up_comm = han_module->sub_comm[INTER_NODE];
@@ -97,8 +114,13 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "han cannot handle allgather with this communicator (imbalance). Fall back on another component\n"));
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, allgather);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
                                             comm, comm->c_coll->coll_allgather_module);
+#else
+        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                            comm, comm->c_coll->coll_allgather_module, &item);
+#endif
     }
 
     ompi_request_t *temp_request;
@@ -234,9 +256,15 @@ int mca_coll_han_allgather_uag_task(void *task_args)
         }
 
         /* Inter node allgather */
+#ifndef ENABLE_ANALYSIS
         t->up_comm->c_coll->coll_allgather((char *) t->sbuf, t->scount * low_size, t->sdtype,
                                            reorder_rbuf, t->rcount * low_size, t->rdtype,
                                            t->up_comm, t->up_comm->c_coll->coll_allgather_module);
+#else
+        t->up_comm->c_coll->coll_allgather((char *) t->sbuf, t->scount * low_size, t->sdtype,
+                                           reorder_rbuf, t->rcount * low_size, t->rdtype,
+                                           t->up_comm, t->up_comm->c_coll->coll_allgather_module, NULL);
+#endif
 
         if (t->sbuf_inter_free != NULL) {
             free(t->sbuf_inter_free);
@@ -320,8 +348,20 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
                                     void* rbuf, int rcount,
                                     struct ompi_datatype_t *rdtype,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module){
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    ){
 
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     /* create the subcommunicators */
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
 
@@ -330,8 +370,13 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
                              "han cannot handle allgather within this communicator. Fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
                                             comm, comm->c_coll->coll_allgather_module);
+#else
+        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                            comm, comm->c_coll->coll_allgather_module, &item);
+#endif
     }
     /* discovery topology */
     int *topo = mca_coll_han_topo_init(comm, han_module, 2);
@@ -344,8 +389,13 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, allgather);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
                                             comm, comm->c_coll->coll_allgather_module);
+#else
+        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                            comm, comm->c_coll->coll_allgather_module, &item);
+#endif
     }
 
     ompi_communicator_t *low_comm = han_module->sub_comm[INTRA_NODE];
@@ -442,9 +492,15 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
         }
 
         /* 2a. inter node allgather */
+#ifndef ENABLE_ANALYSIS
         up_comm->c_coll->coll_allgather(tmp_buf_start, scount*low_size, sdtype,
                                         reorder_buf_start, rcount*low_size, rdtype,
                                         up_comm, up_comm->c_coll->coll_allgather_module);
+#else
+        up_comm->c_coll->coll_allgather(tmp_buf_start, scount*low_size, sdtype,
+                                        reorder_buf_start, rcount*low_size, rdtype,
+                                        up_comm, up_comm->c_coll->coll_allgather_module, NULL);
+#endif
 
         if (tmp_buf != NULL) {
             free(tmp_buf);

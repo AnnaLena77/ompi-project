@@ -98,7 +98,11 @@ int ompi_coll_base_allgatherv_intra_bruck(const void *sbuf, int scount,
                                            const int *rdispls,
                                            struct ompi_datatype_t *rdtype,
                                            struct ompi_communicator_t *comm,
-                                           mca_coll_base_module_t *module)
+                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           )
 {
     int line = -1, err = 0, rank, size, sendto, recvfrom, distance, blockcount, i;
     int *new_rcounts = NULL, *new_rdispls = NULL, *new_scounts = NULL, *new_sdispls = NULL;
@@ -262,7 +266,11 @@ int ompi_coll_base_allgatherv_intra_sparbit(const void *sbuf, int scount,
                                            const int *rdispls,
                                            struct ompi_datatype_t *rdtype,
                                            struct ompi_communicator_t *comm,
-                                           mca_coll_base_module_t *module)
+                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           )
 {
     /* ################# VARIABLE DECLARATION, BUFFER CREATION AND PREPARATION FOR THE ALGORITHM ######################## */
 
@@ -379,7 +387,11 @@ int ompi_coll_base_allgatherv_intra_ring(const void *sbuf, int scount,
                                           void* rbuf, const int *rcounts, const int *rdisps,
                                           struct ompi_datatype_t *rdtype,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          )
 {
     int line = -1, rank, size, sendto, recvfrom, i, recvdatafrom, senddatafrom, err = 0;
     ptrdiff_t rlb, rext;
@@ -506,8 +518,20 @@ ompi_coll_base_allgatherv_intra_neighborexchange(const void *sbuf, int scount,
                                                   void* rbuf, const int *rcounts, const int *rdispls,
                                                   struct ompi_datatype_t *rdtype,
                                                   struct ompi_communicator_t *comm,
-                                                  mca_coll_base_module_t *module)
+                                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                  , qentry **q
+#endif
+                                                  )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int line = -1, rank, size, i, even_rank, err = 0;
     int neighbor[2], offset_at_step[2], recv_data_from[2], send_data_from;
     int new_scounts[2], new_sdispls[2], new_rcounts[2], new_rdispls[2];
@@ -522,10 +546,18 @@ ompi_coll_base_allgatherv_intra_neighborexchange(const void *sbuf, int scount,
         OPAL_OUTPUT((ompi_coll_base_framework.framework_output,
                      "coll:base:allgatherv_intra_neighborexchange WARNING: odd size %d, switching to ring algorithm",
                      size));
+
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_allgatherv_intra_ring(sbuf, scount, sdtype,
                                                      rbuf, rcounts,
                                                      rdispls, rdtype,
                                                      comm, module);
+#else
+        return ompi_coll_base_allgatherv_intra_ring(sbuf, scount, sdtype,
+                                                     rbuf, rcounts,
+                                                     rdispls, rdtype,
+                                                     comm, module, &item);
+#endif
     }
 
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,
@@ -652,7 +684,11 @@ int ompi_coll_base_allgatherv_intra_two_procs(const void *sbuf, int scount,
                                                const int *rdispls,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
-                                               mca_coll_base_module_t *module)
+                                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                               , qentry **q
+#endif
+                                               )
 {
     int line = -1, err = 0, rank, remote;
     char *tmpsend = NULL, *tmprecv = NULL;
@@ -738,7 +774,11 @@ ompi_coll_base_allgatherv_intra_basic_default(const void *sbuf, int scount,
                                               const int *disps,
                                               struct ompi_datatype_t *rdtype,
                                               struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              )
 {
     int size, rank, err;
     MPI_Aint extent, lb;

@@ -36,7 +36,11 @@ int mca_coll_sm_allgatherv_intra(const void *sbuf, int scount,
                                  void * rbuf, const int *rcounts, const int *disps,
                                  struct ompi_datatype_t *rdtype,
                                  struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYISS
+			     , qentry **q
+#endif
+                                )
 {
     return OMPI_ERR_NOT_IMPLEMENTED;
 }

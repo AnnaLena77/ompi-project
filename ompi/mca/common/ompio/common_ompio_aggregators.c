@@ -263,6 +263,7 @@ int mca_common_ompio_fview_based_grouping(ompio_file_t *fh,
     }
     
     //Allgather start offsets across processes in a group on aggregator
+#ifndef ENABLE_ANALYSIS
     ret = fh->f_comm->c_coll->coll_allgather (start_offset_len,
                                              3,
                                              OMPI_OFFSET_DATATYPE,
@@ -271,6 +272,16 @@ int mca_common_ompio_fview_based_grouping(ompio_file_t *fh,
                                              OMPI_OFFSET_DATATYPE,
                                              fh->f_comm,
                                              fh->f_comm->c_coll->coll_allgather_module);
+#else
+    ret = fh->f_comm->c_coll->coll_allgather (start_offset_len,
+                                             3,
+                                             OMPI_OFFSET_DATATYPE,
+                                             start_offsets_lens,
+                                             3,
+                                             OMPI_OFFSET_DATATYPE,
+                                             fh->f_comm,
+                                             fh->f_comm->c_coll->coll_allgather_module, NULL);
+#endif
     if ( OMPI_SUCCESS != ret ) {
         goto exit;
     }
@@ -630,6 +641,7 @@ int mca_common_ompio_create_groups(ompio_file_t *fh,
         opal_output(1,"mca_common_ompio_create_groups: could not allocate memory\n");
         goto exit;
     }
+#ifndef ENABLE_ANALYSIS
     ret = fh->f_comm->c_coll->coll_allgather (&final_aggr,
                                               1, 
                                               MPI_INT,
@@ -638,6 +650,16 @@ int mca_common_ompio_create_groups(ompio_file_t *fh,
                                               MPI_INT,
                                               fh->f_comm,
                                               fh->f_comm->c_coll->coll_allgather_module);
+#else
+    ret = fh->f_comm->c_coll->coll_allgather (&final_aggr,
+                                              1, 
+                                              MPI_INT,
+                                              tmp_final_aggrs,
+                                              1,
+                                              MPI_INT,
+                                              fh->f_comm,
+                                              fh->f_comm->c_coll->coll_allgather_module, NULL);
+#endif
     if ( OMPI_SUCCESS != ret ) {
         opal_output (1, "mca_common_ompio_create_groups: error in allreduce\n");
         goto exit;

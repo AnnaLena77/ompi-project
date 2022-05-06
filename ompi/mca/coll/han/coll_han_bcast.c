@@ -272,6 +272,14 @@ mca_coll_han_bcast_intra_simple(void *buff,
 #endif
                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     /* create the subcommunicators */
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
     ompi_communicator_t *low_comm, *up_comm;
@@ -294,7 +302,7 @@ mca_coll_han_bcast_intra_simple(void *buff,
                                         comm, comm->c_coll->coll_bcast_module);
 #else
         return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module, NULL);
+                                        comm, comm->c_coll->coll_bcast_module, &item);
 #endif
     }
     /* Topo must be initialized to know rank distribution which then is used to
@@ -312,7 +320,7 @@ mca_coll_han_bcast_intra_simple(void *buff,
                                         comm, comm->c_coll->coll_bcast_module);
 #else
         return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module, NULL);
+                                        comm, comm->c_coll->coll_bcast_module, &item);
 #endif
     }
 
@@ -335,7 +343,7 @@ mca_coll_han_bcast_intra_simple(void *buff,
                                     up_comm, up_comm->c_coll->coll_bcast_module);
 #else
         up_comm->c_coll->coll_bcast(buff, count, dtype, root_up_rank,
-                                    up_comm, up_comm->c_coll->coll_bcast_module, NULL);
+                                    up_comm, up_comm->c_coll->coll_bcast_module, &item);
 #endif
 
         /* To remove when han has better sub-module selection.
@@ -351,7 +359,7 @@ mca_coll_han_bcast_intra_simple(void *buff,
                                  low_comm, low_comm->c_coll->coll_bcast_module);
 #else
     low_comm->c_coll->coll_bcast(buff, count, dtype, root_low_rank,
-                                 low_comm, low_comm->c_coll->coll_bcast_module, NULL);
+                                 low_comm, low_comm->c_coll->coll_bcast_module, &item);
 #endif
 
     return OMPI_SUCCESS;

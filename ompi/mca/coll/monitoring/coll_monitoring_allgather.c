@@ -20,8 +20,20 @@ int mca_coll_monitoring_allgather(const void *sbuf, int scount,
                                   void *rbuf, int rcount,
                                   struct ompi_datatype_t *rdtype,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module)
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			       , qentry **q
+#endif
+                                  )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size;
     const int comm_size = ompi_comm_size(comm);
@@ -40,7 +52,11 @@ int mca_coll_monitoring_allgather(const void *sbuf, int scount,
             mca_common_monitoring_record_coll(rank, data_size);
         }
     }
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype, comm, monitoring_module->real.coll_allgather_module);
+#else
+    return monitoring_module->real.coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype, comm, monitoring_module->real.coll_allgather_module, &item);
+#endif
 }
 
 int mca_coll_monitoring_iallgather(const void *sbuf, int scount,
@@ -49,8 +65,21 @@ int mca_coll_monitoring_iallgather(const void *sbuf, int scount,
                                    struct ompi_datatype_t *rdtype,
                                    struct ompi_communicator_t *comm,
                                    ompi_request_t ** request,
-                                   mca_coll_base_module_t *module)
+                                   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			        , qentry **q
+#endif
+                                   )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size;
     const int comm_size = ompi_comm_size(comm);
@@ -69,5 +98,9 @@ int mca_coll_monitoring_iallgather(const void *sbuf, int scount,
             mca_common_monitoring_record_coll(rank, data_size);
         }
     }
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_iallgather(sbuf, scount, sdtype, rbuf, rcount, rdtype, comm, request, monitoring_module->real.coll_iallgather_module);
+#else
+    return monitoring_module->real.coll_iallgather(sbuf, scount, sdtype, rbuf, rcount, rdtype, comm, request, monitoring_module->real.coll_iallgather_module, &item);
+#endif
 }

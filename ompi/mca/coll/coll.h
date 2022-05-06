@@ -227,6 +227,7 @@ typedef int
                                           struct ompi_communicator_t *comm);
 
 /* blocking collectives */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_coll_base_module_allgather_fn_t)
   (const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
    void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
@@ -235,6 +236,17 @@ typedef int (*mca_coll_base_module_allgatherv_fn_t)
   (const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
    void * rbuf, const int *rcounts, const int *disps,  struct ompi_datatype_t *rdtype,
    struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module);
+#else
+typedef int (*mca_coll_base_module_allgather_fn_t)
+  (const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
+   void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
+   struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module, qentry **q);
+typedef int (*mca_coll_base_module_allgatherv_fn_t)
+  (const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
+   void * rbuf, const int *rcounts, const int *disps,  struct ompi_datatype_t *rdtype,
+   struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module, qentry **q);
+#endif
+
 typedef int (*mca_coll_base_module_allreduce_fn_t)
   (const void *sbuf, void *rbuf, int count, struct ompi_datatype_t *dtype,
    struct ompi_op_t *op, struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module);
@@ -330,6 +342,7 @@ typedef int (*mca_coll_base_module_scatterv_fn_t)
 #endif
 
 /* nonblocking collectives */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_coll_base_module_iallgather_fn_t)
   (const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
    void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
@@ -340,6 +353,20 @@ typedef int (*mca_coll_base_module_iallgatherv_fn_t)
    void * rbuf, const int *rcounts, const int *disps,  struct ompi_datatype_t *rdtype,
    struct ompi_communicator_t *comm, ompi_request_t ** request,
    struct mca_coll_base_module_2_4_0_t *module);
+#else
+typedef int (*mca_coll_base_module_iallgather_fn_t)
+  (const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
+   void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
+   struct ompi_communicator_t *comm, ompi_request_t ** request,
+   struct mca_coll_base_module_2_4_0_t *module, qentry **q);
+typedef int (*mca_coll_base_module_iallgatherv_fn_t)
+  (const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
+   void * rbuf, const int *rcounts, const int *disps,  struct ompi_datatype_t *rdtype,
+   struct ompi_communicator_t *comm, ompi_request_t ** request,
+   struct mca_coll_base_module_2_4_0_t *module, qentry **q);
+#endif
+
+
 typedef int (*mca_coll_base_module_iallreduce_fn_t)
   (const void *sbuf, void *rbuf, int count, struct ompi_datatype_t *dtype,
    struct ompi_op_t *op, struct ompi_communicator_t *comm,

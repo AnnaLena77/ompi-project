@@ -72,16 +72,28 @@ static int ompi_comm_fill_rest (ompi_communicator_t *comm,
 ** for Comm_split for inter-coms, we do not have this
 ** functions, so we need to emulate it.
 */
+#ifndef ENABLE_ANALYSIS
 typedef int ompi_comm_allgatherfct (void* inbuf, int incount, MPI_Datatype intype,
                                     void* outbuf, int outcount, MPI_Datatype outtype,
                                     ompi_communicator_t *comm,
                                     mca_coll_base_module_t *data);
-
 static int ompi_comm_allgather_emulate_intra (void* inbuf, int incount, MPI_Datatype intype,
                                               void* outbuf, int outcount,
                                               MPI_Datatype outtype,
                                               ompi_communicator_t *comm,
                                               mca_coll_base_module_t *data);
+#else
+typedef int ompi_comm_allgatherfct (void* inbuf, int incount, MPI_Datatype intype,
+                                    void* outbuf, int outcount, MPI_Datatype outtype,
+                                    ompi_communicator_t *comm,
+                                    mca_coll_base_module_t *data, qentry **q);
+static int ompi_comm_allgather_emulate_intra (void* inbuf, int incount, MPI_Datatype intype,
+                                              void* outbuf, int outcount,
+                                              MPI_Datatype outtype,
+                                              ompi_communicator_t *comm,
+                                              mca_coll_base_module_t *data, qentry **q);
+#endif
+
 
 static int ompi_comm_copy_topo (ompi_communicator_t *oldcomm,
                                 ompi_communicator_t *newcomm);
@@ -298,10 +310,17 @@ int ompi_comm_create ( ompi_communicator_t *comm, ompi_group_t *group,
             goto exit;
         }
 
+#ifndef ENABLE_ANALYSIS
         rc = comm->c_coll->coll_allgather ( &(group->grp_my_rank),
                                            1, MPI_INT, allranks,
                                            1, MPI_INT, comm,
                                            comm->c_coll->coll_allgather_module);
+#else
+        rc = comm->c_coll->coll_allgather ( &(group->grp_my_rank),
+                                           1, MPI_INT, allranks,
+                                           1, MPI_INT, comm,
+                                           comm->c_coll->coll_allgather_module, NULL);
+#endif
         if ( OMPI_SUCCESS != rc ) {
             goto exit;
         }
@@ -359,6 +378,7 @@ int ompi_comm_create ( ompi_communicator_t *comm, ompi_group_t *group,
     }
 
     /* Determine context id. It is identical to f_2_c_handle */
+    //Fehler
     rc = ompi_comm_nextcid (newcomp, comm, NULL, NULL, NULL, false, mode);
     if ( OMPI_SUCCESS != rc ) {
         goto exit;
@@ -441,8 +461,11 @@ int ompi_comm_split_with_info( ompi_communicator_t* comm, int color, int key,
     if ( NULL == results ) {
         return OMPI_ERR_OUT_OF_RESOURCE;
     }
-
+#ifndef ENABLE_ANALYSIS
     rc = allgatherfct( myinfo, 2, MPI_INT, results, 2, MPI_INT, comm, comm->c_coll->coll_allgather_module );
+#else
+    rc = allgatherfct( myinfo, 2, MPI_INT, results, 2, MPI_INT, comm, comm->c_coll->coll_allgather_module, NULL);
+#endif
     if ( OMPI_SUCCESS != rc ) {
         goto exit;
     }
@@ -503,9 +526,15 @@ int ompi_comm_split_with_info( ompi_communicator_t* comm, int color, int key,
         }
 
         /* this is an allgather on an inter-communicator */
+#ifndef ENABLE_ANALYSIS
         rc = comm->c_coll->coll_allgather( myinfo, 2, MPI_INT, rresults, 2,
                                           MPI_INT, comm,
                                           comm->c_coll->coll_allgather_module);
+#else
+        rc = comm->c_coll->coll_allgather( myinfo, 2, MPI_INT, rresults, 2,
+                                          MPI_INT, comm,
+                                          comm->c_coll->coll_allgather_module, NULL);
+#endif
         if ( OMPI_SUCCESS != rc ) {
             goto exit;
         }
@@ -777,8 +806,14 @@ static int ompi_comm_split_verify (ompi_communicator_t *comm, int split_type, in
     results[rank * 2] = split_type;
     results[rank * 2 + 1] = key;
 
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_allgather (MPI_IN_PLACE, 2, MPI_INT, results, 2, MPI_INT, comm,
                                       comm->c_coll->coll_allgather_module);
+#else
+    rc = comm->c_coll->coll_allgather (MPI_IN_PLACE, 2, MPI_INT, results, 2, MPI_INT, comm,
+                                      comm->c_coll->coll_allgather_module, NULL);
+#endif
+
     if (OMPI_SUCCESS != rc) {
         free (results);
         return rc;
@@ -819,7 +854,6 @@ int ompi_comm_split_type (ompi_communicator_t *comm, int split_type, int key,
     tmp[1] = -split_type;
     tmp[2] = key;
     tmp[3] = -key;
-
     rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &tmp, 4, MPI_INT, MPI_MAX, comm,
                                       comm->c_coll->coll_allreduce_module);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
@@ -1017,6 +1051,7 @@ int ompi_comm_dup_with_info ( ompi_communicator_t * comm, opal_info_t *info, omp
     }
 
     /* Determine context id. It is identical to f_2_c_handle */
+    //Fehler!
     rc = ompi_comm_nextcid (newcomp, comm, NULL, NULL, NULL, false, mode);
     if ( OMPI_SUCCESS != rc ) {
         OBJ_RELEASE(newcomp);
@@ -1357,7 +1392,11 @@ static int ompi_comm_allgather_emulate_intra( void *inbuf, int incount,
                                               MPI_Datatype intype, void* outbuf,
                                               int outcount, MPI_Datatype outtype,
                                               ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *data)
+                                              mca_coll_base_module_t *data
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              )
 {
     int rank, size, rsize, i, rc;
     int *tmpbuf=NULL;
@@ -1841,10 +1880,18 @@ int ompi_comm_determine_first ( ompi_communicator_t *intercomm, int high )
         scount = 1;
     }
 
+#ifndef ENABLE_ANALYSIS
     rc = intercomm->c_coll->coll_allgatherv(&high, scount, MPI_INT,
                                            &rhigh, rcounts, rdisps,
                                            MPI_INT, intercomm,
                                            intercomm->c_coll->coll_allgatherv_module);
+#else
+    rc = intercomm->c_coll->coll_allgatherv(&high, scount, MPI_INT,
+                                           &rhigh, rcounts, rdisps,
+                                           MPI_INT, intercomm,
+                                           intercomm->c_coll->coll_allgatherv_module, NULL);
+#endif
+
     if ( NULL != rdisps ) {
         free ( rdisps );
     }

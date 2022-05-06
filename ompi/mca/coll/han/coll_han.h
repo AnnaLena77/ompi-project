@@ -420,10 +420,18 @@ mca_coll_han_get_all_coll_modules(struct ompi_communicator_t *comm,
 
 int
 mca_coll_han_allgather_intra_dynamic(ALLGATHER_BASE_ARGS,
-                                     mca_coll_base_module_t *module);
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				 , qentry **q
+#endif
+                                     );
 int
 mca_coll_han_allgatherv_intra_dynamic(ALLGATHERV_BASE_ARGS,
-                                      mca_coll_base_module_t *module);
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				  , qentry **q
+#endif
+                                      );
 int
 mca_coll_han_allreduce_intra_dynamic(ALLREDUCE_BASE_ARGS,
                                      mca_coll_base_module_t *module);
@@ -559,7 +567,7 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
 			       , qentry **q
 #endif
                                   );
-
+	
 /* Gather */
 int
 mca_coll_han_gather_intra(const void *sbuf, int scount,
@@ -600,13 +608,21 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
                              struct ompi_datatype_t *sdtype,
                              void *rbuf, int rcount,
                              struct ompi_datatype_t *rdtype,
-                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module);
+                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             );
 int
 mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
                                     struct ompi_datatype_t *sdtype,
                                     void* rbuf, int rcount,
                                     struct ompi_datatype_t *rdtype,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    );
 
 #endif                          /* MCA_COLL_HAN_EXPORT_H */

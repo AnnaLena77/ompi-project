@@ -283,7 +283,11 @@ int mca_coll_basic_neighbor_allgather(const void *sbuf, int scount,
                                       struct ompi_datatype_t *sdtype, void *rbuf,
                                       int rcount, struct ompi_datatype_t *rdtype,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module)
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
     if (OMPI_COMM_IS_INTER(comm)) {
         return OMPI_ERR_NOT_SUPPORTED;
