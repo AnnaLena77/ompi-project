@@ -174,26 +174,42 @@ int mca_coll_ucc_ialltoallv(const void *sbuf, const int *scounts, const int *sdi
 int mca_coll_ucc_allgather(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                            void* rbuf, int rcount, struct ompi_datatype_t *rdtype,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module);
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           );
 
 int mca_coll_ucc_iallgather(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                             void* rbuf, int rcount, struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
                             ompi_request_t** request,
-                            mca_coll_base_module_t *module);
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                            );
 
 int mca_coll_ucc_allgatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                             void* rbuf, const int *rcounts, const int *rdisps,
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module);
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                            );
 
 int mca_coll_ucc_iallgatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                              void* rbuf, const int *rcounts, const int *rdisps,
                              struct ompi_datatype_t *rdtype,
                              struct ompi_communicator_t *comm,
                              ompi_request_t** request,
-                             mca_coll_base_module_t *module);
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                             );
 
 END_C_DECLS
 #endif

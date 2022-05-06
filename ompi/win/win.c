@@ -237,12 +237,12 @@ ompi_win_create(void *base, size_t size,
     ompi_win_t *win;
     int model;
     int ret;
-
     ret = alloc_window (comm, info, MPI_WIN_FLAVOR_CREATE, &win);
     if (OMPI_SUCCESS != ret) {
         return ret;
     }
-
+    
+    //Problem in dieser Funktion!
     ret = ompi_osc_base_select(win, &base, size, disp_unit, comm, info, MPI_WIN_FLAVOR_CREATE, &model);
     if (OMPI_SUCCESS != ret) {
         OBJ_RELEASE(win);
@@ -256,7 +256,6 @@ ompi_win_create(void *base, size_t size,
     }
 
     *newwin = win;
-
     return OMPI_SUCCESS;
 }
 

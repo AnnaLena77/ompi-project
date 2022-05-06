@@ -216,10 +216,7 @@ int mca_pml_ob1_isend(const void *buf,
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            if(strcmp(item->operation, "MPI_Bcast")==0){
-                bcast = 1;
-            }
-            else if(item->blocking == 0){
+            if(item->blocking == 0){
                 //qentry->sendmode & qentry->operation
                 if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
                     strcpy(item->sendmode, "SYNCHRONOUS");
@@ -276,19 +273,15 @@ int mca_pml_ob1_isend(const void *buf,
              * field in a send completion status is whether or not the send was
              * cancelled (which it can't be at this point anyway). */
             *request = &ompi_request_empty;
-            
-#ifdef ENABLE_ANALYSIS
-            if(item!=NULL && bcast == 0) qentryIntoQueue(&item);
-#endif
             return OMPI_SUCCESS;
         }
     }
     //siehe pml_ob1_sendreq.h
     //Speicherplatz für den Request allocieren
     MCA_PML_OB1_SEND_REQUEST_ALLOC(comm, dst, sendreq);
-    if (NULL == sendreq)
+    if (NULL == sendreq){
         return OMPI_ERR_OUT_OF_RESOURCE;
-    
+    }
     //siehe pml_base_sendreq.h
     //MCA_PML_BASE_SEND_REQUEST_INIT
     //Funktionsaufrufe: opal_converter_copy_and_prepare_for_send, opal_converter_get_packed_size

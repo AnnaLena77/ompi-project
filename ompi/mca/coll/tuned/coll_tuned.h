@@ -106,7 +106,7 @@ int ompi_coll_tuned_allgather_intra_do_this(ALLGATHER_ARGS, int algorithm, int f
 #else
 int ompi_coll_tuned_allgather_intra_dec_fixed(ALLGATHER_ARGS, qentry **q);
 int ompi_coll_tuned_allgather_intra_dec_dynamic(ALLGATHER_ARGS, qentry **q);
-int ompi_coll_tuned_allgather_intra_do_this(ALLGATHER_ARGS, int algorithm, int faninout, int segsize);
+int ompi_coll_tuned_allgather_intra_do_this(ALLGATHER_ARGS, int algorithm, int faninout, int segsize, qentry **q);
 #endif
 int ompi_coll_tuned_allgather_intra_check_forced_init(coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
@@ -116,9 +116,9 @@ int ompi_coll_tuned_allgatherv_intra_dec_fixed(ALLGATHERV_ARGS);
 int ompi_coll_tuned_allgatherv_intra_dec_dynamic(ALLGATHERV_ARGS);
 int ompi_coll_tuned_allgatherv_intra_do_this(ALLGATHERV_ARGS, int algorithm, int faninout, int segsize);
 #else
-int ompi_coll_tuned_allgatherv_intra_dec_fixed(ALLGATHERV_ARGS);
-int ompi_coll_tuned_allgatherv_intra_dec_dynamic(ALLGATHERV_ARGS);
-int ompi_coll_tuned_allgatherv_intra_do_this(ALLGATHERV_ARGS, int algorithm, int faninout, int segsize);
+int ompi_coll_tuned_allgatherv_intra_dec_fixed(ALLGATHERV_ARGS, qentry **q);
+int ompi_coll_tuned_allgatherv_intra_dec_dynamic(ALLGATHERV_ARGS, qentry **q);
+int ompi_coll_tuned_allgatherv_intra_do_this(ALLGATHERV_ARGS, int algorithm, int faninout, int segsize, qentry **q);
 #endif
 int ompi_coll_tuned_allgatherv_intra_check_forced_init(coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 

@@ -46,7 +46,11 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
                                void *rbuf, int rcount,
                                struct ompi_datatype_t *rdtype,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
     int rank, root = 0, size, rsize, err, i, line;
     char *tmpbuf_free = NULL, *tmpbuf, *ptmp;

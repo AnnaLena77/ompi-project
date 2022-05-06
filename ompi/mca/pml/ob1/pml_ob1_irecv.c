@@ -120,9 +120,6 @@ int mca_pml_ob1_irecv(void *addr,
     MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
 #endif
     *request = (ompi_request_t *) recvreq;
-#ifdef ENABLE_ANALYSIS
-    if(item!=NULL) qentryIntoQueue(&item);
-#endif
     return OMPI_SUCCESS;
 }
 

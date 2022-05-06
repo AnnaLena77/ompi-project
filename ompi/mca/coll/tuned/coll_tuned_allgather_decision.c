@@ -130,19 +130,19 @@ int ompi_coll_tuned_allgather_intra_do_this(const void *sbuf, int scount,
                                             struct ompi_communicator_t *comm,
                                             mca_coll_base_module_t *module,
                                             int algorithm, int faninout, int segsize
-/*#ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
 				        , qentry **q
-#endif*/
+#endif
                                             )
 {
-/*#ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
         } else item = NULL;
     } else item = NULL;
-#endif*/
+#endif
     OPAL_OUTPUT((ompi_coll_tuned_stream,
                  "coll:tuned:allgather_intra_do_this selected algorithm %d topo faninout %d segsize %d",
                  algorithm, faninout, segsize));
@@ -190,32 +190,31 @@ int ompi_coll_tuned_allgather_intra_do_this(const void *sbuf, int scount,
     case (1):
         return ompi_coll_base_allgather_intra_basic_linear(sbuf, scount, sdtype,
                                                            rbuf, rcount, rdtype,
-                                                           comm, module);
+                                                           comm, module, NULL);
     case (2):
         return ompi_coll_base_allgather_intra_bruck(sbuf, scount, sdtype,
                                                     rbuf, rcount, rdtype,
-                                                    comm, module);
+                                                    comm, module, NULL);
     case (3):
         return ompi_coll_base_allgather_intra_recursivedoubling(sbuf, scount, sdtype,
                                                                 rbuf, rcount, rdtype,
-                                                                comm, module);
+                                                                comm, module, NULL);
     case (4):
         return ompi_coll_base_allgather_intra_ring(sbuf, scount, sdtype,
                                                    rbuf, rcount, rdtype,
-                                                   comm, module);
+                                                   comm, module, NULL);
     case (5):
         return ompi_coll_base_allgather_intra_neighborexchange(sbuf, scount, sdtype,
                                                                rbuf, rcount, rdtype,
-                                                               comm, module);
+                                                               comm, module, NULL);
     case (6):
-    	printf("test\n");
         return ompi_coll_base_allgather_intra_two_procs(sbuf, scount, sdtype,
                                                         rbuf, rcount, rdtype,
-                                                        comm, module);
+                                                        comm, module, NULL);
     case (7):
         return ompi_coll_base_allgather_intra_sparbit(sbuf, scount, sdtype,
                                                         rbuf, rcount, rdtype,
-                                                        comm, module);
+                                                        comm, module, NULL);
 #endif
     } /* switch */
     OPAL_OUTPUT((ompi_coll_tuned_stream,

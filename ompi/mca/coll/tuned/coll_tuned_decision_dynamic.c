@@ -524,20 +524,20 @@ int ompi_coll_tuned_allgather_intra_dec_dynamic(const void *sbuf, int scount,
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[ALLGATHER].algorithm) {
         /* User-forced algorithm */
-//#ifndef ENABLE_ANALYSIS
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_allgather_intra_do_this(sbuf, scount, sdtype,
                                                        rbuf, rcount, rdtype,
                                                        comm, module,
                                                        tuned_module->user_forced[ALLGATHER].algorithm,
                                                        tuned_module->user_forced[ALLGATHER].tree_fanout,
                                                        tuned_module->user_forced[ALLGATHER].segsize);
-/*#else
+#else
         return ompi_coll_tuned_allgather_intra_do_this(sbuf, scount, sdtype,
                                                        rbuf, rcount, rdtype,
                                                        comm, module,
                                                        tuned_module->user_forced[ALLGATHER].algorithm,
                                                        tuned_module->user_forced[ALLGATHER].tree_fanout,
-                                                       tuned_module->user_forced[ALLGATHER].segsize, &item);
+                                                       tuned_module->user_forced[ALLGATHER].segsize, NULL);
 #endif
     }
 
@@ -557,17 +557,17 @@ int ompi_coll_tuned_allgather_intra_dec_dynamic(const void *sbuf, int scount,
         if (alg) {
             /* we have found a valid choice from the file based rules for
                this message size */
-//#ifndef ENABLE_ANALYSIS
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_allgather_intra_do_this (sbuf, scount, sdtype,
                                                             rbuf, rcount, rdtype,
                                                             comm, module,
                                                             alg, faninout, segsize);
-/*#else
+#else
             return ompi_coll_tuned_allgather_intra_do_this (sbuf, scount, sdtype,
                                                             rbuf, rcount, rdtype,
                                                             comm, module,
                                                             alg, faninout, segsize, &item);
-#endif*/
+#endif
         }
     }
 
@@ -599,19 +599,19 @@ int ompi_coll_tuned_allgatherv_intra_dec_dynamic(const void *sbuf, int scount,
                                                  struct ompi_datatype_t *rdtype,
                                                  struct ompi_communicator_t *comm,
                                                  mca_coll_base_module_t *module
-/*#ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
 					    , qentry **q
-#endif*/
+#endif
                                                  )
 {
-/*#ifdef ENABLE_ANALYSIS
+#ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
         } else item = NULL;
     } else item = NULL;
-#endif*/
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,
@@ -620,21 +620,21 @@ int ompi_coll_tuned_allgatherv_intra_dec_dynamic(const void *sbuf, int scount,
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[ALLGATHERV].algorithm) {
         /* User-forced algorithm */
-//#ifndef ENABLE_ANALYSIS
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_allgatherv_intra_do_this(sbuf, scount, sdtype,
                                                         rbuf, rcounts, rdispls, rdtype,
                                                         comm, module,
                                                         tuned_module->user_forced[ALLGATHERV].algorithm,
                                                         tuned_module->user_forced[ALLGATHERV].tree_fanout,
                                                         tuned_module->user_forced[ALLGATHERV].segsize);
-/*#else
+#else
         return ompi_coll_tuned_allgatherv_intra_do_this(sbuf, scount, sdtype,
                                                         rbuf, rcounts, rdispls, rdtype,
                                                         comm, module,
                                                         tuned_module->user_forced[ALLGATHERV].algorithm,
                                                         tuned_module->user_forced[ALLGATHERV].tree_fanout,
                                                         tuned_module->user_forced[ALLGATHERV].segsize, &item);
-#endif*/
+#endif
     }
 
     if (tuned_module->com_rules[ALLGATHERV]) {
@@ -656,33 +656,33 @@ int ompi_coll_tuned_allgatherv_intra_dec_dynamic(const void *sbuf, int scount,
         if (alg) {
             /* we have found a valid choice from the file based rules for
                this message size */
-//#ifndef ENABLE_ANALYSIS
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_allgatherv_intra_do_this (sbuf, scount, sdtype,
                                                              rbuf, rcounts,
                                                              rdispls, rdtype,
                                                              comm, module,
                                                              alg, faninout, segsize);
-/*#else
+#else
             return ompi_coll_tuned_allgatherv_intra_do_this (sbuf, scount, sdtype,
                                                              rbuf, rcounts,
                                                              rdispls, rdtype,
                                                              comm, module,
                                                              alg, faninout, segsize, &item);
-#endif*/
+#endif
         }
     }
     /* Use default decision */
-//#ifndef ENABLE_ANALYSIS
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allgatherv_intra_dec_fixed (sbuf, scount, sdtype,
                                                        rbuf, rcounts,
                                                        rdispls, rdtype,
                                                        comm, module);
-/*#else
+#else
     return ompi_coll_tuned_allgatherv_intra_dec_fixed (sbuf, scount, sdtype,
                                                        rbuf, rcounts,
                                                        rdispls, rdtype,
                                                        comm, module, &item);
-#endif*/
+#endif
 }
 
 int ompi_coll_tuned_gather_intra_dec_dynamic(const void *sbuf, int scount,

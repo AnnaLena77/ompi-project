@@ -196,13 +196,13 @@ int ompi_coll_base_allgather_intra_neighborexchange(ALLGATHER_ARGS);
 int ompi_coll_base_allgather_intra_basic_linear(ALLGATHER_ARGS);
 int ompi_coll_base_allgather_intra_two_procs(ALLGATHER_ARGS);
 #else
-int ompi_coll_base_allgather_intra_bruck(ALLGATHER_ARGS);
-int ompi_coll_base_allgather_intra_recursivedoubling(ALLGATHER_ARGS);
-int ompi_coll_base_allgather_intra_sparbit(ALLGATHER_ARGS);
-int ompi_coll_base_allgather_intra_ring(ALLGATHER_ARGS);
-int ompi_coll_base_allgather_intra_neighborexchange(ALLGATHER_ARGS);
-int ompi_coll_base_allgather_intra_basic_linear(ALLGATHER_ARGS);
-int ompi_coll_base_allgather_intra_two_procs(ALLGATHER_ARGS);
+int ompi_coll_base_allgather_intra_bruck(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_recursivedoubling(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_sparbit(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_ring(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_neighborexchange(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_basic_linear(ALLGATHER_ARGS, qentry **q);
+int ompi_coll_base_allgather_intra_two_procs(ALLGATHER_ARGS, qentry **q);
 #endif
 
 /* All GatherV */

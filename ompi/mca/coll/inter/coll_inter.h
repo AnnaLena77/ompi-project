@@ -58,13 +58,21 @@ int mca_coll_inter_allgather_inter(const void *sbuf, int scount,
 				   void *rbuf, int rcount,
 				   struct ompi_datatype_t *rdtype,
 				   struct ompi_communicator_t *comm,
-                                   mca_coll_base_module_t *module);
+                                   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                   );
 int mca_coll_inter_allgatherv_inter(const void *sbuf, int scount,
 				    struct ompi_datatype_t *sdtype,
 				    void *rbuf, const int *rcounts, const int *disps,
 				    struct ompi_datatype_t *rdtype,
 				    struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    );
 int mca_coll_inter_allreduce_inter(const void *sbuf, void *rbuf, int count,
 				   struct ompi_datatype_t *dtype,
 				   struct ompi_op_t *op,

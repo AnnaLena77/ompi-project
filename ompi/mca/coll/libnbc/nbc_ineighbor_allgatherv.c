@@ -47,7 +47,11 @@ int NBC_Ineighbor_allgatherv_args_compare(NBC_Ineighbor_allgatherv_args *a, NBC_
 static int nbc_neighbor_allgatherv_init(const void *sbuf, int scount, MPI_Datatype stype, void *rbuf,
                                         const int *rcounts, const int *displs, MPI_Datatype rtype,
                                         struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                        mca_coll_base_module_t *module, bool persistent) {
+                                        mca_coll_base_module_t *module, bool persistent
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        ) {
   int res, indegree, outdegree, *srcs, *dsts;
   MPI_Aint rcvext;
   ompi_coll_libnbc_module_t *libnbc_module = (ompi_coll_libnbc_module_t*) module;
@@ -167,9 +171,27 @@ static int nbc_neighbor_allgatherv_init(const void *sbuf, int scount, MPI_Dataty
 int ompi_coll_libnbc_ineighbor_allgatherv(const void *sbuf, int scount, MPI_Datatype stype, void *rbuf,
 					  const int *rcounts, const int *displs, MPI_Datatype rtype,
 					  struct ompi_communicator_t *comm, ompi_request_t ** request,
-					  mca_coll_base_module_t *module) {
+					  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                               , qentry **q
+#endif
+					  ) {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
+#ifndef ENABLE_ANALYSIS
     int res = nbc_neighbor_allgatherv_init(sbuf, scount, stype, rbuf, rcounts, displs, rtype,
                                            comm, request, module, false);
+#else
+    int res = nbc_neighbor_allgatherv_init(sbuf, scount, stype, rbuf, rcounts, displs, rtype,
+                                           comm, request, module, false, &item);
+#endif
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {
         return res;
     }
@@ -186,9 +208,27 @@ int ompi_coll_libnbc_ineighbor_allgatherv(const void *sbuf, int scount, MPI_Data
 int ompi_coll_libnbc_neighbor_allgatherv_init(const void *sbuf, int scount, MPI_Datatype stype, void *rbuf,
                                               const int *rcounts, const int *displs, MPI_Datatype rtype,
                                               struct ompi_communicator_t *comm, MPI_Info info, ompi_request_t ** request,
-                                              mca_coll_base_module_t *module) {
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif  
+                                              ) {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
+#ifndef ENABLE_ANALYSIS
     int res = nbc_neighbor_allgatherv_init(sbuf, scount, stype, rbuf, rcounts, displs, rtype,
                                            comm, request, module, true);
+#else
+    int res = nbc_neighbor_allgatherv_init(sbuf, scount, stype, rbuf, rcounts, displs, rtype,
+                                           comm, request, module, true, &item);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {
         return res;
     }

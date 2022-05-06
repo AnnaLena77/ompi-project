@@ -37,7 +37,11 @@ int mca_coll_self_allgatherv_intra(const void *sbuf, int scount,
                                    void * rbuf, const int *rcounts, const int *disps,
                                    struct ompi_datatype_t *rdtype,
                                    struct ompi_communicator_t *comm,
-                                   mca_coll_base_module_t *module)
+                                   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			        , qentry **q
+#endif
+                                   )
 {
     if (MPI_IN_PLACE == sbuf) {
         return MPI_SUCCESS;

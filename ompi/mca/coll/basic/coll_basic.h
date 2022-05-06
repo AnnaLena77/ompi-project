@@ -60,7 +60,11 @@ BEGIN_C_DECLS
                                        void *rbuf, int rcount,
                                        struct ompi_datatype_t *rdtype,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_allgatherv_inter(const void *sbuf, int scount,
                                         struct ompi_datatype_t *sdtype,
@@ -68,7 +72,11 @@ BEGIN_C_DECLS
                                         const int *disps,
                                         struct ompi_datatype_t *rdtype,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module);
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        );
 
     int mca_coll_basic_allreduce_intra(const void *sbuf, void *rbuf, int count,
                                        struct ompi_datatype_t *dtype,
@@ -293,11 +301,19 @@ BEGIN_C_DECLS
                                            struct ompi_datatype_t *sdtype, void *rbuf,
                                            int rcount, struct ompi_datatype_t *rdtype,
                                            struct ompi_communicator_t *comm,
-                                           mca_coll_base_module_t *module);
+                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           );
 
      int mca_coll_basic_neighbor_allgatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                                             void *rbuf, const int rcounts[], const int disps[], struct ompi_datatype_t *rdtype,
-                                            struct ompi_communicator_t *comm, mca_coll_base_module_t *module);
+                                            struct ompi_communicator_t *comm, mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            );
 
      int mca_coll_basic_neighbor_alltoall(const void *sbuf, int scount, struct ompi_datatype_t *sdtype, void *rbuf,
                                           int rcount, struct ompi_datatype_t *rdtype, struct ompi_communicator_t *comm,

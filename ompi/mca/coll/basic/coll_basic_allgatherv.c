@@ -43,7 +43,11 @@ mca_coll_basic_allgatherv_inter(const void *sbuf, int scount,
                                 void *rbuf, const int *rcounts, const int *disps,
                                 struct ompi_datatype_t *rdtype,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
     int rsize, err, i;
     int *scounts, *sdisps;
