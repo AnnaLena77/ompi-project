@@ -113,10 +113,15 @@ int mca_topo_base_dist_graph_distribute(mca_topo_base_module_t* module,
             index++;
         }
     }
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_reduce_scatter_block( MPI_IN_PLACE, idx, 2,
                                                   (ompi_datatype_t*)&ompi_mpi_int, MPI_SUM, comm,
                                                   comm->c_coll->coll_reduce_scatter_block_module);
+#else
+    err = comm->c_coll->coll_reduce_scatter_block( MPI_IN_PLACE, idx, 2,
+                                                  (ompi_datatype_t*)&ompi_mpi_int, MPI_SUM, comm,
+                                                  comm->c_coll->coll_reduce_scatter_block_module, NULL);
+#endif
     /**
      * At this point in the indexes array we have:
      * - idx[0].in  total number of IN  edges

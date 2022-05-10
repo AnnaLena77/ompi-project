@@ -91,9 +91,15 @@ int mca_coll_han_comm_create_new(struct ompi_communicator_t *comm,
      * all participants.
      */
     int local_procs = ompi_group_count_local_peers(comm->c_local_group);
+#ifndef ENABLE_ANALYSIS
     comm->c_coll->coll_allreduce(MPI_IN_PLACE, &local_procs, 1, MPI_INT,
                                  MPI_MAX, comm,
                                  comm->c_coll->coll_allreduce_module);
+#else
+    comm->c_coll->coll_allreduce(MPI_IN_PLACE, &local_procs, 1, MPI_INT,
+                                 MPI_MAX, comm,
+                                 comm->c_coll->coll_allreduce_module, NULL);
+#endif
     if( local_procs == 1 ) {
         /* restore saved collectives */
         HAN_SUBCOM_LOAD_COLLECTIVE(fallbacks, comm, han_module, allgatherv);
@@ -239,9 +245,15 @@ int mca_coll_han_comm_create(struct ompi_communicator_t *comm,
      * all participants.
      */
     int local_procs = ompi_group_count_local_peers(comm->c_local_group);
+#ifndef ENABLE_ANALYSIS
     comm->c_coll->coll_allreduce(MPI_IN_PLACE, &local_procs, 1, MPI_INT,
                                  MPI_MAX, comm,
                                  comm->c_coll->coll_allreduce_module);
+#else
+    comm->c_coll->coll_allreduce(MPI_IN_PLACE, &local_procs, 1, MPI_INT,
+                                 MPI_MAX, comm,
+                                 comm->c_coll->coll_allreduce_module, NULL);
+#endif
     if( local_procs == 1 ) {
         /* restore saved collectives */
         HAN_SUBCOM_LOAD_COLLECTIVE(fallbacks, comm, han_module, allgatherv);

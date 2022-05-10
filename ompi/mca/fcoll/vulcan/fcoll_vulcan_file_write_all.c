@@ -255,6 +255,7 @@ int mca_fcoll_vulcan_file_write_all (ompio_file_t *fh,
     start_comm_time = MPI_Wtime();
 #endif
     if ( 1 == mca_fcoll_vulcan_num_groups ) {
+#ifndef ENABLE_ANALYSIS
         ret = fh->f_comm->c_coll->coll_allreduce (MPI_IN_PLACE,
                                                   broken_total_lengths,
 						  fh->f_num_aggrs,
@@ -262,6 +263,15 @@ int mca_fcoll_vulcan_file_write_all (ompio_file_t *fh,
                                                   MPI_SUM,
 						  fh->f_comm,
 						  fh->f_comm->c_coll->coll_allreduce_module);
+#else
+        ret = fh->f_comm->c_coll->coll_allreduce (MPI_IN_PLACE,
+                                                  broken_total_lengths,
+						  fh->f_num_aggrs,
+						  MPI_LONG,
+                                                  MPI_SUM,
+						  fh->f_comm,
+						  fh->f_comm->c_coll->coll_allreduce_module, NULL);
+#endif
         if( OMPI_SUCCESS != ret){
             goto exit;
         }
@@ -1413,11 +1423,19 @@ static int mca_fcoll_vulcan_minmax ( ompio_file_t *fh, struct iovec *iov, int io
         min = 0;
         max = 0;
     }
+#ifndef ENABLE_ANALYSIS
     fh->f_comm->c_coll->coll_allreduce ( &min, &globalmin, 1, MPI_LONG, MPI_MIN,
 					 fh->f_comm, fh->f_comm->c_coll->coll_allreduce_module);
     
     fh->f_comm->c_coll->coll_allreduce ( &max, &globalmax, 1, MPI_LONG, MPI_MAX,
 					 fh->f_comm, fh->f_comm->c_coll->coll_allreduce_module);
+#else
+    fh->f_comm->c_coll->coll_allreduce ( &min, &globalmin, 1, MPI_LONG, MPI_MIN,
+					 fh->f_comm, fh->f_comm->c_coll->coll_allreduce_module, NULL);
+    
+    fh->f_comm->c_coll->coll_allreduce ( &max, &globalmax, 1, MPI_LONG, MPI_MAX,
+					 fh->f_comm, fh->f_comm->c_coll->coll_allreduce_module, NULL);
+#endif
 
     //    if ( fh->f_rank < 10 ) printf("[%d]: min=%ld max=%ld globalmin=%ld, globalmax=%ld num_aggregators=%d\n", fh->f_rank, min, max, globalmin, globalmax, num_aggregators);
 

@@ -56,7 +56,11 @@ ompi_coll_base_reduce_scatter_block_basic_linear(const void *sbuf, void *rbuf, i
                                                  struct ompi_datatype_t *dtype,
                                                  struct ompi_op_t *op,
                                                  struct ompi_communicator_t *comm,
-                                                 mca_coll_base_module_t *module)
+                                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                 , qentry **q
+#endif
+                                                 )
 {
     int rank, size, count, err = OMPI_SUCCESS;
     ptrdiff_t gap, span;
@@ -92,10 +96,15 @@ ompi_coll_base_reduce_scatter_block_basic_linear(const void *sbuf, void *rbuf, i
     }
 
     /* reduction */
+#ifndef ENABLE_ANALYSIS
     err =
         comm->c_coll->coll_reduce(sbuf, recv_buf, count, dtype, op, 0,
                                  comm, comm->c_coll->coll_reduce_module);
-
+#else
+    err =
+        comm->c_coll->coll_reduce(sbuf, recv_buf, count, dtype, op, 0,
+                                 comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
     /* scatter */
     if (MPI_SUCCESS == err) {
 #ifndef ENABLE_ANALYSIS
@@ -134,7 +143,11 @@ int
 ompi_coll_base_reduce_scatter_block_intra_recursivedoubling(
     const void *sbuf, void *rbuf, int rcount, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
     struct ompi_datatype_t *dtypesend = NULL, *dtyperecv = NULL;
     char *tmprecv_raw = NULL, *tmpbuf_raw = NULL, *tmprecv, *tmpbuf;
@@ -344,8 +357,20 @@ int
 ompi_coll_base_reduce_scatter_block_intra_recursivehalving(
     const void *sbuf, void *rbuf, int rcount, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     char *tmprecv_raw = NULL, *tmpbuf_raw = NULL, *tmprecv, *tmpbuf;
     ptrdiff_t span, gap, totalcount, extent;
     int err = MPI_SUCCESS;
@@ -362,8 +387,13 @@ ompi_coll_base_reduce_scatter_block_intra_recursivehalving(
         OPAL_OUTPUT((ompi_coll_base_framework.framework_output,
                      "coll:base:reduce_scatter_block_intra_recursivehalving: rank %d/%d "
                      "switching to basic reduce_scatter_block", rank, comm_size));
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount, dtype,
                                                                 op, comm, module);
+#else
+        return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount, dtype,
+                                                                op, comm, module, &item);
+#endif
     }
     totalcount = comm_size * rcount;
     ompi_datatype_type_extent(dtype, &extent);
@@ -561,7 +591,11 @@ cleanup_and_return:
 static int ompi_coll_base_reduce_scatter_block_intra_butterfly_pof2(
     const void *sbuf, void *rbuf, int rcount, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module);
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    );
 
 /*
  * ompi_coll_base_reduce_scatter_block_intra_butterfly
@@ -623,8 +657,20 @@ int
 ompi_coll_base_reduce_scatter_block_intra_butterfly(
     const void *sbuf, void *rbuf, int rcount, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     char *tmpbuf[2] = {NULL, NULL}, *psend, *precv;
     ptrdiff_t span, gap, totalcount, extent;
     int err = MPI_SUCCESS;
@@ -639,8 +685,13 @@ ompi_coll_base_reduce_scatter_block_intra_butterfly(
 
     if (!(comm_size & (comm_size - 1))) {
         /* Special case: comm_size is a power of two */
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_reduce_scatter_block_intra_butterfly_pof2(
                    sbuf, rbuf, rcount, dtype, op, comm, module);
+#else
+        return ompi_coll_base_reduce_scatter_block_intra_butterfly_pof2(
+                   sbuf, rbuf, rcount, dtype, op, comm, module, &item);
+#endif
     }
 
     totalcount = comm_size * rcount;
@@ -891,7 +942,11 @@ static int
 ompi_coll_base_reduce_scatter_block_intra_butterfly_pof2(
     const void *sbuf, void *rbuf, int rcount, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif  
+    )
 {
     char *tmpbuf[2] = {NULL, NULL}, *psend, *precv;
     ptrdiff_t span, gap, totalcount, extent;

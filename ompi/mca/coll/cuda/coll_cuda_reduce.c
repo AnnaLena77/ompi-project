@@ -31,7 +31,11 @@ mca_coll_cuda_reduce(const void *sbuf, void *rbuf, int count,
                      struct ompi_datatype_t *dtype,
                      struct ompi_op_t *op,
                      int root, struct ompi_communicator_t *comm,
-                     mca_coll_base_module_t *module)
+                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		   , qentry **q
+#endif
+                     )
 {
     mca_coll_cuda_module_t *s = (mca_coll_cuda_module_t*) module;
     ptrdiff_t gap;

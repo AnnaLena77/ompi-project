@@ -45,7 +45,11 @@ mca_coll_basic_allreduce_intra(const void *sbuf, void *rbuf, int count,
                                struct ompi_datatype_t *dtype,
                                struct ompi_op_t *op,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
     int err;
 
@@ -53,12 +57,24 @@ mca_coll_basic_allreduce_intra(const void *sbuf, void *rbuf, int count,
 
     if (MPI_IN_PLACE == sbuf) {
         if (0 == ompi_comm_rank(comm)) {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce(MPI_IN_PLACE, rbuf, count, dtype, op, 0, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce(MPI_IN_PLACE, rbuf, count, dtype, op, 0, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
         } else {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce(rbuf, NULL, count, dtype, op, 0, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce(rbuf, NULL, count, dtype, op, 0, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
         }
     } else {
+#ifndef ENABLE_ANALYSIS
         err = comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, 0, comm, comm->c_coll->coll_reduce_module);
+#else
+        err = comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, 0, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
     }
     if (MPI_SUCCESS != err) {
         return err;
@@ -83,7 +99,11 @@ mca_coll_basic_allreduce_inter(const void *sbuf, void *rbuf, int count,
                                struct ompi_datatype_t *dtype,
                                struct ompi_op_t *op,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
     int err, i, rank, root = 0, rsize, line;
     ptrdiff_t extent, dsize, gap;

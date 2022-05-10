@@ -63,9 +63,13 @@ static int check_oversubscribing(int rank,
         if(num_objs_in_node < num_procs_in_node)
             local_oversub = 1;
 
-
+#ifndef ENABLE_ANALYSIS
     if (OMPI_SUCCESS != (err = comm_old->c_coll->coll_allreduce(&local_oversub, &oversubscribed, 1, MPI_INT,
                                                                 MPI_SUM, comm_old, comm_old->c_coll->coll_allreduce_module)))
+#else
+    if (OMPI_SUCCESS != (err = comm_old->c_coll->coll_allreduce(&local_oversub, &oversubscribed, 1, MPI_INT,
+                                                                MPI_SUM, comm_old, comm_old->c_coll->coll_allreduce_module, NULL)))
+#endif
         return err;
 
     return oversubscribed;

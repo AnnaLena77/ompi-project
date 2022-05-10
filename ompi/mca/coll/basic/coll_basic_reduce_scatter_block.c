@@ -55,9 +55,26 @@ mca_coll_basic_reduce_scatter_block_intra(const void *sbuf, void *rbuf, int rcou
                                           struct ompi_datatype_t *dtype,
                                           struct ompi_op_t *op,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				      , qentry **q
+#endif
+                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount, dtype, op, comm, module);
+#else
+    return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount, dtype, op, comm, module, &item);
+#endif
 }
 
 /*
@@ -72,7 +89,11 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
                                           struct ompi_datatype_t *dtype,
                                           struct ompi_op_t *op,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				      , qentry **q
+#endif
+                                          )
 {
     int err, i, rank, root = 0, rsize, lsize;
     int totalcounts;

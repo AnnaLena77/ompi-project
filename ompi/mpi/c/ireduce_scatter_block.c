@@ -49,6 +49,33 @@ int MPI_Ireduce_scatter_block(const void *sendbuf, void *recvbuf, int recvcount,
                               MPI_Datatype datatype, MPI_Op op,
                               MPI_Comm comm, MPI_Request *request)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    item->start = time(NULL);
+    strcpy(item->operation, "MPI_Ireduce_scatter_block");
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(datatype, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = -1;
+
+
+    item->blocking = 0;
+#endif 
     int err;
 
     SPC_RECORD(OMPI_SPC_IREDUCE_SCATTER_BLOCK, 1);
@@ -103,10 +130,16 @@ int MPI_Ireduce_scatter_block(const void *sendbuf, void *recvbuf, int recvcount,
     }
 
     /* Invoke the coll component to perform the back-end operation */
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_ireduce_scatter_block(sendbuf, recvbuf, recvcount,
                                                   datatype, op, comm, request,
                                                   comm->c_coll->coll_ireduce_scatter_block_module);
+#else
+    err = comm->c_coll->coll_ireduce_scatter_block(sendbuf, recvbuf, recvcount,
+                                                  datatype, op, comm, request,
+                                                  comm->c_coll->coll_ireduce_scatter_block_module, &item);
+    qentryIntoQueue(&item);
+#endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         ompi_coll_base_retain_op(*request, op, datatype);
     }
