@@ -68,7 +68,11 @@ mca_coll_basic_reduce_scatter_intra(const void *sbuf, void *rbuf, const int *rco
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module)
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    )
 {
     int i, rank, size, count, err = OMPI_SUCCESS;
     ptrdiff_t extent, buf_size, gap;
@@ -372,9 +376,15 @@ mca_coll_basic_reduce_scatter_intra(const void *sbuf, void *rbuf, const int *rco
         }
 
         /* reduction */
+#ifndef ENABLE_ANALYSIS
         err =
             comm->c_coll->coll_reduce(sbuf, recv_buf, count, dtype, op, 0,
                                      comm, comm->c_coll->coll_reduce_module);
+#else
+        err =
+            comm->c_coll->coll_reduce(sbuf, recv_buf, count, dtype, op, 0,
+                                     comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
 
         /* scatter */
         if (MPI_SUCCESS == err) {
@@ -411,7 +421,11 @@ mca_coll_basic_reduce_scatter_inter(const void *sbuf, void *rbuf, const int *rco
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module)
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    )
 {
     int err, i, rank, root = 0, rsize, lsize, totalcounts;
     char *tmpbuf = NULL, *tmpbuf2 = NULL, *lbuf = NULL, *buf;

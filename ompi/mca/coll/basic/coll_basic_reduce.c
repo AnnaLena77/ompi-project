@@ -88,8 +88,21 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
                                 struct ompi_datatype_t *dtype,
                                 struct ompi_op_t *op,
                                 int root, struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     int i, size, rank, vrank;
     int err, peer, dim, mask;
     ptrdiff_t lb, extent, dsize, gap;
@@ -106,8 +119,13 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
      * operations. */
 
     if (!ompi_op_is_commute(op)) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_reduce_intra_basic_linear(sbuf, rbuf, count, dtype,
                                                         op, root, comm, module);
+#else
+        return ompi_coll_base_reduce_intra_basic_linear(sbuf, rbuf, count, dtype,
+                                                        op, root, comm, module, &item);
+#endif
     }
 
     /* Some variables */
@@ -307,7 +325,11 @@ mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
                                 struct ompi_datatype_t *dtype,
                                 struct ompi_op_t *op,
                                 int root, struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
     int i, err, size;
     ptrdiff_t dsize, gap;
@@ -403,7 +425,11 @@ mca_coll_basic_reduce_log_inter(const void *sbuf, void *rbuf, int count,
                                 struct ompi_datatype_t *dtype,
                                 struct ompi_op_t *op,
                                 int root, struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
     return OMPI_ERR_NOT_IMPLEMENTED;
 }

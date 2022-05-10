@@ -703,9 +703,13 @@ static int ompi_comm_allreduce_intra_nb (int *inbuf, int *outbuf, int count, str
                                          ompi_comm_cid_context_t *context, ompi_request_t **req)
 {
     ompi_communicator_t *comm = context->comm;
-
+#ifndef ENABLE_ANALYSIS
     return comm->c_coll->coll_iallreduce (inbuf, outbuf, count, MPI_INT, op, comm,
                                          req, comm->c_coll->coll_iallreduce_module);
+#else
+    return comm->c_coll->coll_iallreduce (inbuf, outbuf, count, MPI_INT, op, comm,
+                                         req, comm->c_coll->coll_iallreduce_module, NULL);
+#endif
 }
 
 /* Non-blocking version of ompi_comm_allreduce_inter */
@@ -754,9 +758,15 @@ static int ompi_comm_allreduce_inter_nb (int *inbuf, int *outbuf,
 
     /* Execute the inter-allreduce: the result from the local will be in the buffer of the remote group
      * and vise-versa. */
+#ifndef ENABLE_ANALYSIS
     rc = intercomm->c_local_comm->c_coll->coll_ireduce (inbuf, context->tmpbuf, count, MPI_INT, op, 0,
                                                        intercomm->c_local_comm, &subreq,
                                                        intercomm->c_local_comm->c_coll->coll_ireduce_module);
+#else
+    rc = intercomm->c_local_comm->c_coll->coll_ireduce (inbuf, context->tmpbuf, count, MPI_INT, op, 0,
+                                                       intercomm->c_local_comm, &subreq,
+                                                       intercomm->c_local_comm->c_coll->coll_ireduce_module, NULL);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         ompi_comm_request_return (request);
         return rc;
@@ -946,9 +956,15 @@ static int ompi_comm_allreduce_intra_bridge_nb (int *inbuf, int *outbuf,
     }
 
     /* step 1: reduce to the local leader */
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_ireduce (inbuf, context->tmpbuf, count, MPI_INT, op,
                                     cid_context->local_leader, comm, &subreq,
                                     comm->c_coll->coll_ireduce_module);
+#else
+    rc = comm->c_coll->coll_ireduce (inbuf, context->tmpbuf, count, MPI_INT, op,
+                                    cid_context->local_leader, comm, &subreq,
+                                    comm->c_coll->coll_ireduce_module, NULL);
+#endif
     if ( OMPI_SUCCESS != rc ) {
         ompi_comm_request_return (request);
         return rc;
@@ -1101,9 +1117,15 @@ static int ompi_comm_allreduce_intra_pmix_nb (int *inbuf, int *outbuf,
     request->context = &context->super;
 
     /* comm is an intra-communicator */
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_ireduce (inbuf, context->tmpbuf, count, MPI_INT, op,
                                     cid_context->local_leader, comm,
                                     &subreq, comm->c_coll->coll_ireduce_module);
+#else
+    rc = comm->c_coll->coll_ireduce (inbuf, context->tmpbuf, count, MPI_INT, op,
+                                    cid_context->local_leader, comm,
+                                    &subreq, comm->c_coll->coll_ireduce_module, NULL);
+#endif
     if ( OMPI_SUCCESS != rc ) {
         ompi_comm_request_return (request);
         return rc;

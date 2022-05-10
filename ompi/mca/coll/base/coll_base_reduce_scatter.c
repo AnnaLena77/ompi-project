@@ -49,7 +49,11 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
                                                         struct ompi_datatype_t *dtype,
                                                         struct ompi_op_t *op,
                                                         struct ompi_communicator_t *comm,
-                                                        mca_coll_base_module_t *module)
+                                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                        , qentry **q
+#endif
+                                                        )
 {
     int err, i, rank, size, total_count, *displs = NULL;
     const int root = 0;
@@ -67,11 +71,21 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
     if (MPI_IN_PLACE == sbuf) {
         /* rbuf on root (0) is big enough to hold whole data */
         if (root == rank) {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce (MPI_IN_PLACE, tmprbuf, total_count,
                                             dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce (MPI_IN_PLACE, tmprbuf, total_count,
+                                            dtype, op, root, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
         } else {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce(tmprbuf, NULL, total_count,
                                            dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce(tmprbuf, NULL, total_count,
+                                           dtype, op, root, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
         }
     } else {
         if (root == rank) {
@@ -83,8 +97,13 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
             tmprbuf_free = (char*) malloc(dsize);
             tmprbuf = tmprbuf_free - gap;
         }
+#ifndef ENABLE_ANALYSIS
         err = comm->c_coll->coll_reduce (sbuf, tmprbuf, total_count,
                                         dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+        err = comm->c_coll->coll_reduce (sbuf, tmprbuf, total_count,
+                                        dtype, op, root, comm, comm->c_coll->coll_reduce_module, NULL);
+#endif
     }
     if (MPI_SUCCESS != err) {
         if (NULL != tmprbuf_free) free(tmprbuf_free);
@@ -147,7 +166,11 @@ ompi_coll_base_reduce_scatter_intra_basic_recursivehalving( const void *sbuf,
                                                             struct ompi_datatype_t *dtype,
                                                             struct ompi_op_t *op,
                                                             struct ompi_communicator_t *comm,
-                                                            mca_coll_base_module_t *module)
+                                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                            , qentry **q
+#endif
+                                                            )
 {
     int i, rank, size, count, err = OMPI_SUCCESS;
     int tmp_size, remain = 0, tmp_rank, *disps = NULL;
@@ -511,7 +534,11 @@ ompi_coll_base_reduce_scatter_intra_ring( const void *sbuf, void *rbuf, const in
                                           struct ompi_datatype_t *dtype,
                                           struct ompi_op_t *op,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          )
 {
     int ret, line, rank, size, i, k, recv_from, send_to, total_count, max_block_count;
     int inbi, *displs = NULL;
@@ -769,7 +796,11 @@ int
 ompi_coll_base_reduce_scatter_intra_butterfly(
     const void *sbuf, void *rbuf, const int *rcounts, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
     char *tmpbuf[2] = {NULL, NULL}, *psend, *precv;
     int *displs = NULL, index;

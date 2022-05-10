@@ -118,9 +118,15 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
 
         int reduce_vals[] = {ranks_non_consecutive, low_size, -low_size};
 
+#ifndef ENABLE_ANALYSIS
         up_comm->c_coll->coll_allreduce(MPI_IN_PLACE, &reduce_vals, 3,
                                         MPI_INT, MPI_MAX, up_comm,
                                         up_comm->c_coll->coll_allreduce_module);
+#else
+        up_comm->c_coll->coll_allreduce(MPI_IN_PLACE, &reduce_vals, 3,
+                                        MPI_INT, MPI_MAX, up_comm,
+                                        up_comm->c_coll->coll_allreduce_module, NULL);
+#endif
 
         /* is the distribution of processes balanced per node? */
         is_imbalanced = (reduce_vals[1] == -reduce_vals[2]) ? 0 : 1;

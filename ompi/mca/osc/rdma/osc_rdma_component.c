@@ -577,8 +577,13 @@ static int synchronize_errorcode(int errorcode, ompi_communicator_t *comm)
     int ret;
     int err = errorcode;
     /* This assumes that error codes are negative integers */
+#ifndef ENABLE_ANALYSIS
     ret = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &err, 1, MPI_INT, MPI_MIN,
                                         comm, comm->c_coll->coll_allreduce_module);
+#else
+    ret = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &err, 1, MPI_INT, MPI_MIN,
+                                        comm, comm->c_coll->coll_allreduce_module, NULL);
+#endif
     if (OPAL_UNLIKELY (OMPI_SUCCESS != ret)) {
         err = ret;
     }
@@ -1316,8 +1321,13 @@ static int ompi_osc_rdma_check_parameters (ompi_osc_rdma_module_t *module, int d
     values[2] = size;
     values[3] = -(ssize_t) size;
 
+#ifndef ENABLE_ANALYSIS
     ret = module->comm->c_coll->coll_allreduce (MPI_IN_PLACE, values, 4, MPI_LONG, MPI_MIN, module->comm,
                                                module->comm->c_coll->coll_allreduce_module);
+#else
+    ret = module->comm->c_coll->coll_allreduce (MPI_IN_PLACE, values, 4, MPI_LONG, MPI_MIN, module->comm,
+                                               module->comm->c_coll->coll_allreduce_module, NULL);
+#endif
     if (OMPI_SUCCESS != ret) {
         return ret;
     }

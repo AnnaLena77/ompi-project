@@ -239,7 +239,11 @@ static int nbc_reduce_init(const void* sendbuf, void* recvbuf, int count, MPI_Da
 
 int ompi_coll_libnbc_ireduce(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
                              MPI_Op op, int root, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                             mca_coll_base_module_t *module) {
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             ) {
     int res = nbc_reduce_init(sendbuf, recvbuf, count, datatype, op, root,
                               comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {
@@ -257,7 +261,11 @@ int ompi_coll_libnbc_ireduce(const void* sendbuf, void* recvbuf, int count, MPI_
 
 static int nbc_reduce_inter_init(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
                                  MPI_Op op, int root, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                 mca_coll_base_module_t *module, bool persistent) {
+                                 mca_coll_base_module_t *module, bool persistent
+#ifdef ENABLE_ANALYSIS
+                                 , qentry **q
+#endif
+                                 ) {
   int rank, res, rsize;
   NBC_Schedule *schedule;
   ompi_coll_libnbc_module_t *libnbc_module = (ompi_coll_libnbc_module_t*) module;
@@ -305,9 +313,18 @@ static int nbc_reduce_inter_init(const void* sendbuf, void* recvbuf, int count, 
 
 int ompi_coll_libnbc_ireduce_inter(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
                                    MPI_Op op, int root, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                   mca_coll_base_module_t *module) {
+                                   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                   , qentry **q
+#endif
+                                   ) {
+#ifndef ENABLE_ANALYSIS
     int res = nbc_reduce_inter_init(sendbuf, recvbuf, count, datatype, op, root,
                                     comm, request, module, false);
+#else
+    int res = nbc_reduce_inter_init(sendbuf, recvbuf, count, datatype, op, root,
+                                    comm, request, module, false, NULL);
+#endif
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {
         return res;
     }
@@ -951,9 +968,15 @@ int ompi_coll_libnbc_reduce_init(const void* sendbuf, void* recvbuf, int count, 
 
 int ompi_coll_libnbc_reduce_inter_init(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype,
                                        MPI_Op op, int root, struct ompi_communicator_t *comm, MPI_Info info, ompi_request_t ** request,
-                                       mca_coll_base_module_t *module) {
+                                       mca_coll_base_module_t *module
+                                       ) {
+#ifndef ENABLE_ANALYSIS
     int res = nbc_reduce_inter_init(sendbuf, recvbuf, count, datatype, op, root,
                                     comm, request, module, true);
+#else
+    int res = nbc_reduce_inter_init(sendbuf, recvbuf, count, datatype, op, root,
+                                    comm, request, module, true, NULL);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {
         return res;
     }

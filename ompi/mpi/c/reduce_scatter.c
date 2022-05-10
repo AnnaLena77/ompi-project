@@ -47,6 +47,33 @@ static const char FUNC_NAME[] = "MPI_Reduce_scatter";
 int MPI_Reduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[],
                        MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    item->start = time(NULL);
+    strcpy(item->operation, "MPI_Reduce_scatter");
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(datatype, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicator, comm_name);
+    free(comm_name);
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = -1;
+
+
+    item->blocking = 1;
+#endif 
     int i, err, size, count;
 
     SPC_RECORD(OMPI_SPC_REDUCE_SCATTER, 1);
@@ -141,9 +168,16 @@ int MPI_Reduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[
     /* Invoke the coll component to perform the back-end operation */
 
     OBJ_RETAIN(op);
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_reduce_scatter(sendbuf, recvbuf, recvcounts,
                                            datatype, op, comm,
                                            comm->c_coll->coll_reduce_scatter_module);
+#else
+    err = comm->c_coll->coll_reduce_scatter(sendbuf, recvbuf, recvcounts,
+                                           datatype, op, comm,
+                                           comm->c_coll->coll_reduce_scatter_module, &item);
+    qentryIntoQueue(&item);
+#endif
     OBJ_RELEASE(op);
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

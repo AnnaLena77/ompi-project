@@ -624,6 +624,7 @@ int mca_common_ompio_create_groups(ompio_file_t *fh,
     if(fh->f_rank == fh->f_procs_in_group[0]){
 	   final_aggr = 1;
     }
+#ifndef ENABLE_ANALYSIS
     ret = fh->f_comm->c_coll->coll_allreduce (&final_aggr,
                                              &final_num_aggrs,
                                              1,
@@ -631,6 +632,15 @@ int mca_common_ompio_create_groups(ompio_file_t *fh,
                                              MPI_SUM,
                                              fh->f_comm,
                                              fh->f_comm->c_coll->coll_allreduce_module);
+#else
+    ret = fh->f_comm->c_coll->coll_allreduce (&final_aggr,
+                                             &final_num_aggrs,
+                                             1,
+                                             MPI_INT,
+                                             MPI_SUM,
+                                             fh->f_comm,
+                                             fh->f_comm->c_coll->coll_allreduce_module, NULL);
+#endif
     if ( OMPI_SUCCESS != ret ) {
         opal_output (1, "mca_common_ompio_create_groups: error in allreduce\n");
         goto exit;

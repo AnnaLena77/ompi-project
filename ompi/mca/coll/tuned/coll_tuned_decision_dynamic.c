@@ -56,18 +56,39 @@ ompi_coll_tuned_allreduce_intra_dec_dynamic (const void *sbuf, void *rbuf, int c
                                              struct ompi_datatype_t *dtype,
                                              struct ompi_op_t *op,
                                              struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					, qentry **q
+#endif
+                                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "ompi_coll_tuned_allreduce_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[ALLREDUCE].algorithm) {
+
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_allreduce_intra_do_this(sbuf, rbuf, count, dtype, op, comm, module,
                                                        tuned_module->user_forced[ALLREDUCE].algorithm,
                                                        tuned_module->user_forced[ALLREDUCE].tree_fanout,
                                                        tuned_module->user_forced[ALLREDUCE].segsize);
+#else
+        return ompi_coll_tuned_allreduce_intra_do_this(sbuf, rbuf, count, dtype, op, comm, module,
+                                                       tuned_module->user_forced[ALLREDUCE].algorithm,
+                                                       tuned_module->user_forced[ALLREDUCE].tree_fanout,
+                                                       tuned_module->user_forced[ALLREDUCE].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -84,14 +105,25 @@ ompi_coll_tuned_allreduce_intra_dec_dynamic (const void *sbuf, void *rbuf, int c
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_allreduce_intra_do_this (sbuf, rbuf, count, dtype, op,
                                                             comm, module,
                                                             alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_allreduce_intra_do_this (sbuf, rbuf, count, dtype, op,
+                                                            comm, module,
+                                                            alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allreduce_intra_dec_fixed (sbuf, rbuf, count, dtype, op,
                                                       comm, module);
+#else
+    return ompi_coll_tuned_allreduce_intra_dec_fixed (sbuf, rbuf, count, dtype, op,
+                                                      comm, module, &item);
+#endif
 }
 
 /*
@@ -107,7 +139,8 @@ int ompi_coll_tuned_alltoall_intra_dec_dynamic(const void *sbuf, int scount,
                                                void* rbuf, int rcount,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
-                                               mca_coll_base_module_t *module)
+                                               mca_coll_base_module_t *module
+                                               )
 {
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
@@ -337,20 +370,42 @@ int ompi_coll_tuned_reduce_intra_dec_dynamic( const void *sbuf, void *rbuf,
                                               int count, struct ompi_datatype_t* dtype,
                                               struct ompi_op_t* op, int root,
                                               struct ompi_communicator_t* comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					 , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:reduce_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[REDUCE].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_reduce_intra_do_this(sbuf, rbuf, count, dtype,
                                                     op, root, comm, module,
                                                     tuned_module->user_forced[REDUCE].algorithm,
                                                     tuned_module->user_forced[REDUCE].chain_fanout,
                                                     tuned_module->user_forced[REDUCE].segsize,
                                                     tuned_module->user_forced[REDUCE].max_requests);
+#else
+        return ompi_coll_tuned_reduce_intra_do_this(sbuf, rbuf, count, dtype,
+                                                    op, root, comm, module,
+                                                    tuned_module->user_forced[REDUCE].algorithm,
+                                                    tuned_module->user_forced[REDUCE].chain_fanout,
+                                                    tuned_module->user_forced[REDUCE].segsize,
+                                                    tuned_module->user_forced[REDUCE].max_requests, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -368,15 +423,27 @@ int ompi_coll_tuned_reduce_intra_dec_dynamic( const void *sbuf, void *rbuf,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return  ompi_coll_tuned_reduce_intra_do_this (sbuf, rbuf, count, dtype,
                                                           op, root, comm, module,
                                                           alg, faninout,
                                                           segsize, max_requests);
+#else
+            return  ompi_coll_tuned_reduce_intra_do_this (sbuf, rbuf, count, dtype,
+                                                          op, root, comm, module,
+                                                          alg, faninout,
+                                                          segsize, max_requests, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_reduce_intra_dec_fixed (sbuf, rbuf, count, dtype,
                                                    op, root, comm, module);
+#else
+    return ompi_coll_tuned_reduce_intra_dec_fixed (sbuf, rbuf, count, dtype,
+                                                   op, root, comm, module, &item);
+#endif
 }
 
 /*
@@ -393,19 +460,40 @@ int ompi_coll_tuned_reduce_scatter_intra_dec_dynamic(const void *sbuf, void *rbu
                                                      struct ompi_datatype_t *dtype,
                                                      struct ompi_op_t *op,
                                                      struct ompi_communicator_t *comm,
-                                                     mca_coll_base_module_t *module)
+                                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					        , qentry **q
+#endif
+                                                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:reduce_scatter_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[REDUCESCATTER].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_reduce_scatter_intra_do_this(sbuf, rbuf, rcounts, dtype,
                                                             op, comm, module,
                                                             tuned_module->user_forced[REDUCESCATTER].algorithm,
                                                             tuned_module->user_forced[REDUCESCATTER].chain_fanout,
                                                             tuned_module->user_forced[REDUCESCATTER].segsize);
+#else
+        return ompi_coll_tuned_reduce_scatter_intra_do_this(sbuf, rbuf, rcounts, dtype,
+                                                            op, comm, module,
+                                                            tuned_module->user_forced[REDUCESCATTER].algorithm,
+                                                            tuned_module->user_forced[REDUCESCATTER].chain_fanout,
+                                                            tuned_module->user_forced[REDUCESCATTER].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -424,14 +512,25 @@ int ompi_coll_tuned_reduce_scatter_intra_dec_dynamic(const void *sbuf, void *rbu
                                                         &segsize, &ignoreme);
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return  ompi_coll_tuned_reduce_scatter_intra_do_this (sbuf, rbuf, rcounts, dtype,
                                                                   op, comm, module,
                                                                   alg, faninout, segsize);
+#else
+            return  ompi_coll_tuned_reduce_scatter_intra_do_this (sbuf, rbuf, rcounts, dtype,
+                                                                  op, comm, module,
+                                                                  alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_reduce_scatter_intra_dec_fixed (sbuf, rbuf, rcounts,
                                                            dtype, op, comm, module);
+#else
+    return ompi_coll_tuned_reduce_scatter_intra_dec_fixed (sbuf, rbuf, rcounts,
+                                                           dtype, op, comm, module, &item);
+#endif
 }
 
 /*
@@ -448,19 +547,39 @@ int ompi_coll_tuned_reduce_scatter_block_intra_dec_dynamic(const void *sbuf, voi
                                                            struct ompi_datatype_t *dtype,
                                                            struct ompi_op_t *op,
                                                            struct ompi_communicator_t *comm,
-                                                           mca_coll_base_module_t *module)
+                                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+						     , qentry **q
+#endif
+                                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:reduce_scatter_block_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[REDUCESCATTERBLOCK].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_reduce_scatter_block_intra_do_this(sbuf, rbuf, rcount, dtype,
                                                                   op, comm, module,
                                                                   tuned_module->user_forced[REDUCESCATTERBLOCK].algorithm,
                                                                   tuned_module->user_forced[REDUCESCATTERBLOCK].chain_fanout,
                                                                   tuned_module->user_forced[REDUCESCATTERBLOCK].segsize);
+#else
+        return ompi_coll_tuned_reduce_scatter_block_intra_do_this(sbuf, rbuf, rcount, dtype,
+                                                                  op, comm, module,
+                                                                  tuned_module->user_forced[REDUCESCATTERBLOCK].algorithm,
+                                                                  tuned_module->user_forced[REDUCESCATTERBLOCK].chain_fanout,
+                                                                  tuned_module->user_forced[REDUCESCATTERBLOCK].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -478,14 +597,25 @@ int ompi_coll_tuned_reduce_scatter_block_intra_dec_dynamic(const void *sbuf, voi
                                                        &segsize, &ignoreme);
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return  ompi_coll_tuned_reduce_scatter_block_intra_do_this (sbuf, rbuf, rcount, dtype,
                                                                         op, comm, module,
                                                                         alg, faninout, segsize);
+#else
+            return  ompi_coll_tuned_reduce_scatter_block_intra_do_this (sbuf, rbuf, rcount, dtype,
+                                                                        op, comm, module,
+                                                                        alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /* end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed (sbuf, rbuf, rcount,
                                                                  dtype, op, comm, module);
+#else
+    return ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed (sbuf, rbuf, rcount,
+                                                                 dtype, op, comm, module, &item);
+#endif
 }
 
 /*

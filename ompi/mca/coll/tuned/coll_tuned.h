@@ -123,9 +123,15 @@ int ompi_coll_tuned_allgatherv_intra_do_this(ALLGATHERV_ARGS, int algorithm, int
 int ompi_coll_tuned_allgatherv_intra_check_forced_init(coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* All Reduce */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_allreduce_intra_dec_fixed(ALLREDUCE_ARGS);
 int ompi_coll_tuned_allreduce_intra_dec_dynamic(ALLREDUCE_ARGS);
 int ompi_coll_tuned_allreduce_intra_do_this(ALLREDUCE_ARGS, int algorithm, int faninout, int segsize);
+#else
+int ompi_coll_tuned_allreduce_intra_dec_fixed(ALLREDUCE_ARGS, qentry **q);
+int ompi_coll_tuned_allreduce_intra_dec_dynamic(ALLREDUCE_ARGS, qentry **q);
+int ompi_coll_tuned_allreduce_intra_do_this(ALLREDUCE_ARGS, int algorithm, int faninout, int segsize, qentry **q);
+#endif
 int ompi_coll_tuned_allreduce_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* AlltoAll */
@@ -171,21 +177,39 @@ int ompi_coll_tuned_gather_intra_do_this(GATHER_ARGS, int algorithm, int faninou
 int ompi_coll_tuned_gather_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Reduce */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_reduce_intra_dec_fixed(REDUCE_ARGS);
 int ompi_coll_tuned_reduce_intra_dec_dynamic(REDUCE_ARGS);
 int ompi_coll_tuned_reduce_intra_do_this(REDUCE_ARGS, int algorithm, int faninout, int segsize, int max_oustanding_reqs);
+#else
+int ompi_coll_tuned_reduce_intra_dec_fixed(REDUCE_ARGS, qentry **q);
+int ompi_coll_tuned_reduce_intra_dec_dynamic(REDUCE_ARGS, qentry **q);
+int ompi_coll_tuned_reduce_intra_do_this(REDUCE_ARGS, int algorithm, int faninout, int segsize, int max_oustanding_reqs, qentry **q);
+#endif
 int ompi_coll_tuned_reduce_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Reduce_scatter */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_reduce_scatter_intra_dec_fixed(REDUCESCATTER_ARGS);
 int ompi_coll_tuned_reduce_scatter_intra_dec_dynamic(REDUCESCATTER_ARGS);
 int ompi_coll_tuned_reduce_scatter_intra_do_this(REDUCESCATTER_ARGS, int algorithm, int faninout, int segsize);
+#else
+int ompi_coll_tuned_reduce_scatter_intra_dec_fixed(REDUCESCATTER_ARGS, qentry **q);
+int ompi_coll_tuned_reduce_scatter_intra_dec_dynamic(REDUCESCATTER_ARGS, qentry **q);
+int ompi_coll_tuned_reduce_scatter_intra_do_this(REDUCESCATTER_ARGS, int algorithm, int faninout, int segsize, qentry **q);
+#endif
 int ompi_coll_tuned_reduce_scatter_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Reduce_scatter_block */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed(REDUCESCATTERBLOCK_ARGS);
 int ompi_coll_tuned_reduce_scatter_block_intra_dec_dynamic(REDUCESCATTERBLOCK_ARGS);
 int ompi_coll_tuned_reduce_scatter_block_intra_do_this(REDUCESCATTERBLOCK_ARGS, int algorithm, int faninout, int segsize);
+#else
+int ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed(REDUCESCATTERBLOCK_ARGS, qentry **q);
+int ompi_coll_tuned_reduce_scatter_block_intra_dec_dynamic(REDUCESCATTERBLOCK_ARGS, qentry **q);
+int ompi_coll_tuned_reduce_scatter_block_intra_do_this(REDUCESCATTERBLOCK_ARGS, int algorithm, int faninout, int segsize, qentry **q);
+#endif
 int ompi_coll_tuned_reduce_scatter_block_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Scatter */

@@ -21,7 +21,11 @@ int mca_coll_monitoring_reduce_scatter(const void *sbuf, void *rbuf,
                                        struct ompi_datatype_t *dtype,
                                        struct ompi_op_t *op,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module)
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				   , qentry **q
+#endif
+                                       )
 {
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size, data_size_aggreg = 0;
@@ -51,7 +55,11 @@ int mca_coll_monitoring_ireduce_scatter(const void *sbuf, void *rbuf,
                                         struct ompi_op_t *op,
                                         struct ompi_communicator_t *comm,
                                         ompi_request_t ** request,
-                                        mca_coll_base_module_t *module)
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				    , qentry **q
+#endif
+                                        )
 {
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size, data_size_aggreg = 0;

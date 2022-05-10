@@ -466,9 +466,15 @@ ompi_report_comm_methods(int called_from_location) // 1 = from init, 2 = from fi
     MPI_Type_contiguous(sizeof(comm_method_string_conversion_t), MPI_BYTE, &mydt);
     MPI_Type_commit(&mydt);
     MPI_Op_create(myfn, 1, &myop);
+#ifndef ENABLE_ANALYSIS
     leader_comm->c_coll->coll_allreduce(
         MPI_IN_PLACE, (void*)&comm_method_string_conversion, 1, mydt, myop, leader_comm,
             leader_comm->c_coll->coll_allreduce_module);
+#else
+    leader_comm->c_coll->coll_allreduce(
+        MPI_IN_PLACE, (void*)&comm_method_string_conversion, 1, mydt, myop, leader_comm,
+            leader_comm->c_coll->coll_allreduce_module, NULL);
+#endif
     MPI_Op_free(&myop);
     MPI_Type_free(&mydt);
 

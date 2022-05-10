@@ -13,7 +13,8 @@ static inline ucc_status_t mca_coll_ucc_allreduce_init(const void *sbuf, void *r
                                                        struct ompi_datatype_t *dtype,
                                                        struct ompi_op_t *op, mca_coll_ucc_module_t *ucc_module,
                                                        ucc_coll_req_h *req,
-                                                       mca_coll_ucc_req_t *coll_req)
+                                                       mca_coll_ucc_req_t *coll_req
+                                                       )
 {
     ucc_datatype_t         ucc_dt;
     ucc_reduction_op_t     ucc_op;
@@ -62,7 +63,11 @@ fallback:
 int mca_coll_ucc_allreduce(const void *sbuf, void *rbuf, int count,
                            struct ompi_datatype_t *dtype,
                            struct ompi_op_t *op, struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module)
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           )
 {
     mca_coll_ucc_module_t *ucc_module = (mca_coll_ucc_module_t*)module;
     ucc_coll_req_h         req;

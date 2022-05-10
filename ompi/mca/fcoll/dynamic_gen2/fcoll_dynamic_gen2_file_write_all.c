@@ -251,6 +251,7 @@ int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
     start_comm_time = MPI_Wtime();
 #endif
     if ( 1 == mca_fcoll_dynamic_gen2_num_groups ) {
+#ifndef ENABLE_ANALYSIS
         ret = fh->f_comm->c_coll->coll_allreduce (MPI_IN_PLACE,
                                                   broken_total_lengths,
                                                   dynamic_gen2_num_io_procs,
@@ -258,6 +259,15 @@ int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
                                                   MPI_SUM,
                                                   fh->f_comm,
                                                   fh->f_comm->c_coll->coll_allreduce_module);
+#else
+        ret = fh->f_comm->c_coll->coll_allreduce (MPI_IN_PLACE,
+                                                  broken_total_lengths,
+                                                  dynamic_gen2_num_io_procs,
+                                                  MPI_LONG,
+                                                  MPI_SUM,
+                                                  fh->f_comm,
+                                                  fh->f_comm->c_coll->coll_allreduce_module, NULL);
+#endif
         if( OMPI_SUCCESS != ret){
             goto exit;
         }
