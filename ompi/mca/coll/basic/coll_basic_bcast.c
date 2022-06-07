@@ -237,7 +237,11 @@ int
 mca_coll_basic_bcast_log_inter(void *buff, int count,
                                struct ompi_datatype_t *datatype, int root,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
     return OMPI_ERR_NOT_IMPLEMENTED;
 }

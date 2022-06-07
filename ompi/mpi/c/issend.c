@@ -63,15 +63,13 @@ int MPI_Issend(const void *buf, int count, MPI_Datatype type, int dest,
     MPI_Type_get_name(type, type_name, &type_name_length);
     strcpy(item->datatype, type_name);
     free(type_name);
-    //item->count
-    item->count = count;
-    //item->datasize
-    item->datasize = count * sizeof(type);
+
+    strcpy(item->communicationType, "p2p");
     //item->communicator
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    strcpy(item->communicator, comm_name);
+    strcpy(item->communicationArea, comm_name);
     free(comm_name);
     //item->processrank
     int processrank;

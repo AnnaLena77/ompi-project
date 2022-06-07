@@ -36,7 +36,11 @@ ompi_coll_base_exscan_intra_linear(const void *sbuf, void *rbuf, int count,
                                   struct ompi_datatype_t *dtype,
                                   struct ompi_op_t *op,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module)
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  )
 {
     int size, rank, err;
     ptrdiff_t dsize, gap;
@@ -165,7 +169,11 @@ ompi_coll_base_exscan_intra_linear(const void *sbuf, void *rbuf, int count,
 int ompi_coll_base_exscan_intra_recursivedoubling(
     const void *sendbuf, void *recvbuf, int count, struct ompi_datatype_t *datatype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
     int err = MPI_SUCCESS;
     char *tmpsend_raw = NULL, *tmprecv_raw = NULL;

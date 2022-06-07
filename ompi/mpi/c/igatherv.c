@@ -51,9 +51,10 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     item->start = time(NULL);
-    strcpy(item->operation, "MPI_Igatherv");
+    strcpy(item->function, "MPI_Igatherv");
+    strcpy(item->communicationType, "collective");
     int processrank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    MPI_Comm_rank(comm, &processrank);
     item->processrank = processrank;
     //item->partnerrank
     if(processrank==root){
@@ -87,7 +88,7 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    strcpy(item->communicator, comm_name);
+    strcpy(item->communicationArea, comm_name);
     free(comm_name);
     item->blocking = 0;
 #endif 

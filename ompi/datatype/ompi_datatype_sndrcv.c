@@ -43,7 +43,8 @@
  * Returns:  - MPI_SUCCESS or error code
  */
 int32_t ompi_datatype_sndrcv( const void *sbuf, int32_t scount, const ompi_datatype_t* sdtype,
-                              void *rbuf, int32_t rcount, const ompi_datatype_t* rdtype)
+                              void *rbuf, int32_t rcount, const ompi_datatype_t* rdtype
+                              )
 {
     opal_convertor_t send_convertor, recv_convertor;
     struct iovec iov;

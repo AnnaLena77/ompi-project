@@ -507,7 +507,11 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
                                  );
 int
 mca_coll_han_reduce_reproducible_decision(struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module);
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				      , qentry **q
+#endif
+                                          );
 int
 mca_coll_han_reduce_reproducible(const void *sbuf,
                                  void *rbuf,
@@ -550,7 +554,11 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
                                     );
 int
 mca_coll_han_allreduce_reproducible_decision(struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module);
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					, qentry **q
+#endif
+                                             );
 int
 mca_coll_han_allreduce_reproducible(const void *sbuf,
                                     void *rbuf,
@@ -630,7 +638,11 @@ ompi_coll_han_reorder_gather(const void *sbuf,
                              void *rbuf, int rcount,
                              struct ompi_datatype_t *rdtype,
                              struct ompi_communicator_t *comm,
-                             int * topo);
+                             int * topo
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             );
 
 
 

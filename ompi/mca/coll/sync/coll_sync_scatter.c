@@ -40,6 +40,14 @@ int mca_coll_sync_scatter(const void *sbuf, int scount,
 #endif
                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_sync_module_t *s = (mca_coll_sync_module_t*) module;
 
     if (s->in_operation) {
@@ -50,7 +58,7 @@ int mca_coll_sync_scatter(const void *sbuf, int scount,
 #else
         return s->c_coll.coll_scatter(sbuf, scount, sdtype,
                                       rbuf, rcount, rdtype, root, comm,
-                                      s->c_coll.coll_scatter_module, NULL);
+                                      s->c_coll.coll_scatter_module, &item);
 #endif
     }
 #ifndef ENABLE_ANALYSIS
@@ -60,6 +68,6 @@ int mca_coll_sync_scatter(const void *sbuf, int scount,
 #else
     COLL_SYNC(s, s->c_coll.coll_scatter(sbuf, scount, sdtype,
                                         rbuf, rcount, rdtype, root, comm,
-                                        s->c_coll.coll_scatter_module, NULL));
+                                        s->c_coll.coll_scatter_module, &item));
 #endif
 }

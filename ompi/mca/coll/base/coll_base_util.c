@@ -39,9 +39,23 @@ int ompi_coll_base_sendrecv_actual( const void* sendbuf, size_t scount,
                                     ompi_datatype_t* rdatatype,
                                     int source, int rtag,
                                     struct ompi_communicator_t* comm,
-                                    ompi_status_public_t* status )
+                                    ompi_status_public_t* status
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                     )
 
-{ /* post receive first, then send, then wait... should be fast (I hope) */
+{ 
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
+/* post receive first, then send, then wait... should be fast (I hope) */
     int err, line = 0;
     size_t rtypesize, stypesize;
     ompi_request_t *req = MPI_REQUEST_NULL;
@@ -54,7 +68,7 @@ int ompi_coll_base_sendrecv_actual( const void* sendbuf, size_t scount,
                               comm, &req));
 #else
     err = MCA_PML_CALL(irecv( recvbuf, rcount, rdatatype, source, rtag,
-                              comm, &req, NULL));
+                              comm, &req, &item));
 #endif
     if (err != MPI_SUCCESS) { line = __LINE__; goto error_handler; }
 
@@ -65,7 +79,7 @@ int ompi_coll_base_sendrecv_actual( const void* sendbuf, size_t scount,
                              MCA_PML_BASE_SEND_STANDARD, comm));
 #else
     err = MCA_PML_CALL(send( sendbuf, scount, sdatatype, dest, stag,
-                             MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                             MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
     if (err != MPI_SUCCESS) { line = __LINE__; goto error_handler; }
     err = ompi_request_wait( &req, &rstatus);

@@ -42,7 +42,7 @@
 
 static const char FUNC_NAME[] = "MPI_Compare_and_swap";
 
-
+//Vergleich zweier Werte von origin und Target
 int MPI_Compare_and_swap(const void *origin_addr, const void *compare_addr, void *result_addr,
                          MPI_Datatype datatype, int target_rank, MPI_Aint target_disp, MPI_Win win)
 {

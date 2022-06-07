@@ -44,7 +44,9 @@
 
 static const char FUNC_NAME[] = "MPI_Allgatherv";
 
-
+/*sammelt Daten von allen beteiligten Prozessen eines gegebenene Kommunikators und übergibt sie an alle 
+diese Prouesse (es dürfen unterschiedlich viele Daten von den einzelnen Prozessen gesammelt werden (siehe
+Array)*/
 int MPI_Allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                    void *recvbuf, const int recvcounts[],
                    const int displs[], MPI_Datatype recvtype, MPI_Comm comm)
@@ -53,26 +55,37 @@ int MPI_Allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     item->start = time(NULL);
-    strcpy(item->operation, "MPI_Allgatherv");
+    strcpy(item->function, "MPI_Allgatherv");
+    strcpy(item->communicationType, "collective");
     //item->datatype
-    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int type_name_length;
-    MPI_Type_get_name(sendtype, type_name, &type_name_length);
-    strcpy(item->datatype, type_name);
-    free(type_name);
-    //item->count
-    item->count = sendcount;
-    //item->datasize
-    item->datasize = sendcount * sizeof(sendtype);
+    char *sendtype_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int sendtype_name_length;
+    MPI_Type_get_name(sendtype, sendtype_name, &sendtype_name_length);
+    char *recvtype_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int recvtype_name_length;
+    MPI_Type_get_name(recvtype, recvtype_name, &recvtype_name_length);
+    if(strcmp(sendtype_name, recvtype_name)==0){
+        strcpy(item->datatype, sendtype_name);
+        free(sendtype_name);
+        free(recvtype_name);
+    }
+    else {
+        strcat(sendtype_name, ", ");
+        strcat(sendtype_name, recvtype_name);
+        strcpy(item->datatype, sendtype_name);
+        free(sendtype_name);
+        free(recvtype_name);
+    }
+
     //item->communicator
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    strcpy(item->communicator, comm_name);
+    strcpy(item->communicationArea, comm_name);
     free(comm_name);
     //item->processrank
     int processrank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    MPI_Comm_rank(comm, &processrank);
     item->processrank = processrank;
     //item->partnerrank
     item->partnerrank = -1;

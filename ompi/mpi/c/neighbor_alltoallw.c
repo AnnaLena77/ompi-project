@@ -51,6 +51,28 @@ int MPI_Neighbor_alltoallw(const void *sendbuf, const int sendcounts[], const MP
                            const int recvcounts[], const MPI_Aint rdispls[],
                            const MPI_Datatype recvtypes[], MPI_Comm comm)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    item->start = time(NULL);
+    strcpy(item->function, "MPI_Neighbor_alltoallw");
+    strcpy(item->communicationType, "collective");
+
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(comm, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = -1;
+    item->blocking = 1;
+#endif 
+
     int i, err;
     int indegree, outdegree;
 
@@ -150,9 +172,16 @@ int MPI_Neighbor_alltoallw(const void *sendbuf, const int sendcounts[], const MP
 #endif
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_neighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes,
                                                recvbuf, recvcounts, rdispls, recvtypes,
                                                comm, comm->c_coll->coll_neighbor_alltoallw_module);
+#else
+    err = comm->c_coll->coll_neighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes,
+                                               recvbuf, recvcounts, rdispls, recvtypes,
+                                               comm, comm->c_coll->coll_neighbor_alltoallw_module, &item);
+    qentryIntoQueue(&item);
+#endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }
 

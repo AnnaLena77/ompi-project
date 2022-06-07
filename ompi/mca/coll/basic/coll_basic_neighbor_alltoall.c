@@ -44,7 +44,11 @@
 static int
 mca_coll_basic_neighbor_alltoall_cart(const void *sbuf, int scount, struct ompi_datatype_t *sdtype, void *rbuf,
                                       int rcount, struct ompi_datatype_t *rdtype, struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module)
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
     const mca_topo_base_comm_cart_2_2_0_t *cart = comm->c_topo->mtc.cart;
     const int rank = ompi_comm_rank (comm);
@@ -170,7 +174,11 @@ mca_coll_basic_neighbor_alltoall_cart(const void *sbuf, int scount, struct ompi_
 static int
 mca_coll_basic_neighbor_alltoall_graph(const void *sbuf, int scount, struct ompi_datatype_t *sdtype, void *rbuf,
                                        int rcount, struct ompi_datatype_t *rdtype, struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module)
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       )
 {
     const mca_topo_base_comm_graph_2_2_0_t *graph = comm->c_topo->mtc.graph;
     const int rank = ompi_comm_rank (comm);
@@ -240,7 +248,11 @@ mca_coll_basic_neighbor_alltoall_graph(const void *sbuf, int scount, struct ompi
 static int
 mca_coll_basic_neighbor_alltoall_dist_graph(const void *sbuf, int scount,struct ompi_datatype_t *sdtype, void *rbuf,
                                             int rcount, struct ompi_datatype_t *rdtype, struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
     const mca_topo_base_comm_dist_graph_2_2_0_t *dist_graph = comm->c_topo->mtc.dist_graph;
     ptrdiff_t lb, rdextent, sdextent;
@@ -310,21 +322,49 @@ mca_coll_basic_neighbor_alltoall_dist_graph(const void *sbuf, int scount,struct 
 
 int mca_coll_basic_neighbor_alltoall(const void *sbuf, int scount, struct ompi_datatype_t *sdtype, void *rbuf,
                                      int rcount, struct ompi_datatype_t *rdtype, struct ompi_communicator_t *comm,
-                                     mca_coll_base_module_t *module)
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     if (OMPI_COMM_IS_INTER(comm)) {
         return OMPI_ERR_NOT_SUPPORTED;
     }
 
     if (OMPI_COMM_IS_CART(comm)) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_basic_neighbor_alltoall_cart (sbuf, scount, sdtype, rbuf,
                                                       rcount, rdtype, comm, module);
+#else
+        return mca_coll_basic_neighbor_alltoall_cart (sbuf, scount, sdtype, rbuf,
+                                                      rcount, rdtype, comm, module, &item);
+#endif
     } else if (OMPI_COMM_IS_GRAPH(comm)) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_basic_neighbor_alltoall_graph (sbuf, scount, sdtype, rbuf,
                                                        rcount, rdtype, comm, module);
+#else
+        return mca_coll_basic_neighbor_alltoall_graph (sbuf, scount, sdtype, rbuf,
+                                                       rcount, rdtype, comm, module, &item);
+#endif
     } else if (OMPI_COMM_IS_DIST_GRAPH(comm)) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_basic_neighbor_alltoall_dist_graph (sbuf, scount, sdtype, rbuf,
                                                             rcount, rdtype, comm, module);
+#else
+        return mca_coll_basic_neighbor_alltoall_dist_graph (sbuf, scount, sdtype, rbuf,
+                                                            rcount, rdtype, comm, module, &item);
+#endif
     }
 
     return OMPI_ERR_NOT_SUPPORTED;

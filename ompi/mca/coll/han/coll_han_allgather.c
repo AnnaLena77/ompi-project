@@ -513,9 +513,15 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
          * (see reorder_gather)
          */
         if (!han_module->is_mapbycore) {
+#ifndef ENABLE_ANALYSIS
             ompi_coll_han_reorder_gather(reorder_buf_start,
                                          rbuf, rcount, rdtype,
                                          comm, topo);
+#else
+            ompi_coll_han_reorder_gather(reorder_buf_start,
+                                         rbuf, rcount, rdtype,
+                                         comm, topo, NULL);
+#endif
             free(reorder_buf);
             reorder_buf = NULL;
         }

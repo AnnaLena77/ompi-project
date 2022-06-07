@@ -95,6 +95,14 @@ int ompi_coll_base_allgather_intra_bruck(const void *sbuf, int scount,
 #endif
                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int line = -1, rank, size, sendto, recvfrom, distance, blockcount, err = 0;
     ptrdiff_t rlb, rext;
     char *tmpsend = NULL, *tmprecv = NULL;
@@ -114,6 +122,7 @@ int ompi_coll_base_allgather_intra_bruck(const void *sbuf, int scount,
        - if rank r != 0, copy r^th block from receive buffer to block 0.
     */
     tmprecv = (char*) rbuf;
+    //Wenn der Sendbuffer ein anderer als der Recv-Buffer ist (User hat nicht MPI_IN_Place verwendet)
     if (MPI_IN_PLACE != sbuf) {
         tmpsend = (char*) sbuf;
         err = ompi_datatype_sndrcv(tmpsend, scount, sdtype, tmprecv, rcount, rdtype);
@@ -155,7 +164,14 @@ int ompi_coll_base_allgather_intra_bruck(const void *sbuf, int scount,
                                        sendto, MCA_COLL_BASE_TAG_ALLGATHER,
                                        tmprecv, blockcount * rcount, rdtype,
                                        recvfrom, MCA_COLL_BASE_TAG_ALLGATHER,
-                                       comm, MPI_STATUS_IGNORE, rank);
+                                       comm, MPI_STATUS_IGNORE, rank
+#ifdef ENABLE_ANALYSIS
+				   , &item;
+#endif
+                                       );
+
+        //printf("Rank: %d, Recvcount: %d\n", rank, blockcount * rcount); 
+        
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
     }

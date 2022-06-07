@@ -837,7 +837,11 @@ int
 ompi_coll_portals4_bcast_intra(void *buff, int count,
         struct ompi_datatype_t *datatype, int root,
         struct ompi_communicator_t *comm,
-        mca_coll_base_module_t *module)
+        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+        , qentry **q
+#endif
+        )
 {
     mca_coll_portals4_module_t *portals4_module = (mca_coll_portals4_module_t*) module;
     ompi_coll_portals4_request_t *request;
@@ -882,7 +886,11 @@ ompi_coll_portals4_ibcast_intra(void *buff, int count,
         struct ompi_datatype_t *datatype, int root,
         struct ompi_communicator_t *comm,
         ompi_request_t **ompi_request,
-        mca_coll_base_module_t *module)
+        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+        , qentry **q
+#endif
+        )
 {
 
     mca_coll_portals4_module_t *portals4_module = (mca_coll_portals4_module_t*) module;

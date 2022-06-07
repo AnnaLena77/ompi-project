@@ -135,7 +135,11 @@ static int nbc_alltoallw_init(const void* sendbuf, const int *sendcounts, const 
 int ompi_coll_libnbc_ialltoallw(const void* sendbuf, const int *sendcounts, const int *sdispls,
                                 struct ompi_datatype_t * const *sendtypes, void* recvbuf, const int *recvcounts, const int *rdispls,
                                 struct ompi_datatype_t * const *recvtypes, struct ompi_communicator_t *comm, ompi_request_t ** request,
-				mca_coll_base_module_t *module) {
+				mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+				) {
     int res = nbc_alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes,
                                  recvbuf, recvcounts, rdispls, recvtypes,
                                  comm, request, module, false);
@@ -210,7 +214,11 @@ static int nbc_alltoallw_inter_init (const void* sendbuf, const int *sendcounts,
 int ompi_coll_libnbc_ialltoallw_inter(const void* sendbuf, const int *sendcounts, const int *sdispls,
                                       struct ompi_datatype_t * const *sendtypes, void* recvbuf, const int *recvcounts, const int *rdispls,
                                       struct ompi_datatype_t * const *recvtypes, struct ompi_communicator_t *comm, ompi_request_t ** request,
-				      mca_coll_base_module_t *module) {
+				      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+				      ) {
     int res = nbc_alltoallw_inter_init(sendbuf, sendcounts, sdispls, sendtypes,
                                        recvbuf, recvcounts, rdispls, recvtypes,
                                        comm, request, module, false);

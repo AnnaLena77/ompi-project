@@ -763,12 +763,19 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
     }
 
     if ( (size%2) != 0 && rank != root) {
-
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv( tmpbuf[lr], counts[lr], datatype,
                                         pair, MCA_COLL_BASE_TAG_BCAST,
                                         tmpbuf[(lr+1)%2], counts[(lr+1)%2], datatype,
                                         pair, MCA_COLL_BASE_TAG_BCAST,
                                         comm, MPI_STATUS_IGNORE, rank);
+#else
+        err = ompi_coll_base_sendrecv( tmpbuf[lr], counts[lr], datatype,
+                                        pair, MCA_COLL_BASE_TAG_BCAST,
+                                        tmpbuf[(lr+1)%2], counts[(lr+1)%2], datatype,
+                                        pair, MCA_COLL_BASE_TAG_BCAST,
+                                        comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
     } else if ( (size%2) == 0 ) {
         /* root sends right buffer to the last node */

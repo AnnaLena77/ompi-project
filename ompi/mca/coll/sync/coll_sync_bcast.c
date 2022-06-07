@@ -39,6 +39,15 @@ int mca_coll_sync_bcast(void *buff, int count,
 #endif
                         )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_sync_module_t *s = (mca_coll_sync_module_t*) module;
 
     if (s->in_operation) {
@@ -47,7 +56,7 @@ int mca_coll_sync_bcast(void *buff, int count,
                                     s->c_coll.coll_bcast_module);
 #else
 	return s->c_coll.coll_bcast(buff, count, datatype, root, comm,
-                                    s->c_coll.coll_bcast_module, NULL);
+                                    s->c_coll.coll_bcast_module, &item);
 #endif
     }
 #ifndef ENABLE_ANALYSIS
@@ -55,6 +64,6 @@ int mca_coll_sync_bcast(void *buff, int count,
                                       s->c_coll.coll_bcast_module));
 #else
     COLL_SYNC(s, s->c_coll.coll_bcast(buff, count, datatype, root, comm,
-                                      s->c_coll.coll_bcast_module, NULL));
+                                      s->c_coll.coll_bcast_module, &item));
 #endif
 }

@@ -574,9 +574,15 @@ mca_coll_han_gather_intra_simple(const void *sbuf, int scount,
      * (see reorder_gather)
      */
     if (w_rank == root && !han_module->is_mapbycore) {
+#ifndef ENABLE_ANALYSIS
         ompi_coll_han_reorder_gather(reorder_buf_start,
                                      rbuf, rcount, rdtype,
                                      comm, topo);
+#else
+        ompi_coll_han_reorder_gather(reorder_buf_start,
+                                     rbuf, rcount, rdtype,
+                                     comm, topo, &item);
+#endif
         free(reorder_buf);
     }
 
@@ -598,7 +604,11 @@ ompi_coll_han_reorder_gather(const void *sbuf,
                              void *rbuf, int count,
                              struct ompi_datatype_t *dtype,
                              struct ompi_communicator_t *comm,
-                             int * topo)
+                             int * topo
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             )
 {
     int i, topolevel = 2; // always 2 levels in topo
 #if OPAL_ENABLE_DEBUG

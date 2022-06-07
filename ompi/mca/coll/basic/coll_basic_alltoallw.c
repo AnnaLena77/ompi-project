@@ -48,7 +48,11 @@ static int
 mca_coll_basic_alltoallw_intra_inplace(const void *rbuf, const int *rcounts, const int *rdisps,
                                        struct ompi_datatype_t * const *rdtypes,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module)
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       )
 {
     int i, size, rank, left, right, err = MPI_SUCCESS;
     ompi_request_t *req = MPI_REQUEST_NULL;
@@ -190,16 +194,34 @@ mca_coll_basic_alltoallw_intra(const void *sbuf, const int *scounts, const int *
                                void *rbuf, const int *rcounts, const int *rdisps,
                                struct ompi_datatype_t * const *rdtypes,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                               , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     int i, size, rank, err, nreqs;
     char *psnd, *prcv;
     ompi_request_t **preq, **reqs;
 
     /* Initialize. */
     if (MPI_IN_PLACE == sbuf) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_basic_alltoallw_intra_inplace (rbuf, rcounts, rdisps,
                                                        rdtypes, comm, module);
+#else
+        return mca_coll_basic_alltoallw_intra_inplace (rbuf, rcounts, rdisps,
+                                                       rdtypes, comm, module, &item);
+#endif
     }
 
     size = ompi_comm_size(comm);
@@ -304,7 +326,11 @@ mca_coll_basic_alltoallw_inter(const void *sbuf, const int *scounts, const int *
                                void *rbuf, const int *rcounts, const int *rdisps,
                                struct ompi_datatype_t * const *rdtypes,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                               , qentry **q
+#endif
+                               )
 {
     int i, size, err, nreqs;
     char *psnd, *prcv;

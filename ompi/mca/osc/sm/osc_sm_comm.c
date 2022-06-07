@@ -29,7 +29,11 @@ ompi_osc_sm_rput(const void *origin_addr,
                  int target_count,
                  struct ompi_datatype_t *target_dt,
                  struct ompi_win_t *win,
-                 struct ompi_request_t **ompi_req)
+                 struct ompi_request_t **ompi_req
+#ifdef ENABLE_ANALYSIS
+                 , qentry **q
+#endif
+                 )
 {
     int ret;
     ompi_osc_sm_module_t *module =
@@ -69,7 +73,11 @@ ompi_osc_sm_rget(void *origin_addr,
                  int target_count,
                  struct ompi_datatype_t *target_dt,
                  struct ompi_win_t *win,
-                 struct ompi_request_t **ompi_req)
+                 struct ompi_request_t **ompi_req
+#ifdef ENABLE_ANALYSIS
+                 , qentry **q
+#endif
+                 )
 {
     int ret;
     ompi_osc_sm_module_t *module =
@@ -110,7 +118,11 @@ ompi_osc_sm_raccumulate(const void *origin_addr,
                         struct ompi_datatype_t *target_dt,
                         struct ompi_op_t *op,
                         struct ompi_win_t *win,
-                        struct ompi_request_t **ompi_req)
+                        struct ompi_request_t **ompi_req
+#ifdef ENABLE_ANALYSIS
+                        , qentry **q
+#endif
+                        )
 {
     int ret;
     ompi_osc_sm_module_t *module =
@@ -161,7 +173,11 @@ ompi_osc_sm_rget_accumulate(const void *origin_addr,
                                   struct ompi_datatype_t *target_dt,
                                   struct ompi_op_t *op,
                                   struct ompi_win_t *win,
-                                  struct ompi_request_t **ompi_req)
+                                  struct ompi_request_t **ompi_req
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  )
 {
     int ret;
     ompi_osc_sm_module_t *module =
@@ -213,7 +229,11 @@ ompi_osc_sm_put(const void *origin_addr,
                       ptrdiff_t target_disp,
                       int target_count,
                       struct ompi_datatype_t *target_dt,
-                      struct ompi_win_t *win)
+                      struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                      , qentry **q
+#endif
+                      )
 {
     int ret;
     ompi_osc_sm_module_t *module =
@@ -244,7 +264,11 @@ ompi_osc_sm_get(void *origin_addr,
                       ptrdiff_t target_disp,
                       int target_count,
                       struct ompi_datatype_t *target_dt,
-                      struct ompi_win_t *win)
+                      struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                      , qentry **q
+#endif
+                      )
 {
     int ret;
     ompi_osc_sm_module_t *module =
@@ -276,7 +300,11 @@ ompi_osc_sm_accumulate(const void *origin_addr,
                        int target_count,
                        struct ompi_datatype_t *target_dt,
                        struct ompi_op_t *op,
-                       struct ompi_win_t *win)
+                       struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q
+#endif
+                       )
 {
     int ret;
     ompi_osc_sm_module_t *module =
@@ -320,7 +348,11 @@ ompi_osc_sm_get_accumulate(const void *origin_addr,
                            int target_count,
                            struct ompi_datatype_t *target_dt,
                            struct ompi_op_t *op,
-                           struct ompi_win_t *win)
+                           struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                           , qentry **q
+#endif
+                           )
 {
     int ret;
     ompi_osc_sm_module_t *module =

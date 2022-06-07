@@ -159,7 +159,11 @@ static int nbc_neighbor_alltoallw_init(const void *sbuf, const int *scounts, con
 int ompi_coll_libnbc_ineighbor_alltoallw(const void *sbuf, const int *scounts, const MPI_Aint *sdisps, struct ompi_datatype_t * const *stypes,
                                          void *rbuf, const int *rcounts, const MPI_Aint *rdisps, struct ompi_datatype_t * const *rtypes,
                                          struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                         mca_coll_base_module_t *module) {
+                                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         ) {
     int res = nbc_neighbor_alltoallw_init(sbuf, scounts, sdisps, stypes, rbuf, rcounts, rdisps, rtypes,
                                           comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {

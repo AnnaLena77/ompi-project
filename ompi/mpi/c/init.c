@@ -71,8 +71,10 @@ void initQentry(qentry **q){
         item->immediate = 0;
         strcpy(item->datatype, "");
         item->count = 0;
+        item->sendcount = 0;
+        item->rcvcount = 0;
         item->datasize = 0;
-        strcpy(item->communicator, "");
+        strcpy(item->communicationArea, "");
         item->processrank = -1;
         item->partnerrank = -1;
         strcpy(item->usedBtl, "");
@@ -192,11 +194,11 @@ static void collectData(qentry **q, char **batchstr){
     createTimeString(item->intoQueue, time_intoQueue);
 
     //Speicherplatz für alle Einträge als Char + 3* '' für die Chars + 6* , und Leertaste + ()
-    int datalen = strlen(item->operation) + strlen(item->sendmode) + strlen(item->datatype) + strlen(item->communicator) + strlen(item->usedBtl) + strlen(item->usedProtocol) + timestampslen*9 +  immediatelen + blockinglen + countlen + datasizelen + processranklen + partnerranklen + withinEagerLimitlen + foundMatchWildlen + 14*2 + 22*2 +2 +1;     
+    int datalen = strlen(item->operation) + strlen(item->sendmode) + strlen(item->datatype) + strlen(item->communicationArea) + strlen(item->usedBtl) + strlen(item->usedProtocol) + timestampslen*9 +  immediatelen + blockinglen + countlen + datasizelen + processranklen + partnerranklen + withinEagerLimitlen + foundMatchWildlen + 14*2 + 22*2 +2 +1;     
     //printf("Datalen: %d\n", datalen);
     char *data=(char*)malloc(datalen+1);
     
-    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d, '%s', %d, %d, '%s', '%s', %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s),", item->operation, item->sendmode, item->blocking, item->immediate, item->datatype, item->count, item->datasize, item->communicator, item->processrank, item->partnerrank, item->usedBtl, item->usedProtocol, item->withinEagerLimit, item->foundMatchWild, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel , time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue);
+    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d, '%s', %d, %d, '%s', '%s', %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s),", item->operation, item->sendmode, item->blocking, item->immediate, item->datatype, item->count, item->datasize, item->communicationArea, item->processrank, item->partnerrank, item->usedBtl, item->usedProtocol, item->withinEagerLimit, item->foundMatchWild, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel , time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue);
     
     free(time_start);
     free(time_initializeRequest);
@@ -248,6 +250,7 @@ static void* MonitorFunc(void* _arg){
             //printf("%d\n", item->data);
         }
     }
+    //printf("out of loop\n");
     free(batch);
 }
 

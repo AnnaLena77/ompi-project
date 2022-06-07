@@ -240,6 +240,7 @@ int ompi_coll_base_allreduce_intra_redscat_allgather(ALLREDUCE_ARGS, qentry **q)
 #endif
 
 /* AlltoAll */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_alltoall_intra_pairwise(ALLTOALL_ARGS);
 int ompi_coll_base_alltoall_intra_bruck(ALLTOALL_ARGS);
 int ompi_coll_base_alltoall_intra_basic_linear(ALLTOALL_ARGS);
@@ -249,14 +250,34 @@ int mca_coll_base_alltoall_intra_basic_inplace(const void *rbuf, int rcount,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
                                                mca_coll_base_module_t *module);  /* special version for INPLACE */
+#else
+int ompi_coll_base_alltoall_intra_pairwise(ALLTOALL_ARGS, qentry **q);
+int ompi_coll_base_alltoall_intra_bruck(ALLTOALL_ARGS, qentry **q);
+int ompi_coll_base_alltoall_intra_basic_linear(ALLTOALL_ARGS, qentry **q);
+int ompi_coll_base_alltoall_intra_linear_sync(ALLTOALL_ARGS, int max_requests, qentry **q);
+int ompi_coll_base_alltoall_intra_two_procs(ALLTOALL_ARGS, qentry **q);
+int mca_coll_base_alltoall_intra_basic_inplace(const void *rbuf, int rcount,
+                                               struct ompi_datatype_t *rdtype,
+                                               struct ompi_communicator_t *comm,
+                                               mca_coll_base_module_t *module, qentry **q);  /* special version for INPLACE */
+#endif
 
 /* AlltoAllV */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_alltoallv_intra_pairwise(ALLTOALLV_ARGS);
 int ompi_coll_base_alltoallv_intra_basic_linear(ALLTOALLV_ARGS);
 int mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts, const int *rdisps,
                                                 struct ompi_datatype_t *rdtype,
                                                 struct ompi_communicator_t *comm,
                                                 mca_coll_base_module_t *module);  /* special version for INPLACE */
+#else
+int ompi_coll_base_alltoallv_intra_pairwise(ALLTOALLV_ARGS, qentry **q);
+int ompi_coll_base_alltoallv_intra_basic_linear(ALLTOALLV_ARGS, qentry **q);
+int mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts, const int *rdisps,
+                                                struct ompi_datatype_t *rdtype,
+                                                struct ompi_communicator_t *comm,
+                                                mca_coll_base_module_t *module, qentry **q);  /* special version for INPLACE */
+#endif
 
 /* AlltoAllW */
 
@@ -280,7 +301,6 @@ int ompi_coll_base_bcast_intra_split_bintree(BCAST_ARGS, uint32_t segsize);
 int ompi_coll_base_bcast_intra_knomial(BCAST_ARGS, uint32_t segsize, int radix);
 int ompi_coll_base_bcast_intra_scatter_allgather(BCAST_ARGS, uint32_t segsize);
 int ompi_coll_base_bcast_intra_scatter_allgather_ring(BCAST_ARGS, uint32_t segsize);
-
 #else
 int ompi_coll_base_bcast_intra_generic(BCAST_ARGS, uint32_t count_by_segment, ompi_coll_tree_t* tree, qentry **q);
 int ompi_coll_base_bcast_intra_basic_linear(BCAST_ARGS, qentry **q);
@@ -292,15 +312,20 @@ int ompi_coll_base_bcast_intra_split_bintree(BCAST_ARGS, uint32_t segsize, qentr
 int ompi_coll_base_bcast_intra_knomial(BCAST_ARGS, uint32_t segsize, int radix, qentry **q);
 int ompi_coll_base_bcast_intra_scatter_allgather(BCAST_ARGS, uint32_t segsize, qentry **q);
 int ompi_coll_base_bcast_intra_scatter_allgather_ring(BCAST_ARGS, uint32_t segsize, qentry **q);
-
 #endif
 
 
 
 /* Exscan */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_exscan_intra_recursivedoubling(EXSCAN_ARGS);
 int ompi_coll_base_exscan_intra_linear(EXSCAN_ARGS);
 int ompi_coll_base_exscan_intra_recursivedoubling(EXSCAN_ARGS);
+#else
+int ompi_coll_base_exscan_intra_recursivedoubling(EXSCAN_ARGS, qentry **q);
+int ompi_coll_base_exscan_intra_linear(EXSCAN_ARGS, qentry **q);
+int ompi_coll_base_exscan_intra_recursivedoubling(EXSCAN_ARGS, qentry **q);
+#endif
 
 /* Gather */
 #ifndef ENABLE_ANALYSIS
@@ -363,9 +388,15 @@ int ompi_coll_base_reduce_scatter_block_intra_butterfly(REDUCESCATTERBLOCK_ARGS,
 #endif
 
 /* Scan */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_scan_intra_recursivedoubling(SCAN_ARGS);
 int ompi_coll_base_scan_intra_linear(SCAN_ARGS);
 int ompi_coll_base_scan_intra_recursivedoubling(SCAN_ARGS);
+#else
+int ompi_coll_base_scan_intra_recursivedoubling(SCAN_ARGS, qentry **q);
+int ompi_coll_base_scan_intra_linear(SCAN_ARGS, qentry **q);
+int ompi_coll_base_scan_intra_recursivedoubling(SCAN_ARGS, qentry **q);
+#endif
 
 /* Scatter */
 #ifndef ENABLE_ANALYSIS

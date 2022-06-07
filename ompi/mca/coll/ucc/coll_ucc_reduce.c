@@ -71,6 +71,14 @@ int mca_coll_ucc_reduce(const void *sbuf, void* rbuf, int count,
 #endif
                         )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_ucc_module_t *ucc_module = (mca_coll_ucc_module_t*)module;
     ucc_coll_req_h         req;
 
@@ -82,8 +90,13 @@ int mca_coll_ucc_reduce(const void *sbuf, void* rbuf, int count,
     return OMPI_SUCCESS;
 fallback:
     UCC_VERBOSE(3, "running fallback reduce");
+#ifndef ENABLE_ANALYSIS
     return ucc_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
                                        comm, ucc_module->previous_reduce_module);
+#else
+    return ucc_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                       comm, ucc_module->previous_reduce_module, &item);
+#endif
 }
 
 int mca_coll_ucc_ireduce(const void *sbuf, void* rbuf, int count,
@@ -97,6 +110,14 @@ int mca_coll_ucc_ireduce(const void *sbuf, void* rbuf, int count,
 #endif
                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_ucc_module_t *ucc_module = (mca_coll_ucc_module_t*)module;
     ucc_coll_req_h         req;
     mca_coll_ucc_req_t    *coll_req = NULL;
@@ -113,6 +134,11 @@ fallback:
     if (coll_req) {
         mca_coll_ucc_req_free((ompi_request_t **)&coll_req);
     }
+#ifndef ENABLE_ANALYSIS
     return ucc_module->previous_ireduce(sbuf, rbuf, count, dtype, op, root,
                                         comm, request, ucc_module->previous_ireduce_module);
+#else
+    return ucc_module->previous_ireduce(sbuf, rbuf, count, dtype, op, root,
+                                        comm, request, ucc_module->previous_ireduce_module, &item);
+#endif
 }

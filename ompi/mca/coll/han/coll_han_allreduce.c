@@ -689,7 +689,11 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
  */
 int
 mca_coll_han_allreduce_reproducible_decision(struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					, qentry **q
+#endif
+                                             )
 {
     int w_rank = ompi_comm_rank(comm);
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;

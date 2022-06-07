@@ -46,6 +46,35 @@ static const char FUNC_NAME[] = "MPI_Exscan";
 int MPI_Exscan(const void *sendbuf, void *recvbuf, int count,
                MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    item->start = time(NULL);
+    strcpy(item->function, "MPI_Exscan");
+    strcpy(item->communicationType, "collective");
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(datatype, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(comm, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = -1;
+
+
+    item->blocking = 1;
+#endif 
     int err;
 
     SPC_RECORD(OMPI_SPC_EXSCAN, 1);
@@ -104,11 +133,18 @@ int MPI_Exscan(const void *sendbuf, void *recvbuf, int count,
     }
 
     /* Invoke the coll component to perform the back-end operation */
-
+#ifndef ENABLE_ANALYSIS
     OBJ_RETAIN(op);
     err = comm->c_coll->coll_exscan(sendbuf, recvbuf, count,
                                    datatype, op, comm,
                                    comm->c_coll->coll_exscan_module);
+#else
+    OBJ_RETAIN(op);
+    err = comm->c_coll->coll_exscan(sendbuf, recvbuf, count,
+                                   datatype, op, comm,
+                                   comm->c_coll->coll_exscan_module, &item);
+    qentryIntoQueue(&item);
+#endif
     OBJ_RELEASE(op);
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }
