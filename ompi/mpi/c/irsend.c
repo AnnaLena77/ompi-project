@@ -131,6 +131,7 @@ int MPI_Irsend(const void *buf, int count, MPI_Datatype type, int dest,
 #else
     rc = MCA_PML_CALL(isend(buf,count,type,dest,tag,
                             MCA_PML_BASE_SEND_READY,comm,request, &item));
+    qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

@@ -280,9 +280,14 @@ int mca_io_ompio_file_set_size (ompi_file_t *fh,
         OPAL_THREAD_UNLOCK(&fh->f_lock);
         return ret;
     }
-    
+
+#ifndef ENABLE_ANALYSIS
     ret = data->ompio_fh.f_comm->c_coll->coll_barrier (data->ompio_fh.f_comm,
                                                       data->ompio_fh.f_comm->c_coll->coll_barrier_module);
+#else
+    ret = data->ompio_fh.f_comm->c_coll->coll_barrier (data->ompio_fh.f_comm,
+                                                      data->ompio_fh.f_comm->c_coll->coll_barrier_module, NULL);
+#endif
     if ( OMPI_SUCCESS != ret ) {
         opal_output(1, ",mca_io_ompio_file_set_size: error in barrier\n");
         OPAL_THREAD_UNLOCK(&fh->f_lock);
@@ -417,8 +422,13 @@ int mca_io_ompio_file_sync (ompi_file_t *fh)
         return MPI_ERR_ACCESS;
     }        
     // Make sure all processes reach this point before syncing the file.
+#ifndef ENABLE_ANALYSIS
     ret = data->ompio_fh.f_comm->c_coll->coll_barrier (data->ompio_fh.f_comm,
                                                        data->ompio_fh.f_comm->c_coll->coll_barrier_module);
+#else
+    ret = data->ompio_fh.f_comm->c_coll->coll_barrier (data->ompio_fh.f_comm,
+                                                       data->ompio_fh.f_comm->c_coll->coll_barrier_module, NULL);
+#endif
     if ( MPI_SUCCESS != ret ) {
         OPAL_THREAD_UNLOCK(&fh->f_lock);
         return ret;

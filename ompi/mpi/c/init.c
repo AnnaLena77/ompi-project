@@ -65,22 +65,24 @@ void initQentry(qentry **q){
     	return 0;
     } else {
         qentry *item = *q;
-        strcpy(item->operation, "");
-        strcpy(item->sendmode, "");
+        strcpy(item->function, "");
         item->blocking = -1;
-        item->immediate = 0;
         strcpy(item->datatype, "");
         item->count = 0;
         item->sendcount = 0;
-        item->rcvcount = 0;
+        item->recvcount = 0;
         item->datasize = 0;
+        strcpy(item->operation, "");
         strcpy(item->communicationArea, "");
         item->processrank = -1;
         item->partnerrank = -1;
+        strcpy(item->sendmode, "");
+        item->immediate = 0;
         strcpy(item->usedBtl, "");
         strcpy(item->usedProtocol, "");
         item->withinEagerLimit = -1;
         item->foundMatchWild = -1;
+        strcpy(item->usedAlgorithm, "");
         item->start = 0;
         item->initializeRequest = 0;
         item->startRequest = 0;
@@ -113,7 +115,7 @@ static char *database = "DataFromMPI";
 static const int LIMIT = 200;
 static int last_one = 0;
 static int count = LIMIT;
-static char *batchstring = "INSERT INTO MPI_Information(operation, sendmode, blocking, immediate, datatype, count, datasize, communicator, processrank, partnerrank, usedBtl, usedProtocol, withinEagerLimit, foundMatchWild, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel, time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue)VALUES";
+static char *batchstring = "INSERT INTO MPI_Information(function, communicationType, blocking, datatype, count, sendcount, recvcount, datasize, operation, communicationArea, processrank, partnerrank, sendmode, immediate, usedBtl, usedProtocol, withinEagerLimit, foundMatchWild, usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel, time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue)VALUES";
 
 static void insertData(char **batchstr){
     count = LIMIT;
@@ -163,6 +165,8 @@ void qentryIntoQueue(qentry **q){
 static void collectData(qentry **q, char **batchstr){
     qentry *item = *q;
     int countlen = (item->count==0 || item->count == -1)?1:(int)log10(item->count)+1;
+    int sendcountlen = (item->sendcount==0 || item->sendcount == -1)?1:(int)log10(item->sendcount)+1;
+    int recvcountlen = (item->recvcount==0 || item->recvcount == -1)?1:(int)log10(item->recvcount)+1;
     int datasizelen = (item->datasize==0 || item->datasize==-1)?1:(int)log10(item->datasize)+1;
     int processranklen = (item->processrank==0 || item->processrank==-1)?1:(int)log10(item->processrank)+1;
     int partnerranklen = (item->partnerrank==0 || item->partnerrank==-1)?1:(int)log10(item->partnerrank)+1;
@@ -194,11 +198,11 @@ static void collectData(qentry **q, char **batchstr){
     createTimeString(item->intoQueue, time_intoQueue);
 
     //Speicherplatz für alle Einträge als Char + 3* '' für die Chars + 6* , und Leertaste + ()
-    int datalen = strlen(item->operation) + strlen(item->sendmode) + strlen(item->datatype) + strlen(item->communicationArea) + strlen(item->usedBtl) + strlen(item->usedProtocol) + timestampslen*9 +  immediatelen + blockinglen + countlen + datasizelen + processranklen + partnerranklen + withinEagerLimitlen + foundMatchWildlen + 14*2 + 22*2 +2 +1;     
+    int datalen = strlen(item->function) + strlen(item->communicationType) + blockinglen + strlen(item->datatype) + countlen + sendcountlen + recvcountlen + datasizelen + strlen(item->operation) + strlen(item->communicationArea) + processranklen + partnerranklen + strlen(item->sendmode) + immediatelen + strlen(item->usedBtl) + strlen(item->usedProtocol) + withinEagerLimitlen + foundMatchWildlen + strlen(item->usedAlgorithm)+ timestampslen*9 + 19*2 + 28*2 +2 +1;     
     //printf("Datalen: %d\n", datalen);
     char *data=(char*)malloc(datalen+1);
     
-    sprintf(data, "('%s', '%s', %d, %d, '%s', %d, %d, '%s', %d, %d, '%s', '%s', %d, %d, %s, %s, %s, %s, %s, %s, %s, %s, %s),", item->operation, item->sendmode, item->blocking, item->immediate, item->datatype, item->count, item->datasize, item->communicationArea, item->processrank, item->partnerrank, item->usedBtl, item->usedProtocol, item->withinEagerLimit, item->foundMatchWild, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel , time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue);
+    sprintf(data, "('%s', '%s', %d, '%s', %d, %d, %d, %d, '%s', '%s', %d, %d, '%s', '%d', '%s', '%s', %d, %d, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s),", item->function, item->communicationType, item->blocking, item->datatype, item->count, item->sendcount, item->recvcount, item->datasize, item->operation, item->communicationArea, item->processrank, item->partnerrank, item->sendmode, item->immediate, item->usedBtl, item->usedProtocol, item->withinEagerLimit, item->foundMatchWild, item->usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel , time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue);
     
     free(time_start);
     free(time_initializeRequest);

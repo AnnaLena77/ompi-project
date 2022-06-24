@@ -738,7 +738,11 @@ static int allocate_state_shared (ompi_osc_rdma_module_t *module, void **base, s
         memset (module->state, 0, module->state_size);
 
         /* barrier to make sure all ranks have attached and initialized */
+#ifndef ENABLE_ANALYSIS
         shared_comm->c_coll->coll_barrier(shared_comm, shared_comm->c_coll->coll_barrier_module);
+#else
+        shared_comm->c_coll->coll_barrier(shared_comm, shared_comm->c_coll->coll_barrier_module, NULL);
+#endif
 
         if (0 == local_rank) {
             /* unlink the shared memory backing file */
@@ -1585,7 +1589,11 @@ ompi_osc_rdma_set_no_lock_info(opal_infosubscriber_t *obj, const char *key, cons
         module->no_locks = false;
     }
     /* enforce collectiveness... */
+#ifndef ENABLE_ANALYSIS
     module->comm->c_coll->coll_barrier(module->comm, module->comm->c_coll->coll_barrier_module);
+#else
+    module->comm->c_coll->coll_barrier(module->comm, module->comm->c_coll->coll_barrier_module, NULL);
+#endif
     /*
      * Accept any value
      */

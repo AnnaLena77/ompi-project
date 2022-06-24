@@ -54,6 +54,14 @@ mca_coll_basic_alltoallw_intra_inplace(const void *rbuf, const int *rcounts, con
 #endif
                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, size, rank, left, right, err = MPI_SUCCESS;
     ompi_request_t *req = MPI_REQUEST_NULL;
     char *tmp_buffer = NULL;
@@ -121,7 +129,7 @@ mca_coll_basic_alltoallw_intra_inplace(const void *rbuf, const int *rcounts, con
                                       right, MCA_COLL_BASE_TAG_ALLTOALLW, comm, &req));
 #else
             err = MCA_PML_CALL(irecv ((char *) rbuf + rdisps[right], rcounts[right], rdtypes[right],
-                                      right, MCA_COLL_BASE_TAG_ALLTOALLW, comm, &req, NULL));
+                                      right, MCA_COLL_BASE_TAG_ALLTOALLW, comm, &req, &item));
 #endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
         }
@@ -135,7 +143,7 @@ mca_coll_basic_alltoallw_intra_inplace(const void *rbuf, const int *rcounts, con
 #else
             err = MCA_PML_CALL(send ((char *) rbuf + rdisps[left], rcounts[left], rdtypes[left],
                                      left, MCA_COLL_BASE_TAG_ALLTOALLW, MCA_PML_BASE_SEND_STANDARD,
-                                     comm, NULL));
+                                     comm, &item));
 #endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
 
@@ -148,7 +156,7 @@ mca_coll_basic_alltoallw_intra_inplace(const void *rbuf, const int *rcounts, con
                                       left, MCA_COLL_BASE_TAG_ALLTOALLW, comm, &req));
 #else   
             err = MCA_PML_CALL(irecv ((char *) rbuf + rdisps[left], rcounts[left], rdtypes[left],
-                                      left, MCA_COLL_BASE_TAG_ALLTOALLW, comm, &req, NULL));
+                                      left, MCA_COLL_BASE_TAG_ALLTOALLW, comm, &req, &item));
 #endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
         }
@@ -162,7 +170,7 @@ mca_coll_basic_alltoallw_intra_inplace(const void *rbuf, const int *rcounts, con
 #else
             err = MCA_PML_CALL(send ((char *) tmp_buffer,  packed_size, MPI_PACKED,
                                      right, MCA_COLL_BASE_TAG_ALLTOALLW, MCA_PML_BASE_SEND_STANDARD,
-                                     comm, NULL));
+                                     comm, &item));
 #endif
             if (MPI_SUCCESS != err) { goto error_hndl; }
         }
@@ -332,6 +340,14 @@ mca_coll_basic_alltoallw_inter(const void *sbuf, const int *scounts, const int *
 #endif
                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, size, err, nreqs;
     char *psnd, *prcv;
     ompi_request_t **preq, **reqs;

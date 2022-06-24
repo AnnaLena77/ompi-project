@@ -49,6 +49,14 @@ mca_coll_basic_gather_inter(const void *sbuf, int scount,
 #endif
                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i;
     int err;
     int size;
@@ -71,7 +79,7 @@ mca_coll_basic_gather_inter(const void *sbuf, int scount,
 #else
         err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                 MCA_COLL_BASE_TAG_GATHER,
-                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
     } else {
         /* I am the root, loop receiving the data. */
@@ -89,7 +97,7 @@ mca_coll_basic_gather_inter(const void *sbuf, int scount,
 #else
             err = MCA_PML_CALL(recv(ptmp, rcount, rdtype, i,
                                     MCA_COLL_BASE_TAG_GATHER,
-                                    comm, MPI_STATUS_IGNORE, NULL));
+                                    comm, MPI_STATUS_IGNORE, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 return err;

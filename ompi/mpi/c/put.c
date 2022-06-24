@@ -76,14 +76,14 @@ int MPI_Put(const void *origin_addr, int origin_count, MPI_Datatype origin_datat
         free(target_name);
     }
     //count and datasize
-    item->count = origin_count + target_count;
-    item->datasize = origin_count*sizeof(origin_datatype)+target_count*sizeof(target_datatype);
-    //Name of the window instead of the communicator
-    char *window_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int window_name_length;
-    MPI_Win_get_name(win, window_name, &window_name_length);
-    strcpy(item->communicationArea, window_name);
-    free(window_name);
+    item->count = origin_count;
+    item->datasize = origin_count*sizeof(origin_datatype);
+    //Name of communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    ompi_win_get_communicator(win, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
     
     MPI_Group wingroup;
     MPI_Win_get_group(win, &wingroup);

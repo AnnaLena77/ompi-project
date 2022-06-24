@@ -398,7 +398,11 @@ ompi_osc_sm_compare_and_swap(const void *origin_addr,
                              struct ompi_datatype_t *dt,
                              int target,
                              ptrdiff_t target_disp,
-                             struct ompi_win_t *win)
+                             struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             )
 {
     ompi_osc_sm_module_t *module =
         (ompi_osc_sm_module_t*) win->w_osc_module;
@@ -438,7 +442,11 @@ ompi_osc_sm_fetch_and_op(const void *origin_addr,
                          int target,
                          ptrdiff_t target_disp,
                          struct ompi_op_t *op,
-                         struct ompi_win_t *win)
+                         struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                         , qentry **q
+#endif
+                         )
 {
     ompi_osc_sm_module_t *module =
         (ompi_osc_sm_module_t*) win->w_osc_module;

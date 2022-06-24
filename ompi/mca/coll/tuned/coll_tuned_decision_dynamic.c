@@ -311,18 +311,37 @@ int ompi_coll_tuned_alltoallv_intra_dec_dynamic(const void *sbuf, const int *sco
  *    Returns:    - MPI_SUCCESS or error code (passed from the barrier implementation)
  */
 int ompi_coll_tuned_barrier_intra_dec_dynamic(struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					 , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,"ompi_coll_tuned_barrier_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[BARRIER].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_barrier_intra_do_this(comm, module,
                                                      tuned_module->user_forced[BARRIER].algorithm,
                                                      tuned_module->user_forced[BARRIER].tree_fanout,
                                                      tuned_module->user_forced[BARRIER].segsize);
+#else
+        return ompi_coll_tuned_barrier_intra_do_this(comm, module,
+                                                     tuned_module->user_forced[BARRIER].algorithm,
+                                                     tuned_module->user_forced[BARRIER].tree_fanout,
+                                                     tuned_module->user_forced[BARRIER].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -335,12 +354,20 @@ int ompi_coll_tuned_barrier_intra_dec_dynamic(struct ompi_communicator_t *comm,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_barrier_intra_do_this (comm, module,
                                                           alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_barrier_intra_do_this (comm, module,
+                                                          alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_barrier_intra_dec_fixed (comm, module);
+#else
+    return ompi_coll_tuned_barrier_intra_dec_fixed (comm, module, &item);
+#endif
 }
 
 /*

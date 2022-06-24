@@ -210,6 +210,7 @@ int mca_coll_han_bcast_t0_task(void *task_args)
  * 2. issue the low level bcast of segment cur_seg
  * 3. wait for the completion of the ibcast
  */
+
 int mca_coll_han_bcast_t1_task(void *task_args)
 {
     mca_coll_han_bcast_args_t *t = (mca_coll_han_bcast_args_t *) task_args;
@@ -226,14 +227,17 @@ int mca_coll_han_bcast_t1_task(void *task_args)
             if (t->cur_seg == t->num_segments - 2) {
                 tmp_count = t->last_seg_count;
             }
+#ifndef ENABLE_ANALYSIS
             t->up_comm->c_coll->coll_ibcast((char *) t->buff + extent * t->seg_count,
                                             tmp_count, t->dtype, t->root_up_rank,
                                             t->up_comm, &ibcast_req,
-                                            t->up_comm->c_coll->coll_ibcast_module
-#ifdef ENABLE_ANALYSIS
-				        , NULL
+                                            t->up_comm->c_coll->coll_ibcast_module);
+#else
+            t->up_comm->c_coll->coll_ibcast((char *) t->buff + extent * t->seg_count,
+                                            tmp_count, t->dtype, t->root_up_rank,
+                                            t->up_comm, &ibcast_req,
+                                            t->up_comm->c_coll->coll_ibcast_module, NULL);
 #endif
-                                            );
         }
     }
 

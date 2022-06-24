@@ -133,13 +133,12 @@ int MPI_Exscan(const void *sendbuf, void *recvbuf, int count,
     }
 
     /* Invoke the coll component to perform the back-end operation */
-#ifndef ENABLE_ANALYSIS
     OBJ_RETAIN(op);
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_exscan(sendbuf, recvbuf, count,
                                    datatype, op, comm,
                                    comm->c_coll->coll_exscan_module);
 #else
-    OBJ_RETAIN(op);
     err = comm->c_coll->coll_exscan(sendbuf, recvbuf, count,
                                    datatype, op, comm,
                                    comm->c_coll->coll_exscan_module, &item);

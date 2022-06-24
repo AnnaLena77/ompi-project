@@ -186,8 +186,6 @@ int MPI_Allgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     err = comm->c_coll->coll_allgather(sendbuf, sendcount, sendtype,
                                       recvbuf, recvcount, recvtype, comm,
                                       comm->c_coll->coll_allgather_module, &item);
-#endif
-#ifdef ENABLE_ANALYSIS
     qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);

@@ -190,7 +190,7 @@ typedef struct mca_coll_sync_component_t {
 OMPI_MODULE_DECLSPEC extern mca_coll_sync_component_t mca_coll_sync_component;
 
 /* Macro used in most of the collectives */
-
+#ifndef ENABLE_ANALYSIS
 #define COLL_SYNC(m, op) \
 do { \
     int err = MPI_SUCCESS; \
@@ -212,7 +212,29 @@ do { \
     (m)->in_operation = false;                                                  \
     return err;                                                                 \
 } while(0)
-
+#else
+#define COLL_SYNC(m, op) \
+do { \
+    int err = MPI_SUCCESS; \
+    (m)->in_operation = true; \
+    if (OPAL_UNLIKELY(++((m)->before_num_operations) ==                         \
+                      mca_coll_sync_component.barrier_before_nops)) {           \
+        (m)->before_num_operations = 0;                                         \
+        err = (m)->c_coll.coll_barrier(comm, (m)->c_coll.coll_barrier_module, NULL);  \
+    }                                                                           \
+    if (OPAL_LIKELY(MPI_SUCCESS == err)) {                                      \
+        err = op;                                                               \
+    }                                                                           \
+    if (OPAL_UNLIKELY(++((m)->after_num_operations) ==                          \
+                      mca_coll_sync_component.barrier_after_nops) &&            \
+        OPAL_LIKELY(MPI_SUCCESS == err)) {                                      \
+        (m)->after_num_operations = 0;                                          \
+        err = (m)->c_coll.coll_barrier(comm, (m)->c_coll.coll_barrier_module, NULL);  \
+    }                                                                           \
+    (m)->in_operation = false;                                                  \
+    return err;                                                                 \
+} while(0)
+#endif
 END_C_DECLS
 
 #endif /* MCA_COLL_SYNC_EXPORT_H */

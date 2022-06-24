@@ -25,6 +25,7 @@
 #include "ompi/mca/pml/pml.h"
 #include "coll_han_trigger.h"
 
+
 static int mca_coll_han_allreduce_t0_task(void *task_args);
 static int mca_coll_han_allreduce_t1_task(void *task_args);
 static int mca_coll_han_allreduce_t2_task(void *task_args);
@@ -158,6 +159,7 @@ mca_coll_han_allreduce_intra(const void *sbuf,
     int root_up_rank = 0;
     int root_low_rank = 0;
     /* Create t0 task for the first segment */
+    
     mca_coll_task_t *t0 = OBJ_NEW(mca_coll_task_t);
     /* Setup up t0 task arguments */
     int *completed = (int *) malloc(sizeof(int));
@@ -602,7 +604,7 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
 #else
             ret = low_comm->c_coll->coll_reduce(MPI_IN_PLACE, (char *)rbuf,
                 count, dtype, op, root_low_rank,
-                low_comm, low_comm->c_coll->coll_reduce_module, NULL);
+                low_comm, low_comm->c_coll->coll_reduce_module, &item);
 #endif
         }
         else {
@@ -613,7 +615,7 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
 #else
             ret = low_comm->c_coll->coll_reduce((char *)rbuf, NULL,
                 count, dtype, op, root_low_rank,
-                low_comm, low_comm->c_coll->coll_reduce_module, NULL);
+                low_comm, low_comm->c_coll->coll_reduce_module, &item);
 #endif
         }
     }
@@ -625,7 +627,7 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
 #else
         ret = low_comm->c_coll->coll_reduce((char *)sbuf, (char *)rbuf,
                 count, dtype, op, root_low_rank,
-                low_comm, low_comm->c_coll->coll_reduce_module, NULL);
+                low_comm, low_comm->c_coll->coll_reduce_module, &item);
 #endif
     }
     if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
@@ -663,7 +665,7 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
                 root_low_rank, low_comm, low_comm->c_coll->coll_bcast_module);
 #else
     ret = low_comm->c_coll->coll_bcast(rbuf, count, dtype,
-                root_low_rank, low_comm, low_comm->c_coll->coll_bcast_module, NULL);
+                root_low_rank, low_comm, low_comm->c_coll->coll_bcast_module, &item);
 #endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
         OPAL_OUTPUT_VERBOSE((30, cs->han_output,

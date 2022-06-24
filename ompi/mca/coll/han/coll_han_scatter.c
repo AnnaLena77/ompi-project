@@ -79,6 +79,14 @@ mca_coll_han_scatter_intra(const void *sbuf, int scount,
 #endif
                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *) module;
     int w_rank, w_size;
     w_rank = ompi_comm_rank(comm);
@@ -95,7 +103,7 @@ mca_coll_han_scatter_intra(const void *sbuf, int scount,
                                           comm, comm->c_coll->coll_scatter_module);
 #else
         return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
-                                          comm, comm->c_coll->coll_scatter_module, NULL);
+                                          comm, comm->c_coll->coll_scatter_module, &item);
 #endif
     }
 
@@ -114,7 +122,7 @@ mca_coll_han_scatter_intra(const void *sbuf, int scount,
                                           comm, comm->c_coll->coll_scatter_module);
 #else
         return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
-                                          comm, comm->c_coll->coll_scatter_module, NULL);
+                                          comm, comm->c_coll->coll_scatter_module, &item);
 #endif
     }
 
@@ -297,6 +305,14 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
 #endif
                                   )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int w_rank, w_size;
     struct ompi_datatype_t * dtype;
     int count;
@@ -317,7 +333,7 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                                             comm, han_module->previous_scatter_module);
 #else
         return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
-                                            comm, han_module->previous_scatter_module, NULL);
+                                            comm, han_module->previous_scatter_module, &item);
 #endif
     }
     /* Topo must be initialized to know rank distribution which then is used to
@@ -332,7 +348,7 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                                             comm, han_module->previous_scatter_module);
 #else
         return comm->c_coll->coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
-                                            comm, han_module->previous_scatter_module, NULL);
+                                            comm, han_module->previous_scatter_module, &item);
 #endif
     }
     ompi_communicator_t *low_comm = han_module->sub_comm[INTRA_NODE];
@@ -429,7 +445,7 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                     MPI_BYTE,
                     root_up_rank,
                     up_comm,
-                    up_comm->c_coll->coll_scatter_module, NULL);
+                    up_comm->c_coll->coll_scatter_module, &item);
 #endif
         if(reorder_buf != sbuf){
             free(reorder_buf);
@@ -457,7 +473,7 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                      rdtype,
                      root_low_rank,
                      low_comm,
-                     low_comm->c_coll->coll_scatter_module, NULL);
+                     low_comm->c_coll->coll_scatter_module, &item);
 #endif
 
     if (low_rank == root_low_rank) {

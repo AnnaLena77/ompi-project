@@ -70,6 +70,14 @@ int ompi_coll_base_reduce_generic( const void* sendbuf, void* recvbuf, int origi
 #endif
                                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     char *inbuf[2] = {NULL, NULL}, *inbuf_free[2] = {NULL, NULL};
     char *accumbuf = NULL, *accumbuf_free = NULL;
     char *local_op_buffer = NULL, *sendtmpbuf = NULL;
@@ -185,7 +193,7 @@ int ompi_coll_base_reduce_generic( const void* sendbuf, void* recvbuf, int origi
                     ret = MCA_PML_CALL(irecv(local_recvbuf, recvcount, datatype,
                                              tree->tree_next[i],
                                              MCA_COLL_BASE_TAG_REDUCE, comm,
-                                             &reqs[inbi], NULL));
+                                             &reqs[inbi], &item));
 #endif
                     if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl;}
                 }
@@ -240,7 +248,7 @@ int ompi_coll_base_reduce_generic( const void* sendbuf, void* recvbuf, int origi
                                                   datatype, tree->tree_prev,
                                                   MCA_COLL_BASE_TAG_REDUCE,
                                                   MCA_PML_BASE_SEND_STANDARD,
-                                                  comm, NULL) );
+                                                  comm, &item) );
 #endif
                         if (ret != MPI_SUCCESS) {
                             line = __LINE__; goto error_hndl;
@@ -301,7 +309,7 @@ int ompi_coll_base_reduce_generic( const void* sendbuf, void* recvbuf, int origi
                                          tree->tree_prev,
                                          MCA_COLL_BASE_TAG_REDUCE,
                                          MCA_PML_BASE_SEND_STANDARD,
-                                         comm, NULL) );
+                                         comm, &item) );
 #endif
                 if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
                 segindex++;
@@ -339,7 +347,7 @@ int ompi_coll_base_reduce_generic( const void* sendbuf, void* recvbuf, int origi
                                           tree->tree_prev,
                                           MCA_COLL_BASE_TAG_REDUCE,
                                           MCA_PML_BASE_SEND_SYNCHRONOUS, comm,
-                                          &sreq[segindex], NULL) );
+                                          &sreq[segindex], &item) );
 #endif
                 if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl;  }
                 original_count -= count_by_segment;
@@ -369,7 +377,7 @@ int ompi_coll_base_reduce_generic( const void* sendbuf, void* recvbuf, int origi
                                           tree->tree_prev,
                                           MCA_COLL_BASE_TAG_REDUCE,
                                           MCA_PML_BASE_SEND_SYNCHRONOUS, comm,
-                                          &sreq[creq], NULL));
+                                          &sreq[creq], &item));
 #endif
                 if (ret != MPI_SUCCESS) { line = __LINE__; goto error_hndl;  }
                 creq = (creq + 1) % max_outstanding_reqs;
@@ -741,7 +749,7 @@ int ompi_coll_base_reduce_intra_in_order_binary( const void *sendbuf, void *recv
 #else   
             ret = MCA_PML_CALL(recv(recvbuf, count, datatype, io_root,
                                     MCA_COLL_BASE_TAG_REDUCE, comm,
-                                    MPI_STATUS_IGNORE, NULL));
+                                    MPI_STATUS_IGNORE, &item));
 #endif
             if (MPI_SUCCESS != ret) { return ret; }
 
@@ -754,7 +762,7 @@ int ompi_coll_base_reduce_intra_in_order_binary( const void *sendbuf, void *recv
 #else
             ret = MCA_PML_CALL(send(use_this_recvbuf, count, datatype, root,
                                     MCA_COLL_BASE_TAG_REDUCE,
-                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
             if (MPI_SUCCESS != ret) { return ret; }
         }
@@ -797,6 +805,14 @@ ompi_coll_base_reduce_intra_basic_linear(const void *sbuf, void *rbuf, int count
 #endif
                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, rank, err, size;
     ptrdiff_t extent, dsize, gap = 0;
     char *free_buffer = NULL;
@@ -819,7 +835,7 @@ ompi_coll_base_reduce_intra_basic_linear(const void *sbuf, void *rbuf, int count
 #else
         err = MCA_PML_CALL(send(sbuf, count, dtype, root,
                                 MCA_COLL_BASE_TAG_REDUCE,
-                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
         return err;
     }
@@ -859,7 +875,7 @@ ompi_coll_base_reduce_intra_basic_linear(const void *sbuf, void *rbuf, int count
 #else
         err = MCA_PML_CALL(recv(rbuf, count, dtype, size - 1,
                                 MCA_COLL_BASE_TAG_REDUCE, comm,
-                                MPI_STATUS_IGNORE, NULL));
+                                MPI_STATUS_IGNORE, &item));
 #endif
     }
     if (MPI_SUCCESS != err) {
@@ -885,7 +901,7 @@ ompi_coll_base_reduce_intra_basic_linear(const void *sbuf, void *rbuf, int count
 #else
             err = MCA_PML_CALL(recv(pml_buffer, count, dtype, i,
                                     MCA_COLL_BASE_TAG_REDUCE, comm,
-                                    MPI_STATUS_IGNORE, NULL));
+                                    MPI_STATUS_IGNORE, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 if (NULL != free_buffer) {
@@ -1081,12 +1097,21 @@ int ompi_coll_base_reduce_intra_redscat_gather(
              * Send the left half of the input vector to the left neighbor,
              * Recv the right half of the input vector from the left neighbor
              */
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv(rbuf, count_lhalf, dtype, rank - 1,
                                           MCA_COLL_BASE_TAG_REDUCE,
                                           (char *)tmp_buf + (ptrdiff_t)count_lhalf * extent,
                                           count_rhalf, dtype, rank - 1,
                                           MCA_COLL_BASE_TAG_REDUCE, comm,
                                           MPI_STATUS_IGNORE, rank);
+#else
+            err = ompi_coll_base_sendrecv(rbuf, count_lhalf, dtype, rank - 1,
+                                          MCA_COLL_BASE_TAG_REDUCE,
+                                          (char *)tmp_buf + (ptrdiff_t)count_lhalf * extent,
+                                          count_rhalf, dtype, rank - 1,
+                                          MCA_COLL_BASE_TAG_REDUCE, comm,
+                                          MPI_STATUS_IGNORE, rank, &item);     
+#endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
 
             /* Reduce on the right half of the buffers (result in rbuf) */
@@ -1103,7 +1128,7 @@ int ompi_coll_base_reduce_intra_redscat_gather(
             err = MCA_PML_CALL(send((char *)rbuf + (ptrdiff_t)count_lhalf * extent,
                                     count_rhalf, dtype, rank - 1,
                                     MCA_COLL_BASE_TAG_REDUCE,
-                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
 
@@ -1116,12 +1141,21 @@ int ompi_coll_base_reduce_intra_redscat_gather(
              * Send the right half of the input vector to the right neighbor,
              * Recv the left half of the input vector from the right neighbor
              */
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv((char *)rbuf + (ptrdiff_t)count_lhalf * extent,
                                           count_rhalf, dtype, rank + 1,
                                           MCA_COLL_BASE_TAG_REDUCE,
                                           tmp_buf, count_lhalf, dtype, rank + 1,
                                           MCA_COLL_BASE_TAG_REDUCE, comm,
                                           MPI_STATUS_IGNORE, rank);
+#else
+            err = ompi_coll_base_sendrecv((char *)rbuf + (ptrdiff_t)count_lhalf * extent,
+                                          count_rhalf, dtype, rank + 1,
+                                          MCA_COLL_BASE_TAG_REDUCE,
+                                          tmp_buf, count_lhalf, dtype, rank + 1,
+                                          MCA_COLL_BASE_TAG_REDUCE, comm,
+                                          MPI_STATUS_IGNORE, rank, &item);
+#endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
 
             /* Reduce on the right half of the buffers (result in rbuf) */
@@ -1137,7 +1171,7 @@ int ompi_coll_base_reduce_intra_redscat_gather(
             err = MCA_PML_CALL(recv((char *)rbuf + (ptrdiff_t)count_lhalf * extent,
                                     count_rhalf, dtype, rank + 1,
                                     MCA_COLL_BASE_TAG_REDUCE, comm,
-                                    MPI_STATUS_IGNORE, NULL));
+                                    MPI_STATUS_IGNORE, &item));
 #endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
 
@@ -1204,6 +1238,7 @@ int ompi_coll_base_reduce_intra_redscat_gather(
             }
 
             /* Send part of data from the rbuf, recv into the tmp_buf */
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv((char *)rbuf + (ptrdiff_t)sindex[step] * extent,
                                           scount[step], dtype, dest,
                                           MCA_COLL_BASE_TAG_REDUCE,
@@ -1211,6 +1246,15 @@ int ompi_coll_base_reduce_intra_redscat_gather(
                                           rcount[step], dtype, dest,
                                           MCA_COLL_BASE_TAG_REDUCE, comm,
                                           MPI_STATUS_IGNORE, rank);
+#else
+            err = ompi_coll_base_sendrecv((char *)rbuf + (ptrdiff_t)sindex[step] * extent,
+                                          scount[step], dtype, dest,
+                                          MCA_COLL_BASE_TAG_REDUCE,
+                                          (char *)tmp_buf + (ptrdiff_t)rindex[step] * extent,
+                                          rcount[step], dtype, dest,
+                                          MCA_COLL_BASE_TAG_REDUCE, comm,
+                                          MPI_STATUS_IGNORE, rank, &item);
+#endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
 
             /* Local reduce: rbuf[] = tmp_buf[] <op> rbuf[] */
@@ -1266,7 +1310,7 @@ int ompi_coll_base_reduce_intra_redscat_gather(
 #else
                 err = MCA_PML_CALL(recv(rbuf, rcount[nsteps - 1], dtype, 0,
                                         MCA_COLL_BASE_TAG_REDUCE, comm,
-                                        MPI_STATUS_IGNORE, NULL));
+                                        MPI_STATUS_IGNORE, &item));
 #endif
                 if (MPI_SUCCESS != err) { goto cleanup_and_return; }
                 vrank = 0;
@@ -1280,7 +1324,7 @@ int ompi_coll_base_reduce_intra_redscat_gather(
 #else
                 err = MCA_PML_CALL(send(rbuf, rcount[nsteps - 1], dtype, root,
                                         MCA_COLL_BASE_TAG_REDUCE,
-                                        MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                        MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
                 if (MPI_SUCCESS != err) { goto cleanup_and_return; }
                 vrank = -1;
@@ -1328,7 +1372,7 @@ int ompi_coll_base_reduce_intra_redscat_gather(
                 err = MCA_PML_CALL(send((char *)rbuf + (ptrdiff_t)rindex[step] * extent,
                                         rcount[step], dtype, dest,
                                         MCA_COLL_BASE_TAG_REDUCE,
-                                        MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                        MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
                 if (MPI_SUCCESS != err) { goto cleanup_and_return; }
                 break;
@@ -1343,7 +1387,7 @@ int ompi_coll_base_reduce_intra_redscat_gather(
                 err = MCA_PML_CALL(recv((char *)rbuf + (ptrdiff_t)sindex[step] * extent,
                                         scount[step], dtype, dest,
                                         MCA_COLL_BASE_TAG_REDUCE, comm,
-                                        MPI_STATUS_IGNORE, NULL));
+                                        MPI_STATUS_IGNORE, &item));
 #endif
                 if (MPI_SUCCESS != err) { goto cleanup_and_return; }
             }

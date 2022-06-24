@@ -95,6 +95,14 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
 #endif
                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int err, i, rank, root = 0, rsize, lsize;
     int totalcounts;
     ptrdiff_t gap, span;
@@ -141,7 +149,7 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
 #else
         err = MCA_PML_CALL(isend(sbuf, totalcounts, dtype, 0,
                                  MCA_COLL_BASE_TAG_REDUCE_SCATTER,
-                                 MCA_PML_BASE_SEND_STANDARD, comm, &req, NULL));
+                                 MCA_PML_BASE_SEND_STANDARD, comm, &req, &item));
 #endif
         if (OMPI_SUCCESS != err) {
             goto exit;
@@ -154,7 +162,7 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
 #else
         err = MCA_PML_CALL(recv(lbuf, totalcounts, dtype, 0,
                                 MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
-                                MPI_STATUS_IGNORE, NULL));
+                                MPI_STATUS_IGNORE, &item));
 #endif
         if (OMPI_SUCCESS != err) {
             goto exit;
@@ -179,7 +187,7 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
 #else
 	   err = MCA_PML_CALL(recv(buf, totalcounts, dtype, i,
                                     MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
-                                    MPI_STATUS_IGNORE, NULL));
+                                    MPI_STATUS_IGNORE, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 goto exit;
@@ -199,7 +207,7 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
 #else
         err = MCA_PML_CALL(send(sbuf, totalcounts, dtype, root,
                                 MCA_COLL_BASE_TAG_REDUCE_SCATTER,
-                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
         if (OMPI_SUCCESS != err) {
             goto exit;
@@ -216,7 +224,7 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
     err = comm->c_local_comm->c_coll->coll_scatter(lbuf, rcount, dtype,
 				   rbuf, rcount, dtype, 0,
 				   comm->c_local_comm,
-				   comm->c_local_comm->c_coll->coll_scatter_module, NULL);
+				   comm->c_local_comm->c_coll->coll_scatter_module, &item);
 #endif
 
   exit:

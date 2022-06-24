@@ -104,7 +104,7 @@ mca_coll_inter_gather_inter(const void *sbuf, int scount,
 #else
 	    err = MCA_PML_CALL(send(ptmp, scount*size_local, sdtype, root,
 				    MCA_COLL_BASE_TAG_GATHER,
-				    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+				    MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
 	    if (OMPI_SUCCESS != err) {
                 return err;
@@ -120,7 +120,7 @@ mca_coll_inter_gather_inter(const void *sbuf, int scount,
 #else 
 	err = MCA_PML_CALL(recv(rbuf, rcount*size, rdtype, 0,
 				MCA_COLL_BASE_TAG_GATHER,
-				comm, MPI_STATUS_IGNORE, NULL));
+				comm, MPI_STATUS_IGNORE, &item));
 #endif
 	if (OMPI_SUCCESS != err) {
 	    return err;

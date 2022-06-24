@@ -37,6 +37,14 @@ mca_coll_cuda_allreduce(const void *sbuf, void *rbuf, int count,
 #endif
                         )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_cuda_module_t *s = (mca_coll_cuda_module_t*) module;
     ptrdiff_t gap;
     char *rbuf1 = NULL, *sbuf1 = NULL, *rbuf2 = NULL;
@@ -64,7 +72,11 @@ mca_coll_cuda_allreduce(const void *sbuf, void *rbuf, int count,
         rbuf2 = rbuf; /* save away original buffer */
         rbuf = rbuf1 - gap;
     }
+#ifndef ENABLE_ANALYSIS
     rc = s->c_coll.coll_allreduce(sbuf, rbuf, count, dtype, op, comm, s->c_coll.coll_allreduce_module);
+#else
+    rc = s->c_coll.coll_allreduce(sbuf, rbuf, count, dtype, op, comm, s->c_coll.coll_allreduce_module, &item);
+#endif
     if (NULL != sbuf1) {
         free(sbuf1);
     }

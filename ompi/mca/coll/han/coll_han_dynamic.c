@@ -702,7 +702,11 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
  */
 int
 mca_coll_han_barrier_intra_dynamic(struct ompi_communicator_t *comm,
-                                   mca_coll_base_module_t *module)
+                                   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                   , qentry **q
+#endif
+                                   )
 {
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t*) module;
     TOPO_LVL_T topo_lvl = han_module->topologic_level;
@@ -781,7 +785,11 @@ mca_coll_han_barrier_intra_dynamic(struct ompi_communicator_t *comm,
          */
         barrier = sub_module->coll_barrier;
     }
+#ifndef ENABLE_ANALYSIS
     return barrier(comm, sub_module);
+#else
+    return barrier(comm, sub_module, NULL);
+#endif
 }
 
 /*

@@ -21,7 +21,9 @@ $ sudo apt install autoconf
 $ sudo apt install libtool
 
 $ ./autogen.pl
-$ ./configure --prefix=/usr/local LIBS=-lmysqlclient --with-pmix=internal
+//Cofigure with Analysis, if you want to use the original Open_MPI, don't use the CFLAGS-Parameter!
+$./configure --prefix=/usr/local LIBS=-lmysqlclient --with-pmix=internal CFLAGS=-DENABLE_ANALYSIS=1
+
 
 Make MPI:
 $ sudo make all install

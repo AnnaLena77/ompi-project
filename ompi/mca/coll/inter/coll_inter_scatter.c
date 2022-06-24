@@ -48,6 +48,16 @@ mca_coll_inter_scatter_inter(const void *sbuf, int scount,
 #endif
                              )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int rank, size, err;
 
     /* Initialize */
@@ -80,7 +90,7 @@ mca_coll_inter_scatter_inter(const void *sbuf, int scount,
 #else
 	    err = MCA_PML_CALL(recv(ptmp, rcount*size_local, rdtype,
 				    root, MCA_COLL_BASE_TAG_SCATTER,
-				    comm, MPI_STATUS_IGNORE, NULL));
+				    comm, MPI_STATUS_IGNORE, &item));
 #endif
 	    if (OMPI_SUCCESS != err) {
                 return err;
@@ -96,7 +106,7 @@ mca_coll_inter_scatter_inter(const void *sbuf, int scount,
 	err = comm->c_local_comm->c_coll->coll_scatter(ptmp, rcount, rdtype,
 						      rbuf, rcount, rdtype,
 						      0, comm->c_local_comm,
-                                                      comm->c_local_comm->c_coll->coll_scatter_module, NULL);
+                                                      comm->c_local_comm->c_coll->coll_scatter_module, &item);
 #endif
 	if (NULL != ptmp_free) {
 	    free(ptmp_free);
@@ -110,7 +120,7 @@ mca_coll_inter_scatter_inter(const void *sbuf, int scount,
 #else
 	err = MCA_PML_CALL(send(sbuf, scount*size, sdtype, 0,
 				MCA_COLL_BASE_TAG_SCATTER,
-				MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+				MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
 	if (OMPI_SUCCESS != err) {
 	    return err;

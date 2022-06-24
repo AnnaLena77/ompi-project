@@ -52,6 +52,14 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 #endif
                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rank, root = 0, size, rsize, err, i, line;
     char *tmpbuf_free = NULL, *tmpbuf, *ptmp;
     ptrdiff_t rlb, rextent, incr;
@@ -80,7 +88,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 #else
 	err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                 MCA_COLL_BASE_TAG_ALLGATHER,
-                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
     } else {
@@ -102,7 +110,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 	err = MCA_PML_CALL(isend(sbuf, scount, sdtype, 0,
                                  MCA_COLL_BASE_TAG_ALLGATHER,
                                  MCA_PML_BASE_SEND_STANDARD,
-                                 comm, &reqs[rsize], NULL));
+                                 comm, &reqs[rsize], &item));
 #endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 #ifndef ENABLE_ANALYSIS
@@ -112,7 +120,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 #else
         err = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, 0,
                                  MCA_COLL_BASE_TAG_ALLGATHER, comm,
-                                 &reqs[0], NULL));
+                                 &reqs[0], &item));
 #endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 
@@ -126,7 +134,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 #else
 	   err = MCA_PML_CALL(irecv(ptmp, rcount, rdtype, i,
                                      MCA_COLL_BASE_TAG_ALLGATHER,
-                                     comm, &reqs[i], NULL));
+                                     comm, &reqs[i], &item));
 #endif
             if (MPI_SUCCESS != err) { line = __LINE__; goto exit; }
         }
@@ -146,7 +154,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 #else
         err = MCA_PML_CALL(isend(rbuf, rsize * rcount, rdtype, 0,
                                  MCA_COLL_BASE_TAG_ALLGATHER,
-                                 MCA_PML_BASE_SEND_STANDARD, comm, &req, NULL));
+                                 MCA_PML_BASE_SEND_STANDARD, comm, &req, &item));
 #endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 #ifndef ENABLE_ANALYSIS
@@ -156,7 +164,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 #else
         err = MCA_PML_CALL(recv(tmpbuf, size * scount, sdtype, 0,
                                 MCA_COLL_BASE_TAG_ALLGATHER, comm,
-                                MPI_STATUS_IGNORE, NULL));
+                                MPI_STATUS_IGNORE, &item));
 #endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 
@@ -178,7 +186,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 #else
 	err = MCA_PML_CALL(recv(rbuf, rsize * rcount, rdtype, 0,
                                 MCA_COLL_BASE_TAG_ALLGATHER, comm,
-                                MPI_STATUS_IGNORE, NULL));
+                                MPI_STATUS_IGNORE, &item));
 #endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 
@@ -195,7 +203,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 	   err = MCA_PML_CALL(isend(tmpbuf, size * scount, sdtype, i,
                                      MCA_COLL_BASE_TAG_ALLGATHER,
                                      MCA_PML_BASE_SEND_STANDARD,
-                                     comm, &reqs[i - 1], NULL));
+                                     comm, &reqs[i - 1], &item));
 #endif
             if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
         }

@@ -538,8 +538,20 @@ int ompi_coll_tuned_alltoallv_intra_dec_fixed(const void *sbuf, const int *scoun
  *	Returns:	- MPI_SUCCESS or error code (passed from the barrier implementation)
  */
 int ompi_coll_tuned_barrier_intra_dec_fixed(struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int communicator_size, alg;
     communicator_size = ompi_comm_size(comm);
 
@@ -573,8 +585,21 @@ int ompi_coll_tuned_barrier_intra_dec_fixed(struct ompi_communicator_t *comm,
         alg = 4;
     }
 
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "double_ring");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "recoursive_doubling");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "bruck");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "two_proc");
+        else if(alg == 6) strcpy(item->usedAlgorithm, "tree");
+    }
+    return ompi_coll_tuned_barrier_intra_do_this (comm, module,
+                                                  alg, 0, 0, &item);
+#else
     return ompi_coll_tuned_barrier_intra_do_this (comm, module,
                                                   alg, 0, 0);
+#endif
 }
 
 

@@ -50,6 +50,14 @@ mca_coll_basic_bcast_log_intra(void *buff, int count,
 #endif
                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i;
     int size;
     int rank;
@@ -82,7 +90,7 @@ mca_coll_basic_bcast_log_intra(void *buff, int count,
 #else
         err = MCA_PML_CALL(recv(buff, count, datatype, peer,
                                 MCA_COLL_BASE_TAG_BCAST,
-                                comm, MPI_STATUS_IGNORE, NULL));
+                                comm, MPI_STATUS_IGNORE, &item));
 #endif
         if (MPI_SUCCESS != err) {
             return err;
@@ -111,7 +119,7 @@ mca_coll_basic_bcast_log_intra(void *buff, int count,
             err = MCA_PML_CALL(isend(buff, count, datatype, peer,
                                      MCA_COLL_BASE_TAG_BCAST,
                                      MCA_PML_BASE_SEND_STANDARD,
-                                     comm, preq++, NULL));
+                                     comm, preq++, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(reqs, nreqs);

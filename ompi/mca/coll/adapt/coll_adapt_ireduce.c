@@ -22,8 +22,13 @@
 #include "ompi/mca/pml/pml.h"
 #include "ompi/mca/coll/base/coll_base_topo.h"
 
+#ifndef ENABLE_ANALYSIS
 static int ompi_coll_adapt_ireduce_generic(IREDUCE_ARGS,
                                            ompi_coll_tree_t * tree, size_t seg_size);
+#else
+static int ompi_coll_adapt_ireduce_generic(IREDUCE_ARGS,
+                                           ompi_coll_tree_t * tree, size_t seg_size, qentry **q);
+#endif
 
 /* MPI_Reduce and MPI_Ireduce in the ADAPT module only work for commutative operations */
 
@@ -541,10 +546,15 @@ int ompi_coll_adapt_ireduce(const void *sbuf, void *rbuf, int count, struct ompi
         return OMPI_ERR_NOT_IMPLEMENTED;
     }
 
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_adapt_ireduce_generic(sbuf, rbuf, count, dtype, op, root, comm, request, module,
                                            adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ireduce_algorithm),
                                            mca_coll_adapt_component.adapt_ireduce_segment_size);
+#else
+    return ompi_coll_adapt_ireduce_generic(sbuf, rbuf, count, dtype, op, root, comm, request, module,
+                                           adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ireduce_algorithm),
+                                           mca_coll_adapt_component.adapt_ireduce_segment_size, &item);
+#endif
 
 }
 
@@ -553,8 +563,20 @@ int ompi_coll_adapt_ireduce_generic(const void *sbuf, void *rbuf, int count,
                                     struct ompi_datatype_t *dtype, struct ompi_op_t *op, int root,
                                     struct ompi_communicator_t *comm, ompi_request_t ** request,
                                     mca_coll_base_module_t * module, ompi_coll_tree_t * tree,
-                                    size_t seg_size)
+                                    size_t seg_size
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item_;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item_ = *q;
+        } else item_ = NULL;
+    } else item_ = NULL;
+#endif
 
     ptrdiff_t extent, lower_bound, segment_increment;
     ptrdiff_t true_lower_bound, true_extent, real_seg_size;
@@ -747,7 +769,7 @@ int ompi_coll_adapt_ireduce_generic(const void *sbuf, void *rbuf, int count,
 #else
 	       err = MCA_PML_CALL(irecv
                                     (temp_recv_buf, recv_count, dtype, tree->tree_next[i],
-                                    con->ireduce_tag - seg_index, comm, &recv_req, NULL));
+                                    con->ireduce_tag - seg_index, comm, &recv_req, &item_));
 #endif
                 if (MPI_SUCCESS != err) {
                     return err;
@@ -807,7 +829,7 @@ int ompi_coll_adapt_ireduce_generic(const void *sbuf, void *rbuf, int count,
 	   err = MCA_PML_CALL(isend
                                 (context->buff, send_count, dtype, tree->tree_prev,
                                 con->ireduce_tag - context->seg_index,
-                                sendmode, comm, &send_req, NULL));
+                                sendmode, comm, &send_req, &item_));
 #endif
             if (MPI_SUCCESS != err) {
                 return err;

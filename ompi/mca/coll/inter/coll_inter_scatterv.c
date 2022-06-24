@@ -84,7 +84,7 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 #else
 	    err = MCA_PML_CALL(recv(counts, size_local, MPI_INT,
 				    root, MCA_COLL_BASE_TAG_SCATTERV,
-				    comm, MPI_STATUS_IGNORE, NULL));
+				    comm, MPI_STATUS_IGNORE, &item));
 #endif
 	    if (OMPI_SUCCESS != err) {
 		return err;
@@ -109,7 +109,7 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 #else
 	    err = MCA_PML_CALL(recv(ptmp, total, rdtype,
 				    root, MCA_COLL_BASE_TAG_SCATTERV,
-				    comm, MPI_STATUS_IGNORE, NULL));
+				    comm, MPI_STATUS_IGNORE, &item));
 #endif
 	    if (OMPI_SUCCESS != err) {
 		return err;
@@ -155,7 +155,7 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 #else
 	err = MCA_PML_CALL(send(scounts, size, MPI_INT, 0,
 				MCA_COLL_BASE_TAG_SCATTERV,
-				MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+				MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
 	if (OMPI_SUCCESS != err) {
 	    return err;
@@ -170,7 +170,7 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 #else
 	err = MCA_PML_CALL(send(sbuf, 1, ndtype, 0,
 				MCA_COLL_BASE_TAG_SCATTERV,
-				MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+				MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
 	if (OMPI_SUCCESS != err) {
 	    return err;

@@ -23,7 +23,6 @@
  * This files contains all the hierarchical implementations of gather.
  * Only work with regular situation (each node has equal number of processes)
  */
-
 static int mca_coll_han_gather_lg_task(void *task_args);
 static int mca_coll_han_gather_ug_task(void *task_args);
 

@@ -159,9 +159,15 @@ int ompi_coll_tuned_alltoallv_intra_do_this(ALLTOALLV_ARGS, int algorithm, qentr
 int ompi_coll_tuned_alltoallv_intra_check_forced_init(coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Barrier */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_tuned_barrier_intra_dec_fixed(BARRIER_ARGS);
 int ompi_coll_tuned_barrier_intra_dec_dynamic(BARRIER_ARGS);
 int ompi_coll_tuned_barrier_intra_do_this(BARRIER_ARGS, int algorithm, int faninout, int segsize);
+#else
+int ompi_coll_tuned_barrier_intra_dec_fixed(BARRIER_ARGS, qentry **q);
+int ompi_coll_tuned_barrier_intra_dec_dynamic(BARRIER_ARGS, qentry **q);
+int ompi_coll_tuned_barrier_intra_do_this(BARRIER_ARGS, int algorithm, int faninout, int segsize, qentry **q);
+#endif
 int ompi_coll_tuned_barrier_intra_check_forced_init (coll_tuned_force_algorithm_mca_param_indices_t *mca_param_indices);
 
 /* Bcast */

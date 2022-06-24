@@ -148,10 +148,18 @@ BEGIN_C_DECLS
                                        );
 
     int mca_coll_basic_barrier_inter_lin(struct ompi_communicator_t *comm,
-                                         mca_coll_base_module_t *module);
+                                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         );
 
     int mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
-                                         mca_coll_base_module_t *module);
+                                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         );
 
     int mca_coll_basic_bcast_lin_inter(void *buff, int count,
                                        struct ompi_datatype_t *datatype,

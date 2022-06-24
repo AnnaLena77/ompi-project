@@ -49,6 +49,7 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     item->start = time(NULL);
     strcpy(item->function, "MPI_Bcast");
     strcpy(item->communicationType, "collective");
+    
     //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
@@ -63,10 +64,13 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     strcpy(item->communicationArea, comm_name);
     free(comm_name);
     //item->processrank
-        //item->processrank
+    //item->processrank
     int processrank;
     MPI_Comm_rank(comm, &processrank);
     item->processrank = processrank;
+    
+    printf("Root: %d\n", root);
+    printf("Processrank: %d\n", processrank);
     //item->partnerrank
     if(processrank==root){
     	item->partnerrank = -1;

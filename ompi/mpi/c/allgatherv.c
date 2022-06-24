@@ -206,8 +206,6 @@ int MPI_Allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                                        recvbuf, (int *) recvcounts,
                                        (int *) displs, recvtype, comm,
                                        comm->c_coll->coll_allgatherv_module, &item);
-#endif
-#ifdef ENABLE_ANALYSIS
     qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);

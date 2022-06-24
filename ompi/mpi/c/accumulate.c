@@ -60,6 +60,7 @@ int MPI_Accumulate(const void *origin_addr, int origin_count, MPI_Datatype origi
     item->blocking = 0; //One-Sided-Communication is always non-blocking!
     /*Datatype --> if there is a difference between the origin_datatype and the target_datatype, 
     write both into database*/
+    
     char *origin_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int origin_name_length;
     MPI_Type_get_name(origin_datatype, origin_name, &origin_name_length);
@@ -79,16 +80,16 @@ int MPI_Accumulate(const void *origin_addr, int origin_count, MPI_Datatype origi
         free(target_name);
     }
     //count and datasize
-    item->count = origin_count + target_count;
-    item->datasize = origin_count*sizeof(origin_datatype)+target_count*sizeof(target_datatype);
+    item->count = origin_count;
+    item->datasize = origin_count*sizeof(origin_datatype)+target_count;
     //operation
     strcpy(item->operation, op->o_name);
-    //Name of the window instead of the communicator
-    char *window_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int window_name_length;
-    MPI_Win_get_name(win, window_name, &window_name_length);
-    strcpy(item->communicationArea, window_name);
-    free(window_name);
+    //Name of communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    ompi_win_get_communicator(win, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
     
     MPI_Group wingroup;
     MPI_Win_get_group(win, &wingroup);

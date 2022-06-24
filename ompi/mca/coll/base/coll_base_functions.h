@@ -282,12 +282,21 @@ int mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rco
 /* AlltoAllW */
 
 /* Barrier */
+#ifndef ENABLE_ANALYSIS
 int ompi_coll_base_barrier_intra_doublering(BARRIER_ARGS);
 int ompi_coll_base_barrier_intra_recursivedoubling(BARRIER_ARGS);
 int ompi_coll_base_barrier_intra_bruck(BARRIER_ARGS);
 int ompi_coll_base_barrier_intra_two_procs(BARRIER_ARGS);
 int ompi_coll_base_barrier_intra_tree(BARRIER_ARGS);
 int ompi_coll_base_barrier_intra_basic_linear(BARRIER_ARGS);
+#else
+int ompi_coll_base_barrier_intra_doublering(BARRIER_ARGS, qentry **q);
+int ompi_coll_base_barrier_intra_recursivedoubling(BARRIER_ARGS, qentry **q);
+int ompi_coll_base_barrier_intra_bruck(BARRIER_ARGS, qentry **q);
+int ompi_coll_base_barrier_intra_two_procs(BARRIER_ARGS, qentry **q);
+int ompi_coll_base_barrier_intra_tree(BARRIER_ARGS, qentry **q);
+int ompi_coll_base_barrier_intra_basic_linear(BARRIER_ARGS, qentry **q);
+#endif
 
 /* Bcast */
 #ifndef ENABLE_ANALYSIS

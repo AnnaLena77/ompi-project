@@ -168,7 +168,11 @@ int ompi_mpi_finalize(void)
         }
         /* do a barrier with closest neighbors in the ring, using doublering as
          * it is synchronous and will help flush all past communications */
+#ifndef ENABLE_ANALYSIS
         ret = ompi_coll_base_barrier_intra_doublering(ncomm, ncomm->c_coll->coll_barrier_module);
+#else
+        ret = ompi_coll_base_barrier_intra_doublering(ncomm, ncomm->c_coll->coll_barrier_module, NULL);
+#endif
         if( MPI_SUCCESS != ret ) {
             OMPI_ERROR_LOG(ret);
             goto done;

@@ -49,6 +49,14 @@ mca_coll_basic_allgatherv_inter(const void *sbuf, int scount,
 #endif
                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rsize, err, i;
     int *scounts, *sdisps;
 
@@ -72,7 +80,7 @@ mca_coll_basic_allgatherv_inter(const void *sbuf, int scount,
 #else
     err = comm->c_coll->coll_alltoallv(sbuf, scounts, sdisps, sdtype,
                                       rbuf, rcounts, disps, rdtype, comm,
-                                      comm->c_coll->coll_alltoallv_module, NULL);
+                                      comm->c_coll->coll_alltoallv_module, &item);
 #endif
 
     if (NULL != scounts) {

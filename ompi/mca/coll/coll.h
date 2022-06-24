@@ -289,8 +289,13 @@ typedef int (*mca_coll_base_module_alltoallw_fn_t)
 #endif
    
 //barrier -> not analysed!
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_coll_base_module_barrier_fn_t)
   (struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module);
+#else
+typedef int (*mca_coll_base_module_barrier_fn_t)
+  (struct ompi_communicator_t *comm, struct mca_coll_base_module_2_4_0_t *module, qentry **q);
+#endif
 
 //bcast
 #ifndef ENABLE_ANALYSIS
@@ -472,9 +477,15 @@ typedef int (*mca_coll_base_module_ialltoallw_fn_t)
 #endif
 
 //ibarrier -> not analyzed!
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_coll_base_module_ibarrier_fn_t)
   (struct ompi_communicator_t *comm, ompi_request_t ** request,
    struct mca_coll_base_module_2_4_0_t *module);
+#else
+typedef int (*mca_coll_base_module_ibarrier_fn_t)
+  (struct ompi_communicator_t *comm, ompi_request_t ** request,
+   struct mca_coll_base_module_2_4_0_t *module, qentry **q);
+#endif
 
 //ibcast
 #ifndef ENABLE_ANALYSIS

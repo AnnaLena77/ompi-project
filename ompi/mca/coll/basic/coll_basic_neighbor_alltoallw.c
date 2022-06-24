@@ -46,6 +46,14 @@ mca_coll_basic_neighbor_alltoallw_cart(const void *sbuf, const int scounts[], co
 #endif
                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     const mca_topo_base_comm_cart_2_2_0_t *cart = comm->c_topo->mtc.cart;
     const int rank = ompi_comm_rank (comm);
     int rc = MPI_SUCCESS, dim, i, nreqs;
@@ -73,7 +81,7 @@ mca_coll_basic_neighbor_alltoallw_cart(const void *sbuf, const int scounts[], co
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim, comm, preqs++));
 #else   
             rc = MCA_PML_CALL(irecv((char *) rbuf + rdisps[i], rcounts[i], rdtypes[i], srank,
-                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim, comm, preqs++, NULL));
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim, comm, preqs++, &item));
 #endif
             if (OMPI_SUCCESS != rc) break;
         }
@@ -85,7 +93,7 @@ mca_coll_basic_neighbor_alltoallw_cart(const void *sbuf, const int scounts[], co
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1, comm, preqs++));
 #else
             rc = MCA_PML_CALL(irecv((char *) rbuf + rdisps[i+1], rcounts[i+1], rdtypes[i+1], drank,
-                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1, comm, preqs++, NULL));
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1, comm, preqs++, &item));
 #endif
             if (OMPI_SUCCESS != rc) break;
         }
@@ -113,7 +121,7 @@ mca_coll_basic_neighbor_alltoallw_cart(const void *sbuf, const int scounts[], co
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1, MCA_PML_BASE_SEND_STANDARD, comm, preqs++));
 #else
             rc = MCA_PML_CALL(isend((char *) sbuf + sdisps[i], scounts[i], sdtypes[i], srank,
-                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1, MCA_PML_BASE_SEND_STANDARD, comm, preqs++, NULL));
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1, MCA_PML_BASE_SEND_STANDARD, comm, preqs++, &item));
 #endif
             if (OMPI_SUCCESS != rc) break;
         }
@@ -125,7 +133,7 @@ mca_coll_basic_neighbor_alltoallw_cart(const void *sbuf, const int scounts[], co
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim, MCA_PML_BASE_SEND_STANDARD, comm, preqs++));
 #else
             rc = MCA_PML_CALL(isend((char *) sbuf + sdisps[i+1], scounts[i+1], sdtypes[i+1], drank,
-                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim, MCA_PML_BASE_SEND_STANDARD, comm, preqs++, NULL));
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim, MCA_PML_BASE_SEND_STANDARD, comm, preqs++, &item));
 #endif
             if (OMPI_SUCCESS != rc) break;
         }
@@ -153,6 +161,14 @@ mca_coll_basic_neighbor_alltoallw_graph(const void *sbuf, const int scounts[], c
 #endif
                                         )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     const mca_topo_base_comm_graph_2_2_0_t *graph = comm->c_topo->mtc.graph;
     int rc = MPI_SUCCESS, neighbor, degree;
     const int rank = ompi_comm_rank (comm);
@@ -177,7 +193,7 @@ mca_coll_basic_neighbor_alltoallw_graph(const void *sbuf, const int scounts[], c
                                 edges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL, comm, preqs++));
 #else
         rc = MCA_PML_CALL(irecv((char *) rbuf + rdisps[neighbor], rcounts[neighbor], rdtypes[neighbor],
-                                edges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL, comm, preqs++, NULL));
+                                edges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL, comm, preqs++, &item));
 #endif
         if (OMPI_SUCCESS != rc) break;
     }
@@ -196,7 +212,7 @@ mca_coll_basic_neighbor_alltoallw_graph(const void *sbuf, const int scounts[], c
 #else
         rc = MCA_PML_CALL(isend((char *) sbuf + sdisps[neighbor], scounts[neighbor], sdtypes[neighbor],
                                 edges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
-                                comm, preqs++, NULL));
+                                comm, preqs++, &item));
 #endif
         if (OMPI_SUCCESS != rc) break;
     }
@@ -223,6 +239,14 @@ mca_coll_basic_neighbor_alltoallw_dist_graph(const void *sbuf, const int scounts
 #endif
                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     const mca_topo_base_comm_dist_graph_2_2_0_t *dist_graph = comm->c_topo->mtc.dist_graph;
     int rc = MPI_SUCCESS, neighbor;
     const int *inedges, *outedges;
@@ -248,7 +272,7 @@ mca_coll_basic_neighbor_alltoallw_dist_graph(const void *sbuf, const int scounts
                                 inedges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL, comm, preqs++));
 #else
         rc = MCA_PML_CALL(irecv((char *) rbuf + rdisps[neighbor], rcounts[neighbor], rdtypes[neighbor],
-                                inedges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL, comm, preqs++, NULL));
+                                inedges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL, comm, preqs++, &item));
 #endif
         if (OMPI_SUCCESS != rc) break;
     }
@@ -267,7 +291,7 @@ mca_coll_basic_neighbor_alltoallw_dist_graph(const void *sbuf, const int scounts
 #else   
         rc = MCA_PML_CALL(isend((char *) sbuf + sdisps[neighbor], scounts[neighbor], sdtypes[neighbor],
                                 outedges[neighbor], MCA_COLL_BASE_TAG_ALLTOALL, MCA_PML_BASE_SEND_STANDARD,
-                                comm, preqs++, NULL));
+                                comm, preqs++, &item));
 #endif
         if (OMPI_SUCCESS != rc) break;
     }

@@ -95,10 +95,9 @@ int mca_pml_ob1_irecv(void *addr,
             item->recvcount = item->recvcount + count;
         	   item->count = item->count + count;
         	   item->datasize = item->datasize + count*sizeof(datatype);
-            }
-        } else item = NULL;
-    }
-    else {
+        	   //printf("Datasize aus irecv: %d\n", item->datasize);
+            } else item = NULL;
+    } else {
         item = NULL;
     }
 #endif
@@ -155,6 +154,7 @@ int mca_pml_ob1_recv(void *addr,
             item->recvcount = item->recvcount + count;
         	   item->count = item->count + count;
         	   item->datasize = item->datasize + count*sizeof(datatype);
+        	   //printf("Datasize aus recv: %d\n", item->datasize);
         } else item = NULL;
     }
     else {

@@ -441,7 +441,11 @@ mca_coll_han_allreduce_intra_dynamic(ALLREDUCE_BASE_ARGS,
                                      );
 int
 mca_coll_han_barrier_intra_dynamic(BARRIER_BASE_ARGS,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 );
 int
 mca_coll_han_bcast_intra_dynamic(BCAST_BASE_ARGS,
                                  mca_coll_base_module_t *module
@@ -472,7 +476,11 @@ mca_coll_han_scatter_intra_dynamic(SCATTER_BASE_ARGS,
                                    );
 
 int mca_coll_han_barrier_intra_simple(struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module);
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				  , qentry **q
+#endif
+                                      );
 /* Bcast */
 int mca_coll_han_bcast_intra_simple(void *buff,
                                     int count,

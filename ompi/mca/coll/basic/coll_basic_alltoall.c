@@ -52,6 +52,14 @@ mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
 #endif
                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i;
     int size;
     int err;
@@ -96,7 +104,7 @@ mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
                                  MCA_COLL_BASE_TAG_ALLTOALL, comm, rreq));
 #else
         err = MCA_PML_CALL(irecv(prcv + (i * rcvinc), rcount, rdtype, i,
-                                 MCA_COLL_BASE_TAG_ALLTOALL, comm, rreq, NULL));
+                                 MCA_COLL_BASE_TAG_ALLTOALL, comm, rreq, &item));
 #endif
         if (OMPI_SUCCESS != err) {
             ompi_coll_base_free_reqs(req, i + 1);
@@ -113,7 +121,7 @@ mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
 #else
         err = MCA_PML_CALL(isend(psnd + (i * sndinc), scount, sdtype, i,
                                  MCA_COLL_BASE_TAG_ALLTOALL,
-                                 MCA_PML_BASE_SEND_STANDARD, comm, sreq, NULL));
+                                 MCA_PML_BASE_SEND_STANDARD, comm, sreq, &item));
 #endif
         if (OMPI_SUCCESS != err) {
             ompi_coll_base_free_reqs(req, i + size + 1);

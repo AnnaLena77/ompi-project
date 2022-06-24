@@ -48,6 +48,27 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                  MPI_Datatype recvtype, int source, int recvtag,
                  MPI_Comm comm,  MPI_Status *status)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    //item->start
+    time_t current_time = time(NULL);
+    item->start = current_time;
+    //item->operation
+    strcpy(item->operation, "MPI_Sendrecv");
+    //item->blocking
+    item->blocking = 1;
+    //item->datatype
+    /*char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(type, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;*/
+#endif
     ompi_request_t* req;
     int rc = MPI_SUCCESS;
     int rcs = MPI_SUCCESS;
@@ -88,7 +109,7 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                                 source, recvtag, comm, &req));
         #else
         rc = MCA_PML_CALL(irecv(recvbuf, recvcount, recvtype,
-                                source, recvtag, comm, &req, NULL));
+                                source, recvtag, comm, &req, &item));
         #endif
         OMPI_ERRHANDLER_CHECK(rc, comm, rc, FUNC_NAME);
     }
@@ -99,7 +120,7 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                                sendtag, MCA_PML_BASE_SEND_STANDARD, comm));
         #else
         rc = MCA_PML_CALL(send(sendbuf, sendcount, sendtype, dest,
-                               sendtag, MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                               sendtag, MCA_PML_BASE_SEND_STANDARD, comm, &item));
         #endif
         if (OPAL_UNLIKELY(MPI_SUCCESS != rc)) {
             rcs = rc;
@@ -137,6 +158,9 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     if( OPAL_UNLIKELY(MPI_SUCCESS != rcs && MPI_SUCCESS == rc) ) {
         rc = rcs;
     }
+#ifdef ENABLE_ANALYSIS
+    qentryIntoQueue(&item);
+#endif
 
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

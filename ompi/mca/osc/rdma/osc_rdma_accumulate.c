@@ -791,7 +791,11 @@ static inline int cas_rdma (ompi_osc_rdma_sync_t *sync, const void *source_addr,
 
 int ompi_osc_rdma_compare_and_swap (const void *origin_addr, const void *compare_addr, void *result_addr,
                                     ompi_datatype_t *dt, int target_rank, ptrdiff_t target_disp,
-                                    ompi_win_t *win)
+                                    ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    )
 {
     ompi_osc_rdma_module_t *module = GET_MODULE(win);
     ompi_osc_rdma_peer_t *peer;
@@ -1043,7 +1047,11 @@ int ompi_osc_rdma_accumulate (const void *origin_addr, int origin_count, ompi_da
 
 
 int ompi_osc_rdma_fetch_and_op (const void *origin_addr, void *result_addr, ompi_datatype_t *dt, int target_rank,
-                                ptrdiff_t target_disp, ompi_op_t *op, ompi_win_t *win)
+                                ptrdiff_t target_disp, ompi_op_t *op, ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+                                )
 {
     OSC_RDMA_VERBOSE(MCA_BASE_VERBOSE_TRACE, "fop: %p, %s, %d, %lu, %s, %s", result_addr, dt->name,
                      target_rank, (unsigned long) target_disp, op->o_name, win->w_name);

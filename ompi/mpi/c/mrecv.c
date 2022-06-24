@@ -107,6 +107,7 @@ int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status));
 #else
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status, &item));
+    qentryIntoQueue(&item);
 #endif
     /* Per MPI-1, the MPI_ERROR field is not defined for
        single-completion calls */
