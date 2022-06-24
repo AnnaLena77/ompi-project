@@ -50,6 +50,14 @@ mca_coll_basic_scatterv_intra(const void *sbuf, const int *scounts,
 #endif
                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, rank, size, err;
     char *ptmp;
     ptrdiff_t lb, extent;
@@ -74,7 +82,7 @@ mca_coll_basic_scatterv_intra(const void *sbuf, const int *scounts,
 #else
 	   return MCA_PML_CALL(recv(rbuf, rcount, rdtype,
                                      root, MCA_COLL_BASE_TAG_SCATTERV,
-                                     comm, MPI_STATUS_IGNORE, NULL));
+                                     comm, MPI_STATUS_IGNORE, &item));
 #endif
         }
         return MPI_SUCCESS;
@@ -114,7 +122,7 @@ mca_coll_basic_scatterv_intra(const void *sbuf, const int *scounts,
 #else
 	       err = MCA_PML_CALL(send(ptmp, scounts[i], sdtype, i,
                                         MCA_COLL_BASE_TAG_SCATTERV,
-                                        MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                        MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
                 if (MPI_SUCCESS != err) {
                     return err;
@@ -148,6 +156,14 @@ mca_coll_basic_scatterv_inter(const void *sbuf, const int *scounts,
 #endif
                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, size, err;
     char *ptmp;
     ptrdiff_t lb, extent;
@@ -171,7 +187,7 @@ mca_coll_basic_scatterv_inter(const void *sbuf, const int *scounts,
 #else
         err = MCA_PML_CALL(recv(rbuf, rcount, rdtype,
                                 root, MCA_COLL_BASE_TAG_SCATTERV,
-                                comm, MPI_STATUS_IGNORE, NULL));
+                                comm, MPI_STATUS_IGNORE, &item));
 #endif
     } else {
         /* I am the root, loop sending data. */
@@ -194,7 +210,7 @@ mca_coll_basic_scatterv_inter(const void *sbuf, const int *scounts,
 	   err = MCA_PML_CALL(isend(ptmp, scounts[i], sdtype, i,
                                      MCA_COLL_BASE_TAG_SCATTERV,
                                      MCA_PML_BASE_SEND_STANDARD, comm,
-                                     &(reqs[i]), NULL));
+                                     &(reqs[i]), &item));
 #endif
             if (OMPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(reqs, i + 1);

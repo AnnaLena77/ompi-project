@@ -90,17 +90,38 @@ int ompi_coll_tuned_scan_intra_do_this(const void *sbuf, void* rbuf, int count,
                                          struct ompi_op_t *op,
                                          struct ompi_communicator_t *comm,
                                          mca_coll_base_module_t *module,
-                                         int algorithm)
+                                         int algorithm
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         )
 {
     OPAL_OUTPUT((ompi_coll_tuned_stream,"coll:tuned:scan_intra_do_this selected algorithm %d",
                  algorithm));
 
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     switch (algorithm) {
+#ifndef ENABLE_ANALYSIS
     case (0):
     case (1):  return ompi_coll_base_scan_intra_linear(sbuf, rbuf, count, dtype,
                                                        op, comm, module);
     case (2):  return ompi_coll_base_scan_intra_recursivedoubling(sbuf, rbuf, count, dtype,
                                                                   op, comm, module);
+#else
+    case (0):
+    case (1):  return ompi_coll_base_scan_intra_linear(sbuf, rbuf, count, dtype,
+                                                       op, comm, module, &item);
+    case (2):  return ompi_coll_base_scan_intra_recursivedoubling(sbuf, rbuf, count, dtype,
+                                                                  op, comm, module, &item);
+#endif
     } /* switch */
     OPAL_OUTPUT((ompi_coll_tuned_stream,"coll:tuned:scan_intra_do_this attempt to select algorithm %d when only 0-%d is valid?",
                  algorithm, ompi_coll_tuned_forced_max_algorithms[SCAN]));

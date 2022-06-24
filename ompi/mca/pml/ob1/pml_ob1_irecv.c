@@ -92,9 +92,12 @@ int mca_pml_ob1_irecv(void *addr,
         if(*q!=NULL){
             item = *q;
             item->blocking = 0;
-        } else item = NULL;
-    }
-    else {
+            item->recvcount = item->recvcount + count;
+        	   item->count = item->count + count;
+        	   item->datasize = item->datasize + count*sizeof(datatype);
+        	   //printf("Datasize aus irecv: %d\n", item->datasize);
+            } else item = NULL;
+    } else {
         item = NULL;
     }
 #endif
@@ -148,6 +151,10 @@ int mca_pml_ob1_recv(void *addr,
         if(*q!=NULL){
             item = *q;
             item->blocking = 1;
+            item->recvcount = item->recvcount + count;
+        	   item->count = item->count + count;
+        	   item->datasize = item->datasize + count*sizeof(datatype);
+        	   //printf("Datasize aus recv: %d\n", item->datasize);
         } else item = NULL;
     }
     else {
@@ -229,7 +236,7 @@ int mca_pml_ob1_recv(void *addr,
         mca_pml_ob1_recvreq = recvreq;
     }
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) qentryIntoQueue(&item);
+    //if(item!=NULL) qentryIntoQueue(&item);
 #endif
     return rc;
 }

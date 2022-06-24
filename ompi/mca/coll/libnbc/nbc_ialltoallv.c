@@ -150,7 +150,11 @@ static int nbc_alltoallv_init(const void* sendbuf, const int *sendcounts, const 
 int ompi_coll_libnbc_ialltoallv(const void* sendbuf, const int *sendcounts, const int *sdispls,
                                 MPI_Datatype sendtype, void* recvbuf, const int *recvcounts, const int *rdispls,
                                 MPI_Datatype recvtype, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                mca_coll_base_module_t *module) {
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+                                ) {
     int res = nbc_alltoallv_init(sendbuf, sendcounts, sdispls, sendtype,
                                  recvbuf, recvcounts, rdispls, recvtype,
                                  comm, request, module, false);
@@ -238,7 +242,11 @@ static int nbc_alltoallv_inter_init (const void* sendbuf, const int *sendcounts,
 int ompi_coll_libnbc_ialltoallv_inter (const void* sendbuf, const int *sendcounts, const int *sdispls,
 				       MPI_Datatype sendtype, void* recvbuf, const int *recvcounts, const int *rdispls,
 				       MPI_Datatype recvtype, struct ompi_communicator_t *comm, ompi_request_t ** request,
-				       mca_coll_base_module_t *module) {
+				       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+				       ) {
     int res = nbc_alltoallv_inter_init(sendbuf, sendcounts, sdispls, sendtype,
                                        recvbuf, recvcounts, rdispls, recvtype,
                                        comm, request, module, false);

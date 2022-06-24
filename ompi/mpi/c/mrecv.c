@@ -45,17 +45,14 @@ int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
     //item->operation
     strcpy(item->operation, "MPI_Mrecv");
     //item->blocking
-    item->blocking = 0;
+    item->blocking = 1;
     //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
     strcpy(item->datatype, type_name);
     free(type_name);
-    //item->count
-    item->count = count;
-    //item->datasize
-    item->datasize = count * sizeof(type);
+
     //item->processrank
     int processrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
@@ -110,6 +107,7 @@ int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status));
 #else
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status, &item));
+    qentryIntoQueue(&item);
 #endif
     /* Per MPI-1, the MPI_ERROR field is not defined for
        single-completion calls */

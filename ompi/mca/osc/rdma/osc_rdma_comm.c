@@ -813,10 +813,14 @@ static inline int ompi_osc_rdma_get_w_req (ompi_osc_rdma_sync_t *sync, void *ori
     return ompi_osc_rdma_master (sync, origin_addr, origin_count, origin_datatype, peer, source_address,
                                  source_handle, source_count, source_datatype, request,
                                  btl->btl_get_limit, ompi_osc_rdma_get_contig, true);
-}
+}   
 int ompi_osc_rdma_put (const void *origin_addr, int origin_count, ompi_datatype_t *origin_datatype,
                        int target_rank, ptrdiff_t target_disp, int target_count,
-                       ompi_datatype_t *target_datatype, ompi_win_t *win)
+                       ompi_datatype_t *target_datatype, ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q
+#endif
+                       )
 {
     ompi_osc_rdma_module_t *module = GET_MODULE(win);
     ompi_osc_rdma_peer_t *peer;
@@ -838,7 +842,11 @@ int ompi_osc_rdma_put (const void *origin_addr, int origin_count, ompi_datatype_
 int ompi_osc_rdma_rput (const void *origin_addr, int origin_count, ompi_datatype_t *origin_datatype,
                         int target_rank, ptrdiff_t target_disp, int target_count,
                         ompi_datatype_t *target_datatype, ompi_win_t *win,
-                        ompi_request_t **request)
+                        ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                        , qentry **q
+#endif
+                        )
 {
     ompi_osc_rdma_module_t *module = GET_MODULE(win);
     ompi_osc_rdma_peer_t *peer;
@@ -872,7 +880,11 @@ int ompi_osc_rdma_rput (const void *origin_addr, int origin_count, ompi_datatype
 
 int ompi_osc_rdma_get (void *origin_addr, int origin_count, ompi_datatype_t *origin_datatype,
                        int source_rank, ptrdiff_t source_disp, int source_count,
-                       ompi_datatype_t *source_datatype, ompi_win_t *win)
+                       ompi_datatype_t *source_datatype, ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q
+#endif
+                       )
 {
     ompi_osc_rdma_module_t *module = GET_MODULE(win);
     ompi_osc_rdma_peer_t *peer;
@@ -894,7 +906,11 @@ int ompi_osc_rdma_get (void *origin_addr, int origin_count, ompi_datatype_t *ori
 int ompi_osc_rdma_rget (void *origin_addr, int origin_count, ompi_datatype_t *origin_datatype,
                         int source_rank, ptrdiff_t source_disp, int source_count,
                         ompi_datatype_t *source_datatype, ompi_win_t *win,
-                        ompi_request_t **request)
+                        ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                        , qentry **q
+#endif
+                        )
 {
     ompi_osc_rdma_module_t *module = GET_MODULE(win);
     ompi_osc_rdma_peer_t *peer;

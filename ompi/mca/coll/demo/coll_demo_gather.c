@@ -37,14 +37,34 @@ int mca_coll_demo_gather_intra(void *sbuf, int scount,
                                void *rbuf, int rcount,
                                struct ompi_datatype_t *rdtype,
                                int root, struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_demo_module_t *demo_module = (mca_coll_demo_module_t*) module;
     opal_output_verbose(10, ompi_coll_base_framework.framework_output, "In demo gather_intra");
+#ifndef ENABLE_ANALYSIS
     return demo_module->underlying.coll_gather(sbuf, scount, sdtype,
                                                rbuf, rcount, rdtype,
                                                root, comm,
                                                demo_module->underlying.coll_gather_module);
+#else
+    return demo_module->underlying.coll_gather(sbuf, scount, sdtype,
+                                               rbuf, rcount, rdtype,
+                                               root, comm,
+                                               demo_module->underlying.coll_gather_module, &item);
+#endif
 }
 
 
@@ -60,12 +80,32 @@ int mca_coll_demo_gather_inter(void *sbuf, int scount,
                                void *rbuf, int rcount,
                                struct ompi_datatype_t *rdtype,
                                int root, struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_demo_module_t *demo_module = (mca_coll_demo_module_t*) module;
     opal_output_verbose(10, ompi_coll_base_framework.framework_output, "In demo gather_inter");
+#ifndef ENABLE_ANALYSIS
     return demo_module->underlying.coll_gather(sbuf, scount, sdtype,
                                                rbuf, rcount, rdtype,
                                                root, comm,
                                                demo_module->underlying.coll_gather_module);
+#else
+    return demo_module->underlying.coll_gather(sbuf, scount, sdtype,
+                                               rbuf, rcount, rdtype,
+                                               root, comm,
+                                               demo_module->underlying.coll_gather_module, &item);
+#endif
 }

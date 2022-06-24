@@ -47,8 +47,20 @@ mca_coll_basic_alltoallv_inter(const void *sbuf, const int *scounts, const int *
                                const int *rcounts, const int *rdisps,
                                struct ompi_datatype_t *rdtype,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                               , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i;
     int rsize;
     int err;
@@ -84,7 +96,7 @@ mca_coll_basic_alltoallv_inter(const void *sbuf, const int *scounts, const int *
 #else
             err = MCA_PML_CALL(irecv(prcv, rcounts[i], rdtype,
                                      i, MCA_COLL_BASE_TAG_ALLTOALLV, comm,
-                                     &preq[i], NULL));
+                                     &preq[i], &item));
 #endif
             if (MPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(preq, i + 1);
@@ -106,7 +118,7 @@ mca_coll_basic_alltoallv_inter(const void *sbuf, const int *scounts, const int *
             err = MCA_PML_CALL(isend(psnd, scounts[i], sdtype,
                                      i, MCA_COLL_BASE_TAG_ALLTOALLV,
                                      MCA_PML_BASE_SEND_STANDARD, comm,
-                                     &preq[rsize + i], NULL));
+                                     &preq[rsize + i], &item));
 #endif
             if (MPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(preq, rsize + i + 1);

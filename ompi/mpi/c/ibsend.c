@@ -55,7 +55,8 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
     time_t current_time = time(NULL);
     item->start = current_time;
     //item->operation
-    strcpy(item->operation, "MPI_Ibsend");
+    strcpy(item->function, "MPI_Ibsend");
+    strcpy(item->communicationType, "p2p");
     //item->blocking
     item->blocking = 0;
     //item->datatype
@@ -64,19 +65,15 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
     MPI_Type_get_name(type, type_name, &type_name_length);
     strcpy(item->datatype, type_name);
     free(type_name);
-    //item->count
-    item->count = count;
-    //item->datasize
-    item->datasize = count * sizeof(type);
     //item->communicator
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    strcpy(item->communicator, comm_name);
+    strcpy(item->communicationArea, comm_name);
     free(comm_name);
     //item->processrank
     int processrank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    MPI_Comm_rank(comm, &processrank);
     item->processrank = processrank;
     //item->partnerrank
     item->partnerrank = dest;
@@ -131,6 +128,7 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
     rc = MCA_PML_CALL(isend(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, request));
 #else
     rc = MCA_PML_CALL(isend(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, request, &item));
+    qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

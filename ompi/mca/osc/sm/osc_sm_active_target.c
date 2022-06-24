@@ -101,8 +101,13 @@ ompi_osc_sm_fence(int mpi_assert, struct ompi_win_t *win)
     opal_atomic_mb();
 
     if (module->global_state->use_barrier_for_fence) {
+#ifndef ENABLE_ANALYSIS
         return module->comm->c_coll->coll_barrier(module->comm,
                                                  module->comm->c_coll->coll_barrier_module);
+#else
+        return module->comm->c_coll->coll_barrier(module->comm,
+                                                 module->comm->c_coll->coll_barrier_module, NULL);
+#endif
     } else {
         module->my_sense = !module->my_sense;
         pthread_mutex_lock(&module->global_state->mtx);

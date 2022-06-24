@@ -48,6 +48,14 @@ mca_coll_basic_gatherv_intra(const void *sbuf, int scount,
 #endif
                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, rank, size, err;
     char *ptmp;
     ptrdiff_t lb, extent;
@@ -73,7 +81,7 @@ mca_coll_basic_gatherv_intra(const void *sbuf, int scount,
 #else
 	   return MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                      MCA_COLL_BASE_TAG_GATHERV,
-                                     MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                     MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
         }
         return MPI_SUCCESS;
@@ -111,7 +119,7 @@ mca_coll_basic_gatherv_intra(const void *sbuf, int scount,
 #else
 	       err = MCA_PML_CALL(recv(ptmp, rcounts[i], rdtype, i,
                                         MCA_COLL_BASE_TAG_GATHERV,
-                                        comm, MPI_STATUS_IGNORE, NULL));
+                                        comm, MPI_STATUS_IGNORE, &item));
 #endif
             }
         }
@@ -146,6 +154,14 @@ mca_coll_basic_gatherv_inter(const void *sbuf, int scount,
 #endif
                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, size, err;
     char *ptmp;
     ptrdiff_t lb, extent;
@@ -168,7 +184,7 @@ mca_coll_basic_gatherv_inter(const void *sbuf, int scount,
 #else
         err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                 MCA_COLL_BASE_TAG_GATHERV,
-                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
     } else {
         /* I am the root, loop receiving data. */
@@ -189,7 +205,7 @@ mca_coll_basic_gatherv_inter(const void *sbuf, int scount,
 #else
 	   err = MCA_PML_CALL(irecv(ptmp, rcounts[i], rdtype, i,
                                      MCA_COLL_BASE_TAG_GATHERV,
-                                     comm, &reqs[i], NULL));
+                                     comm, &reqs[i], &item));
 #endif
             if (OMPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(reqs, i + 1);

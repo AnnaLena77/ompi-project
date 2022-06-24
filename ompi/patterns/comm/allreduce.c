@@ -180,6 +180,7 @@ OMPI_DECLSPEC int ompi_comm_allreduce_pml(void *sbuf, void *rbuf, int count,
             /* is the remote data read */
             pair_rank=my_exchange_node.rank_exchanges[exchange];
 
+#ifndef ENABLE_ANALYSIS
             rc=ompi_coll_base_sendrecv_actual(scratch_bufers[send_buffer],
                                               count_this_stripe,dtype, ranks_in_comm[pair_rank],
                                               -OMPI_COMMON_TAG_ALLREDUCE,
@@ -187,6 +188,15 @@ OMPI_DECLSPEC int ompi_comm_allreduce_pml(void *sbuf, void *rbuf, int count,
                                               count_this_stripe,dtype,ranks_in_comm[pair_rank],
                                               -OMPI_COMMON_TAG_ALLREDUCE,
                                               comm, MPI_STATUS_IGNORE);
+#else
+            rc=ompi_coll_base_sendrecv_actual(scratch_bufers[send_buffer],
+                                              count_this_stripe,dtype, ranks_in_comm[pair_rank],
+                                              -OMPI_COMMON_TAG_ALLREDUCE,
+                                              scratch_bufers[recv_buffer],
+                                              count_this_stripe,dtype,ranks_in_comm[pair_rank],
+                                              -OMPI_COMMON_TAG_ALLREDUCE,
+                                              comm, MPI_STATUS_IGNORE, NULL);
+#endif
             if( 0 > rc ) {
                 fprintf(stderr,"  irecv failed in  ompi_comm_allreduce_pml at iterations %d \n",
                         exchange);

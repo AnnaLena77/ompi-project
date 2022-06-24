@@ -30,8 +30,21 @@ int mca_coll_cuda_scan(const void *sbuf, void *rbuf, int count,
                        struct ompi_datatype_t *dtype,
                        struct ompi_op_t *op,
                        struct ompi_communicator_t *comm,
-                       mca_coll_base_module_t *module)
+                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		     , qentry **q
+#endif
+                       )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_cuda_module_t *s = (mca_coll_cuda_module_t*) module;
     ptrdiff_t gap;
     char *rbuf1 = NULL, *sbuf1 = NULL, *rbuf2 = NULL;
@@ -59,8 +72,13 @@ int mca_coll_cuda_scan(const void *sbuf, void *rbuf, int count,
         rbuf2 = rbuf; /* save away original buffer */
         rbuf = rbuf1 - gap;
     }
+#ifndef ENABLE_ANALYSIS
     rc = s->c_coll.coll_scan(sbuf, rbuf, count, dtype, op, comm,
                              s->c_coll.coll_scan_module);
+#else
+    rc = s->c_coll.coll_scan(sbuf, rbuf, count, dtype, op, comm,
+                             s->c_coll.coll_scan_module, &item);
+#endif
     if (NULL != sbuf1) {
         free(sbuf1);
     }

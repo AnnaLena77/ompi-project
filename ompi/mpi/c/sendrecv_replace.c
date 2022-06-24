@@ -47,6 +47,27 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
                          MPI_Comm comm, MPI_Status *status)
 
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    //item->start
+    time_t current_time = time(NULL);
+    item->start = current_time;
+    //item->operation
+    strcpy(item->operation, "MPI_Sendrecv_replace");
+    //item->blocking
+    item->blocking = 1;
+    //item->datatype
+    /*char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(type, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;*/
+#endif
     ompi_request_t* req;
     int rc = MPI_SUCCESS;
 #if OPAL_ENABLE_FT_MPI
@@ -139,7 +160,7 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
                             source, recvtag, comm, &req));
 #else
     rc = MCA_PML_CALL(irecv(buf, count, datatype,
-                            source, recvtag, comm, &req, NULL));
+                            source, recvtag, comm, &req, &item));
 #endif
     if(OMPI_SUCCESS != rc) {
         goto cleanup_and_return;
@@ -151,7 +172,7 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
                            sendtag, MCA_PML_BASE_SEND_STANDARD, comm));
 #else
     rc = MCA_PML_CALL(send(iov.iov_base, packed_size, MPI_PACKED, dest,
-                           sendtag, MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                           sendtag, MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
 #if OPAL_ENABLE_FT_MPI
     /* If ULFM is enabled we need to wait for the posted receive to
@@ -179,6 +200,10 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
     if( OPAL_UNLIKELY(MPI_SUCCESS != rcs && MPI_SUCCESS == rc) ) {
         rc = rcs;
     }
+#endif
+
+#ifdef ENABLE_ANALYSIS
+    qentryIntoQueue(&item);
 #endif
 
  cleanup_and_return:

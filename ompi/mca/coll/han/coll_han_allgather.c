@@ -442,7 +442,7 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
 #else
             low_comm->c_coll->coll_gather(MPI_IN_PLACE, scount, sdtype,
                                           tmp_buf_start, rcount, rdtype, root_low_rank,
-                                          low_comm, low_comm->c_coll->coll_gather_module, NULL);
+                                          low_comm, low_comm->c_coll->coll_gather_module, &item);
 #endif
         }
         else {
@@ -454,7 +454,7 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
 #else
             low_comm->c_coll->coll_gather(tmp_send, rcount, rdtype,
                                           NULL, rcount, rdtype, root_low_rank,
-                                          low_comm, low_comm->c_coll->coll_gather_module, NULL);
+                                          low_comm, low_comm->c_coll->coll_gather_module, &item);
 #endif
         }
     }
@@ -466,7 +466,7 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
 #else
         low_comm->c_coll->coll_gather((char *)sbuf, scount, sdtype,
                                       tmp_buf_start, rcount, rdtype, root_low_rank,
-                                      low_comm, low_comm->c_coll->coll_gather_module, NULL);
+                                      low_comm, low_comm->c_coll->coll_gather_module, &item);
 #endif
     }
     /* 2. allgather between node leaders, from tmp_buf to reorder_buf */
@@ -499,7 +499,7 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
 #else
         up_comm->c_coll->coll_allgather(tmp_buf_start, scount*low_size, sdtype,
                                         reorder_buf_start, rcount*low_size, rdtype,
-                                        up_comm, up_comm->c_coll->coll_allgather_module, NULL);
+                                        up_comm, up_comm->c_coll->coll_allgather_module, &item);
 #endif
 
         if (tmp_buf != NULL) {
@@ -513,9 +513,15 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
          * (see reorder_gather)
          */
         if (!han_module->is_mapbycore) {
+#ifndef ENABLE_ANALYSIS
             ompi_coll_han_reorder_gather(reorder_buf_start,
                                          rbuf, rcount, rdtype,
                                          comm, topo);
+#else
+            ompi_coll_han_reorder_gather(reorder_buf_start,
+                                         rbuf, rcount, rdtype,
+                                         comm, topo, &item);
+#endif
             free(reorder_buf);
             reorder_buf = NULL;
         }
@@ -530,7 +536,7 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
 #else
     low_comm->c_coll->coll_bcast(rbuf, rcount*low_size*up_size, rdtype,
                                  root_low_rank, low_comm,
-                                 low_comm->c_coll->coll_bcast_module, NULL);
+                                 low_comm->c_coll->coll_bcast_module, &item);
 #endif
 
 

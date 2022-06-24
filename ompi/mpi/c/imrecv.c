@@ -33,6 +33,28 @@ static const char FUNC_NAME[] = "MPI_Imrecv";
 int MPI_Imrecv(void *buf, int count, MPI_Datatype type,
                MPI_Message *message, MPI_Request *request)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    //item->start
+    time_t current_time = time(NULL);
+    item->start = current_time;
+    //item->operation
+    strcpy(item->operation, "MPI_Imrecv");
+    //item->blocking
+    item->blocking = 0;
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(type, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;
+#endif
+    
     int rc = MPI_SUCCESS;
     ompi_communicator_t *comm;
 
@@ -75,7 +97,8 @@ int MPI_Imrecv(void *buf, int count, MPI_Datatype type,
 #ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(imrecv(buf, count, type, message, request));
 #else
-    rc = MCA_PML_CALL(imrecv(buf, count, type, message, request, NULL));
+    rc = MCA_PML_CALL(imrecv(buf, count, type, message, request, &item));
+    qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

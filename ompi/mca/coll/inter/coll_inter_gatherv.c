@@ -80,7 +80,7 @@ mca_coll_inter_gatherv_inter(const void *sbuf, int scount,
 #else
         err = MCA_PML_CALL(recv(rbuf, 1, ndtype, 0,
                                 MCA_COLL_BASE_TAG_GATHERV,
-                                comm, MPI_STATUS_IGNORE, NULL));
+                                comm, MPI_STATUS_IGNORE, &item));
 #endif
         ompi_datatype_destroy(&ndtype);
         return err;
@@ -153,7 +153,7 @@ mca_coll_inter_gatherv_inter(const void *sbuf, int scount,
 #else
         err = MCA_PML_CALL(send(ptmp, total, sdtype, root,
                                 MCA_COLL_BASE_TAG_GATHERV,
-                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
     }
 

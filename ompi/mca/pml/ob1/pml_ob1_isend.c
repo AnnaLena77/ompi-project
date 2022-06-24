@@ -211,12 +211,15 @@ int mca_pml_ob1_isend(const void *buf,
 #endif
 #ifdef ENABLE_ANALYSIS
     qentry *item;
-    int bcast = 0;
     //if q is NULL, isend is not called from a normal operation
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            if(item->blocking == 0){
+            item->sendcount = item->sendcount + count;
+        	   item->count = item->count + count;
+        	   item->datasize = item->datasize + count*sizeof(datatype);
+        	   printf("Datasize aus isend: %d\n", item->datasize);
+            if(item->blocking == 0 && !strcpy(item->communicationType, "p2p")){
                 //qentry->sendmode & qentry->operation
                 if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
                     strcpy(item->sendmode, "SYNCHRONOUS");
@@ -306,7 +309,7 @@ int mca_pml_ob1_isend(const void *buf,
 #endif
     *request = (ompi_request_t *) sendreq;
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) qentryIntoQueue(&item);
+    //if(item!=NULL) qentryIntoQueue(&item);
 #endif
     return rc;
 
@@ -366,24 +369,6 @@ int mca_pml_ob1_send(const void *buf,
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            if(strcmp(item->operation, "MPI_Bcast")==0){
-                //bcast = 1;
-            }
-            else if(item->blocking == 0){
-                //qentry->sendmode & qentry->operation
-                if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
-                    strcpy(item->sendmode, "SYNCHRONOUS");
-                }
-                else if(sendmode==MCA_PML_BASE_SEND_BUFFERED){
-                    strcpy(item->sendmode, "BUFFERED");
-                }
-                else if(sendmode==MCA_PML_BASE_SEND_READY){
-                    strcpy(item->sendmode, "READY");
-                }
-                else if(sendmode==MCA_PML_BASE_SEND_STANDARD){
-                    strcpy(item->sendmode, "STANDARD");
-                }
-            }
         }else item = NULL;
     }
     else {
@@ -422,11 +407,32 @@ int mca_pml_ob1_send(const void *buf,
         //Buffer kann sicher wieder verwendet werden
         ompi_request_wait_completion (brequest);
         ompi_request_free (&brequest);
-#ifdef ENABLE_ANALYSIS
-        if(item!=NULL) qentryIntoQueue(&item);
-#endif
         return OMPI_SUCCESS;
     }
+#ifdef ENABLE_ANALYSIS
+    else {
+        if(item!=NULL){
+            //size of send-Data:
+            item->sendcount = item->sendcount + count;
+        	   item->count = item->count + count;
+        	   item->datasize = item->datasize + count*sizeof(datatype);
+        	   //printf("Datasize aus send: %d\n", item->datasize);
+            //qentry->sendmode & qentry->operation
+            if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS && !strcpy(item->communicationType, "p2p")){
+                strcpy(item->sendmode, "SYNCHRONOUS");
+            }
+            else if(sendmode==MCA_PML_BASE_SEND_BUFFERED){
+                strcpy(item->sendmode, "BUFFERED");
+            }
+            else if(sendmode==MCA_PML_BASE_SEND_READY){
+                strcpy(item->sendmode, "READY");
+            }
+            else if(sendmode==MCA_PML_BASE_SEND_STANDARD){
+                strcpy(item->sendmode, "STANDARD");
+            }
+        }
+    }
+#endif
 
     if (!OMPI_COMM_CHECK_ASSERT_ALLOW_OVERTAKE(comm)) {
         seqn = (uint16_t) OPAL_THREAD_ADD_FETCH32(&ob1_proc->send_sequence, 1);
@@ -451,7 +457,7 @@ int mca_pml_ob1_send(const void *buf,
         //Wenn rc = 0, keine Daten versendet.
         if (OPAL_LIKELY(0 <= rc)) {
 #ifdef ENABLE_ANALYSIS
-            if(item!=NULL) qentryIntoQueue(&item);
+            //if(item!=NULL) qentryIntoQueue(&item);
 #endif
             return OMPI_SUCCESS;
         }
@@ -506,7 +512,7 @@ int mca_pml_ob1_send(const void *buf,
 #ifdef ENABLE_ANALYSIS
     if(item!=NULL){ 
         item->requestFini = time(NULL);
-        qentryIntoQueue(&item);
+        //qentryIntoQueue(&item);
     }
 #endif
     return rc;

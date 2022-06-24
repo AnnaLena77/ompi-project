@@ -196,7 +196,7 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
 #else
 	   err = MCA_PML_CALL(send(snd_buffer, count,
                                     dtype, peer, MCA_COLL_BASE_TAG_REDUCE,
-                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 goto cleanup_and_return;
@@ -232,7 +232,7 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
 #else
 	   err = MCA_PML_CALL(recv(rcv_buffer, count, dtype, peer,
                                     MCA_COLL_BASE_TAG_REDUCE, comm,
-                                    MPI_STATUS_IGNORE, NULL));
+                                    MPI_STATUS_IGNORE, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 goto cleanup_and_return;
@@ -278,7 +278,7 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
 #else 
 	   err = MCA_PML_CALL(send(snd_buffer, count,
                                     dtype, root, MCA_COLL_BASE_TAG_REDUCE,
-                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
         }
     } else if (rank == root) {
@@ -289,7 +289,7 @@ mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
 #else
         err = MCA_PML_CALL(recv(rcv_buffer, count, dtype, 0,
                                 MCA_COLL_BASE_TAG_REDUCE,
-                                comm, MPI_STATUS_IGNORE, NULL));
+                                comm, MPI_STATUS_IGNORE, &item));
 #endif
         if (rcv_buffer != rbuf) {
             ompi_op_reduce(op, rcv_buffer, rbuf, count, dtype);
@@ -331,6 +331,14 @@ mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
 #endif
                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, err, size;
     ptrdiff_t dsize, gap;
     char *free_buffer = NULL;
@@ -351,7 +359,7 @@ mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
 #else
        err = MCA_PML_CALL(send(sbuf, count, dtype, root,
                                 MCA_COLL_BASE_TAG_REDUCE,
-                                MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
     } else {
         /* Root receives and reduces messages  */
@@ -372,7 +380,7 @@ mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
 #else
         err = MCA_PML_CALL(recv(rbuf, count, dtype, 0,
                                 MCA_COLL_BASE_TAG_REDUCE, comm,
-                                MPI_STATUS_IGNORE, NULL));
+                                MPI_STATUS_IGNORE, &item));
 #endif
         if (MPI_SUCCESS != err) {
             if (NULL != free_buffer) {
@@ -390,7 +398,7 @@ mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
 #else
 	   err = MCA_PML_CALL(recv(pml_buffer, count, dtype, i,
                                     MCA_COLL_BASE_TAG_REDUCE, comm,
-                                    MPI_STATUS_IGNORE, NULL));
+                                    MPI_STATUS_IGNORE, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 if (NULL != free_buffer) {

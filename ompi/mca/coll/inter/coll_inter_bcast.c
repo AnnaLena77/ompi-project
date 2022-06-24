@@ -87,7 +87,7 @@ mca_coll_inter_bcast_inter(void *buff, int count,
 #else
 	err = comm->c_local_comm->c_coll->coll_bcast(buff, count, datatype, 0,
                                                     comm->c_local_comm,
-                                                    comm->c_local_comm->c_coll->coll_bcast_module, NULL);
+                                                    comm->c_local_comm->c_coll->coll_bcast_module, &item);
 #endif
     } else {
         /* root section, send to the first process of the remote group */

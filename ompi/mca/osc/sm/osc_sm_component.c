@@ -339,7 +339,11 @@ component_select(struct ompi_win_t *win, void **base, size_t size, int disp_unit
         }
 
         /* wait for all processes to attach */
+#ifndef ENABLE_ANALYSIS
         ret = module->comm->c_coll->coll_barrier (module->comm, module->comm->c_coll->coll_barrier_module);
+#else
+        ret = module->comm->c_coll->coll_barrier (module->comm, module->comm->c_coll->coll_barrier_module, NULL);
+#endif
         if (OMPI_SUCCESS != ret) {
             free(rbuf);
             goto error;
@@ -460,8 +464,13 @@ component_select(struct ompi_win_t *win, void **base, size_t size, int disp_unit
 
     if (OPAL_SUCCESS != ret) goto error;
 
+#ifndef ENABLE_ANALYSIS
     ret = module->comm->c_coll->coll_barrier(module->comm,
                                             module->comm->c_coll->coll_barrier_module);
+#else
+    ret = module->comm->c_coll->coll_barrier(module->comm,
+                                            module->comm->c_coll->coll_barrier_module, NULL);
+#endif
     if (OMPI_SUCCESS != ret) goto error;
 
     *model = MPI_WIN_UNIFIED;
@@ -549,8 +558,13 @@ ompi_osc_sm_free(struct ompi_win_t *win)
     /* free memory */
     if (NULL != module->segment_base) {
         /* synchronize */
+#ifndef ENABLE_ANALYSIS
         module->comm->c_coll->coll_barrier(module->comm,
                                           module->comm->c_coll->coll_barrier_module);
+#else
+        module->comm->c_coll->coll_barrier(module->comm,
+                                          module->comm->c_coll->coll_barrier_module, NULL);
+#endif
 
         opal_shmem_segment_detach (&module->seg_ds);
     } else {
@@ -586,8 +600,13 @@ ompi_osc_sm_set_info(struct ompi_win_t *win, struct opal_info_t *info)
         (ompi_osc_sm_module_t*) win->w_osc_module;
 
     /* enforce collectiveness... */
+#ifndef ENABLE_ANALYSIS
     return module->comm->c_coll->coll_barrier(module->comm,
                                              module->comm->c_coll->coll_barrier_module);
+#else
+    return module->comm->c_coll->coll_barrier(module->comm,
+                                             module->comm->c_coll->coll_barrier_module, NULL);
+#endif
 }
 
 

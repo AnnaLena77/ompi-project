@@ -1,5 +1,5 @@
 #include <sys/queue.h>
-#define ENABLE_ANALYSIS 1
+//#define ENABLE_ANALYSIS 1
 
 extern void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime);
 extern void initialize(void);
@@ -8,16 +8,20 @@ extern pthread_t MONITOR_THREAD;
 #ifndef QENTRY_H_
 #define QENTRY_H_
 typedef struct qentry {
-    char operation[30];
-    char sendmode[30]; //later
+    char function[30];
+    char communicationType[30];
     int blocking;
-    int immediate; //later
     char datatype[30];
     int count;
+    int sendcount;
+    int recvcount;
     int datasize;
-    char communicator[30];
+    char operation[30]; //MPI_Reduce, MPI_Accumulate
+    char communicationArea[30];
     int processrank;
     int partnerrank;
+    char sendmode[30]; //later
+    int immediate; //later
     char usedBtl[30];
     char usedProtocol[30];
     int withinEagerLimit;

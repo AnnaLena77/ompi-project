@@ -141,7 +141,11 @@ int mca_sharedfp_lockedfile_file_open (struct ompi_communicator_t *comm,
 	write ( handle, &position, sizeof(OMPI_MPI_OFFSET_TYPE) );
 	close ( handle );
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_barrier ( comm, comm->c_coll->coll_barrier_module );
+#else
+    err = comm->c_coll->coll_barrier ( comm, comm->c_coll->coll_barrier_module, NULL);
+#endif
     if ( OMPI_SUCCESS != err ) {
         opal_output(0, "[%d]mca_sharedfp_lockedfile_file_open: Error in barrier operation\n", fh->f_rank);
 	free (sh);
@@ -166,8 +170,11 @@ int mca_sharedfp_lockedfile_file_open (struct ompi_communicator_t *comm,
     sh->selected_module_data   = module_data;
     /*remember the shared file handle*/
     fh->f_sharedfp_data = sh;
-
+#ifndef ENABLE_ANALYSIS
     return comm->c_coll->coll_barrier ( comm, comm->c_coll->coll_barrier_module );
+#else
+    return comm->c_coll->coll_barrier ( comm, comm->c_coll->coll_barrier_module, NULL);
+#endif
 }
 
 int mca_sharedfp_lockedfile_file_close (ompio_file_t *fh)

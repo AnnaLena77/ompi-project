@@ -95,6 +95,14 @@ int ompi_coll_base_allgather_intra_bruck(const void *sbuf, int scount,
 #endif
                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int line = -1, rank, size, sendto, recvfrom, distance, blockcount, err = 0;
     ptrdiff_t rlb, rext;
     char *tmpsend = NULL, *tmprecv = NULL;
@@ -114,6 +122,7 @@ int ompi_coll_base_allgather_intra_bruck(const void *sbuf, int scount,
        - if rank r != 0, copy r^th block from receive buffer to block 0.
     */
     tmprecv = (char*) rbuf;
+    //Wenn der Sendbuffer ein anderer als der Recv-Buffer ist (User hat nicht MPI_IN_Place verwendet)
     if (MPI_IN_PLACE != sbuf) {
         tmpsend = (char*) sbuf;
         err = ompi_datatype_sndrcv(tmpsend, scount, sdtype, tmprecv, rcount, rdtype);
@@ -151,11 +160,22 @@ int ompi_coll_base_allgather_intra_bruck(const void *sbuf, int scount,
         }
 
         /* Sendreceive */
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv(tmpsend, blockcount * rcount, rdtype,
                                        sendto, MCA_COLL_BASE_TAG_ALLGATHER,
                                        tmprecv, blockcount * rcount, rdtype,
                                        recvfrom, MCA_COLL_BASE_TAG_ALLGATHER,
                                        comm, MPI_STATUS_IGNORE, rank);
+#else
+        err = ompi_coll_base_sendrecv(tmpsend, blockcount * rcount, rdtype,
+                                       sendto, MCA_COLL_BASE_TAG_ALLGATHER,
+                                       tmprecv, blockcount * rcount, rdtype,
+                                       recvfrom, MCA_COLL_BASE_TAG_ALLGATHER,
+                                       comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
+
+        //printf("Rank: %d, Recvcount: %d\n", rank, blockcount * rcount); 
+        
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
     }
@@ -344,11 +364,19 @@ ompi_coll_base_allgather_intra_recursivedoubling(const void *sbuf, int scount,
         }
 
         /* Sendreceive */
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv(tmpsend, (ptrdiff_t)distance * (ptrdiff_t)rcount, rdtype,
                                        remote, MCA_COLL_BASE_TAG_ALLGATHER,
                                        tmprecv, (ptrdiff_t)distance * (ptrdiff_t)rcount, rdtype,
                                        remote, MCA_COLL_BASE_TAG_ALLGATHER,
                                        comm, MPI_STATUS_IGNORE, rank);
+#else
+        err = ompi_coll_base_sendrecv(tmpsend, (ptrdiff_t)distance * (ptrdiff_t)rcount, rdtype,
+                                       remote, MCA_COLL_BASE_TAG_ALLGATHER,
+                                       tmprecv, (ptrdiff_t)distance * (ptrdiff_t)rcount, rdtype,
+                                       remote, MCA_COLL_BASE_TAG_ALLGATHER,
+                                       comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
     }
@@ -425,6 +453,14 @@ int ompi_coll_base_allgather_intra_sparbit(const void *sbuf, int scount,
 #endif
                                                   )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     /* ################# VARIABLE DECLARATION, BUFFER CREATION AND PREPARATION FOR THE ALGORITHM ######################## */
 
     /* list of variable declaration */
@@ -488,8 +524,8 @@ int ompi_coll_base_allgather_intra_sparbit(const void *sbuf, int scount,
            MCA_PML_CALL(isend(tmpsend + (ptrdiff_t) send_disp * scount * rext, scount, rdtype, sendto, MCA_COLL_BASE_TAG_HCOLL_BASE - send_disp, MCA_PML_BASE_SEND_STANDARD, comm, requests + transfer_count));
            MCA_PML_CALL(irecv(tmprecv + (ptrdiff_t) recv_disp * rcount * rext, rcount, rdtype, recvfrom, MCA_COLL_BASE_TAG_HCOLL_BASE - recv_disp, comm, requests + data_expected - exclusion + transfer_count));
 #else
-	MCA_PML_CALL(isend(tmpsend + (ptrdiff_t) send_disp * scount * rext, scount, rdtype, sendto, MCA_COLL_BASE_TAG_HCOLL_BASE - send_disp, MCA_PML_BASE_SEND_STANDARD, comm, requests + transfer_count, NULL));
-           MCA_PML_CALL(irecv(tmprecv + (ptrdiff_t) recv_disp * rcount * rext, rcount, rdtype, recvfrom, MCA_COLL_BASE_TAG_HCOLL_BASE - recv_disp, comm, requests + data_expected - exclusion + transfer_count, NULL));
+	MCA_PML_CALL(isend(tmpsend + (ptrdiff_t) send_disp * scount * rext, scount, rdtype, sendto, MCA_COLL_BASE_TAG_HCOLL_BASE - send_disp, MCA_PML_BASE_SEND_STANDARD, comm, requests + transfer_count, &item));
+           MCA_PML_CALL(irecv(tmprecv + (ptrdiff_t) recv_disp * rcount * rext, rcount, rdtype, recvfrom, MCA_COLL_BASE_TAG_HCOLL_BASE - recv_disp, comm, requests + data_expected - exclusion + transfer_count, &item));
 #endif
        }
        ompi_request_wait_all(transfer_count * 2, requests, MPI_STATUSES_IGNORE);
@@ -537,6 +573,14 @@ int ompi_coll_base_allgather_intra_ring(const void *sbuf, int scount,
 #endif
                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int line = -1, rank, size, err, sendto, recvfrom, i, recvdatafrom, senddatafrom;
     ptrdiff_t rlb, rext;
     char *tmpsend = NULL, *tmprecv = NULL;
@@ -580,11 +624,19 @@ int ompi_coll_base_allgather_intra_ring(const void *sbuf, int scount,
         tmpsend = (char*)rbuf + (ptrdiff_t)senddatafrom * (ptrdiff_t)rcount * rext;
 
         /* Sendreceive */
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv(tmpsend, rcount, rdtype, sendto,
                                        MCA_COLL_BASE_TAG_ALLGATHER,
                                        tmprecv, rcount, rdtype, recvfrom,
                                        MCA_COLL_BASE_TAG_ALLGATHER,
                                        comm, MPI_STATUS_IGNORE, rank);
+#else
+        err = ompi_coll_base_sendrecv(tmpsend, rcount, rdtype, sendto,
+                                       MCA_COLL_BASE_TAG_ALLGATHER,
+                                       tmprecv, rcount, rdtype, recvfrom,
+                                       MCA_COLL_BASE_TAG_ALLGATHER,
+                                       comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
     }
@@ -743,11 +795,19 @@ ompi_coll_base_allgather_intra_neighborexchange(const void *sbuf, int scount,
     tmprecv = (char*)rbuf + (ptrdiff_t)neighbor[0] * (ptrdiff_t)rcount * rext;
     tmpsend = (char*)rbuf + (ptrdiff_t)rank * (ptrdiff_t)rcount * rext;
     /* Sendreceive */
+#ifndef ENABLE_ANALYSIS
     err = ompi_coll_base_sendrecv(tmpsend, rcount, rdtype, neighbor[0],
                                    MCA_COLL_BASE_TAG_ALLGATHER,
                                    tmprecv, rcount, rdtype, neighbor[0],
                                    MCA_COLL_BASE_TAG_ALLGATHER,
                                    comm, MPI_STATUS_IGNORE, rank);
+#else
+    err = ompi_coll_base_sendrecv(tmpsend, rcount, rdtype, neighbor[0],
+                                   MCA_COLL_BASE_TAG_ALLGATHER,
+                                   tmprecv, rcount, rdtype, neighbor[0],
+                                   MCA_COLL_BASE_TAG_ALLGATHER,
+                                   comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
     if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
     /* Determine initial sending location */
@@ -766,6 +826,7 @@ ompi_coll_base_allgather_intra_neighborexchange(const void *sbuf, int scount,
         tmpsend = (char*)rbuf + (ptrdiff_t)send_data_from * rcount * rext;
 
         /* Sendreceive */
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv(tmpsend, (ptrdiff_t)2 * (ptrdiff_t)rcount, rdtype,
                                        neighbor[i_parity],
                                        MCA_COLL_BASE_TAG_ALLGATHER,
@@ -773,6 +834,15 @@ ompi_coll_base_allgather_intra_neighborexchange(const void *sbuf, int scount,
                                        neighbor[i_parity],
                                        MCA_COLL_BASE_TAG_ALLGATHER,
                                        comm, MPI_STATUS_IGNORE, rank);
+#else
+        err = ompi_coll_base_sendrecv(tmpsend, (ptrdiff_t)2 * (ptrdiff_t)rcount, rdtype,
+                                       neighbor[i_parity],
+                                       MCA_COLL_BASE_TAG_ALLGATHER,
+                                       tmprecv, (ptrdiff_t)2 * (ptrdiff_t)rcount, rdtype,
+                                       neighbor[i_parity],
+                                       MCA_COLL_BASE_TAG_ALLGATHER,
+                                       comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
         send_data_from = recv_data_from[i_parity];
@@ -799,6 +869,14 @@ int ompi_coll_base_allgather_intra_two_procs(const void *sbuf, int scount,
 #endif
                                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int line = -1, err, rank, remote;
     char *tmpsend = NULL, *tmprecv = NULL;
     ptrdiff_t rext, lb;
@@ -828,11 +906,19 @@ int ompi_coll_base_allgather_intra_two_procs(const void *sbuf, int scount,
         sdtype = rdtype;
     }
     tmprecv = (char*)rbuf + (ptrdiff_t)remote * (ptrdiff_t)rcount * rext;
+#ifndef ENABLE_ANALYSIS
     err = ompi_coll_base_sendrecv(tmpsend, scount, sdtype, remote,
                                    MCA_COLL_BASE_TAG_ALLGATHER,
                                    tmprecv, rcount, rdtype, remote,
                                    MCA_COLL_BASE_TAG_ALLGATHER,
                                    comm, MPI_STATUS_IGNORE, rank);
+#else
+    err = ompi_coll_base_sendrecv(tmpsend, scount, sdtype, remote,
+                                   MCA_COLL_BASE_TAG_ALLGATHER,
+                                   tmprecv, rcount, rdtype, remote,
+                                   MCA_COLL_BASE_TAG_ALLGATHER,
+                                   comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
     if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
     /* Place your data in correct location if necessary */
@@ -885,6 +971,14 @@ ompi_coll_base_allgather_intra_basic_linear(const void *sbuf, int scount,
 #endif
                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int err;
     ptrdiff_t lb, extent;
 
@@ -908,7 +1002,7 @@ ompi_coll_base_allgather_intra_basic_linear(const void *sbuf, int scount,
 #else
     err = comm->c_coll->coll_gather(sbuf, scount, sdtype,
                                    rbuf, rcount, rdtype,
-                                   0, comm, comm->c_coll->coll_gather_module, NULL);
+                                   0, comm, comm->c_coll->coll_gather_module, &item);
 #endif
     if (MPI_SUCCESS == err) {
         size_t length = (ptrdiff_t)rcount * ompi_comm_size(comm);
@@ -918,7 +1012,7 @@ ompi_coll_base_allgather_intra_basic_linear(const void *sbuf, int scount,
                                           0, comm, comm->c_coll->coll_bcast_module);
 #else
 	   err = comm->c_coll->coll_bcast(rbuf, (ptrdiff_t)rcount * ompi_comm_size(comm), rdtype,
-                                          0, comm, comm->c_coll->coll_bcast_module, NULL);
+                                          0, comm, comm->c_coll->coll_bcast_module, &item);
 #endif
         } else {
             ompi_datatype_t* temptype;
@@ -929,7 +1023,7 @@ ompi_coll_base_allgather_intra_basic_linear(const void *sbuf, int scount,
                                           0, comm, comm->c_coll->coll_bcast_module);
 #else
 	   err = comm->c_coll->coll_bcast(rbuf, rcount, temptype,
-                                          0, comm, comm->c_coll->coll_bcast_module, NULL);
+                                          0, comm, comm->c_coll->coll_bcast_module, &item);
 #endif
             ompi_datatype_destroy(&temptype);
         }

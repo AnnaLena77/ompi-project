@@ -39,8 +39,20 @@
  */
 int
 mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i;
     int err;
     int peer;
@@ -69,7 +81,7 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
 #else
 	   err = MCA_PML_CALL(recv(NULL, 0, MPI_BYTE, peer,
                                     MCA_COLL_BASE_TAG_BARRIER,
-                                    comm, MPI_STATUS_IGNORE, NULL));
+                                    comm, MPI_STATUS_IGNORE, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 return err;
@@ -92,7 +104,7 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
             MCA_PML_CALL(send
                          (NULL, 0, MPI_BYTE, peer,
                           MCA_COLL_BASE_TAG_BARRIER,
-                          MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                          MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
         if (MPI_SUCCESS != err) {
             return err;
@@ -104,7 +116,7 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
 #else
         err = MCA_PML_CALL(recv(NULL, 0, MPI_BYTE, peer,
                                 MCA_COLL_BASE_TAG_BARRIER,
-                                comm, MPI_STATUS_IGNORE, NULL));
+                                comm, MPI_STATUS_IGNORE, &item));
 #endif
         if (MPI_SUCCESS != err) {
             return err;
@@ -123,7 +135,7 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
 #else
             err = MCA_PML_CALL(send(NULL, 0, MPI_BYTE, peer,
                                     MCA_COLL_BASE_TAG_BARRIER,
-                                    MCA_PML_BASE_SEND_STANDARD, comm, NULL));
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 return err;
@@ -146,8 +158,20 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
  */
 int
 mca_coll_basic_barrier_inter_lin(struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rank;
     int result;
 
@@ -157,6 +181,6 @@ mca_coll_basic_barrier_inter_lin(struct ompi_communicator_t *comm,
                                        comm, comm->c_coll->coll_allreduce_module);
 #else
     return comm->c_coll->coll_allreduce(&rank, &result, 1, MPI_INT, MPI_MAX,
-                                       comm, comm->c_coll->coll_allreduce_module, NULL);
+                                       comm, comm->c_coll->coll_allreduce_module, &item);
 #endif
 }

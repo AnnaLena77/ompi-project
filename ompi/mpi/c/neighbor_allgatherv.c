@@ -56,26 +56,24 @@ int MPI_Neighbor_allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sen
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     item->start = time(NULL);
-    strcpy(item->operation, "MPI_Neighbor_allgatherv");
+    strcpy(item->function, "MPI_Neighbor_allgatherv");
+    strcpy(item->communicationType, "collective");
     //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(sendtype, type_name, &type_name_length);
     strcpy(item->datatype, type_name);
     free(type_name);
-    //item->count
-    item->count = sendcount;
-    //item->datasize
-    item->datasize = sendcount * sizeof(sendtype);
+
     //item->communicator
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    strcpy(item->communicator, comm_name);
+    strcpy(item->communicationArea, comm_name);
     free(comm_name);
     //item->processrank
     int processrank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    MPI_Comm_rank(comm, &processrank);
     item->processrank = processrank;
     //item->partnerrank
     item->partnerrank = -1;

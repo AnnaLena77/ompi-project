@@ -51,7 +51,8 @@ int MPI_Reduce_scatter_block(const void *sendbuf, void *recvbuf, int recvcount,
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     item->start = time(NULL);
-    strcpy(item->operation, "MPI_Reduce_scatter_block");
+    strcpy(item->function, "MPI_Reduce_scatter_block");
+    strcpy(item->communicationType, "collective");
     //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
@@ -62,11 +63,11 @@ int MPI_Reduce_scatter_block(const void *sendbuf, void *recvbuf, int recvcount,
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    strcpy(item->communicator, comm_name);
+    strcpy(item->communicationArea, comm_name);
     free(comm_name);
     //item->processrank
     int processrank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    MPI_Comm_rank(comm, &processrank);
     item->processrank = processrank;
     //item->partnerrank
     item->partnerrank = -1;
