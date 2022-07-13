@@ -81,7 +81,7 @@ int MPI_Accumulate(const void *origin_addr, int origin_count, MPI_Datatype origi
     }
     //count and datasize
     item->count = origin_count;
-    item->datasize = origin_count*sizeof(origin_datatype)+target_count;
+    item->datasize = origin_count*sizeof(origin_datatype);
     //operation
     strcpy(item->operation, op->o_name);
     //Name of communicator
