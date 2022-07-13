@@ -8,6 +8,7 @@ extern pthread_t MONITOR_THREAD;
 #ifndef QENTRY_H_
 #define QENTRY_H_
 typedef struct qentry {
+    int id;
     char function[30];
     char communicationType[30];
     int blocking;
