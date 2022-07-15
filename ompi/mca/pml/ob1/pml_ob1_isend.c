@@ -218,8 +218,7 @@ int mca_pml_ob1_isend(const void *buf,
             item->sendcount = item->sendcount + count;
         	   item->count = item->count + count;
         	   item->datasize = item->datasize + count*sizeof(datatype);
-        	   printf("Datasize aus isend: %d\n", item->datasize);
-            if(item->blocking == 0 && !strcpy(item->communicationType, "p2p")){
+            if(item->blocking == 0 && !strcmp(item->communicationType, "p2p")){
                 //qentry->sendmode & qentry->operation
                 if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
                     strcpy(item->sendmode, "SYNCHRONOUS");
@@ -418,7 +417,7 @@ int mca_pml_ob1_send(const void *buf,
         	   item->datasize = item->datasize + count*sizeof(datatype);
         	   //printf("Datasize aus send: %d\n", item->datasize);
             //qentry->sendmode & qentry->operation
-            if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS && !strcpy(item->communicationType, "p2p")){
+            if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS && !strcmp(item->communicationType, "p2p")){
                 strcpy(item->sendmode, "SYNCHRONOUS");
             }
             else if(sendmode==MCA_PML_BASE_SEND_BUFFERED){
