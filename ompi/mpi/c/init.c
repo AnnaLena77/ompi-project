@@ -132,8 +132,8 @@ pthread_t HELPER_THREAD = NULL;
 //Database Information
 static MYSQL *conn;
 static char *server = "192.168.42.9";
-static char *user = "testuser"; //Testuser
-static char *password = "testuser"; //testuser
+static char *user = "AnnaLena"; //testuser
+static char *password = "annalena"; //testuser
 static char *database = "DataFromMPI";
 
 //static const int LIMIT = 200;
@@ -336,7 +336,7 @@ void initialize()
 {
     conn = mysql_init(NULL);
     //if Proxy should be used: Port 6033 after database
-    if(!mysql_real_connect(conn, server, user, password, database, 6033, NULL, 0)){
+    if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
     }
