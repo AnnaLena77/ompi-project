@@ -49,7 +49,7 @@ int MPI_Exscan(const void *sendbuf, void *recvbuf, int count,
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     strcpy(item->function, "MPI_Exscan");
     strcpy(item->communicationType, "collective");
     //item->datatype

@@ -128,7 +128,7 @@ int mca_btl_sm_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
     }
 #ifdef ENABLE_ANALYSIS
     if(item!=NULL){ 
-        item->sent = time(NULL);
+        gettimeofday(&item->sent, NULL);
         item->immediate = 1;
     }
 #endif

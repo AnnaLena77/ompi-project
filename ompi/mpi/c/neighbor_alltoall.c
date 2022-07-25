@@ -53,7 +53,7 @@ int MPI_Neighbor_alltoall(const void *sendbuf, int sendcount, MPI_Datatype sendt
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     strcpy(item->function, "MPI_Neighbor_alltoall");
     strcpy(item->communicationType, "collective");
     //item->datatype

@@ -52,7 +52,7 @@ int MPI_Ialltoallw(const void *sendbuf, const int sendcounts[], const int sdispl
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     strcpy(item->function, "MPI_Ialltoallw");
     strcpy(item->communicationType, "collective");
 

@@ -50,7 +50,7 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     strcpy(item->function, "MPI_Igatherv");
     strcpy(item->communicationType, "collective");
     int processrank;

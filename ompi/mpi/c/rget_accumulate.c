@@ -54,7 +54,7 @@ int MPI_Rget_accumulate(const void *origin_addr, int origin_count, MPI_Datatype 
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     //Basic information
     strcpy(item->function, "MPI_Rget_accumulate");
     strcpy(item->communicationType, "one-sided");

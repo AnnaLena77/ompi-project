@@ -1,9 +1,12 @@
 #include <sys/queue.h>
+#include <time.h>
+#include <sys/time.h>
 //#define ENABLE_ANALYSIS 1
 
 extern void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime);
 extern void initialize(void);
 extern pthread_t MONITOR_THREAD;
+extern int run_thread;
 
 #ifndef QENTRY_H_
 #define QENTRY_H_
@@ -28,17 +31,17 @@ typedef struct qentry {
     int withinEagerLimit;
     int foundMatchWild;
     char usedAlgorithm[30];
-    time_t start;
-    time_t initializeRequest;
-    time_t startRequest;
+    struct timeval start;
+    struct timeval initializeRequest;
+    struct timeval startRequest;
     //Completion of the first fragment of a long message that requires an acknowledgement
-    time_t requestCompletePmlLevel;
+    struct timeval requestCompletePmlLevel;
     //Warten auf Recv-Request
-    time_t requestWaitCompletion;
-    time_t requestFini;
-    time_t sent;//later
-    time_t bufferFree; //later
-    time_t intoQueue;
+    struct timeval requestWaitCompletion;
+    struct timeval requestFini;
+    struct timeval sent;//later
+    struct timeval bufferFree; //later
+    struct timeval intoQueue;
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
 #endif

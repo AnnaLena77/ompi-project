@@ -44,7 +44,7 @@ int MPI_Ibarrier(MPI_Comm comm, MPI_Request *request)
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     strcpy(item->function, "MPI_Barrier");
     strcpy(item->communicationType, "collective");
 #endif 

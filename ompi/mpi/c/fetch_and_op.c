@@ -50,7 +50,7 @@ int MPI_Fetch_and_op(const void *origin_addr, void *result_addr, MPI_Datatype da
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     //Basic information
     strcpy(item->function, "MPI_Fetch_and_op");
     strcpy(item->communicationType, "one-sided");

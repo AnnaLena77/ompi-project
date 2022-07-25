@@ -51,7 +51,7 @@ int MPI_Iscatterv(const void *sendbuf, const int sendcounts[], const int displs[
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     strcpy(item->function, "MPI_Iscatterv");
     strcpy(item->communicationType, "collective");
     int processrank;

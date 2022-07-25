@@ -51,7 +51,7 @@ int MPI_Get(void *origin_addr, int origin_count,
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     //Basic information
     strcpy(item->function, "MPI_Get");
     strcpy(item->communicationType, "one-sided");

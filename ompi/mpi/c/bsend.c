@@ -53,8 +53,7 @@ int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     //item->start
-    time_t current_time = time(NULL);
-    item->start = current_time;
+    gettimeofday(&item->start, NULL);
     //item->function and communicationtype
     strcpy(item->function, "MPI_Bsend");
     strcpy(item->communicationType, "p2p");

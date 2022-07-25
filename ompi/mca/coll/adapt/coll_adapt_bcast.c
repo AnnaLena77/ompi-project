@@ -39,7 +39,7 @@ int ompi_coll_adapt_bcast(void *buff, int count, struct ompi_datatype_t *datatyp
             return err;
     }
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->requestWaitCompletion = time(NULL);
+    if(item!=NULL) gettimeofday(&item->requestWaitCompletion, NULL);
 #endif
     ompi_request_wait(&request, MPI_STATUS_IGNORE);
     return err;

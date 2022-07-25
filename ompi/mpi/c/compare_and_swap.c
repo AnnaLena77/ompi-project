@@ -49,7 +49,7 @@ int MPI_Compare_and_swap(const void *origin_addr, const void *compare_addr, void
 #ifdef ENABLE_ANALYSIS
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    item->start = time(NULL);
+    gettimeofday(&item->start, NULL);
     //Basic information
     strcpy(item->function, "MPI_Compare_and_swap");
     strcpy(item->communicationType, "one-sided");

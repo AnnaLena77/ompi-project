@@ -294,7 +294,7 @@ int mca_pml_ob1_isend(const void *buf,
                                   dst, tag,
                                   comm, sendmode, false);
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->initializeRequest = time(NULL);
+    if(item!=NULL) gettimeofday(&item->initializeRequest, NULL);
 #endif
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &(sendreq)->req_send.req_base,
@@ -482,7 +482,7 @@ int mca_pml_ob1_send(const void *buf,
                                   dst, tag,
                                   comm, sendmode, false);
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->initializeRequest = time(NULL);
+    if(item!=NULL) gettimeofday(&item->initializeRequest, NULL);
 #endif
     
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
@@ -495,7 +495,7 @@ int mca_pml_ob1_send(const void *buf,
 #endif
     if (OPAL_LIKELY(rc == OMPI_SUCCESS)) {
 #ifdef ENABLE_ANALYSIS
-        if(item!=NULL) item->requestWaitCompletion = time(NULL);
+        if(item!=NULL) gettimeofday(&item->requestWaitCompletion, NULL);
 #endif
         ompi_request_wait_completion(&sendreq->req_send.req_base.req_ompi);
 
@@ -510,7 +510,7 @@ int mca_pml_ob1_send(const void *buf,
     }
 #ifdef ENABLE_ANALYSIS
     if(item!=NULL){ 
-        item->requestFini = time(NULL);
+        gettimeofday(&item->requestFini, NULL);
         //qentryIntoQueue(&item);
     }
 #endif

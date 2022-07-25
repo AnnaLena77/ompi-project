@@ -88,7 +88,7 @@ int mca_btl_sm_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpo
         return OPAL_SUCCESS;
     }
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->sent = time(NULL);
+    if(item!=NULL) gettimeofday(&item->sent, NULL);
 #endif
     return OPAL_SUCCESS;
 

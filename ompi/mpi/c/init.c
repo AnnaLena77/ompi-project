@@ -55,6 +55,7 @@ static struct timeval start;
 
 
 static ID=0;
+static count_q_entry = 0;
 static sampling = 300;
 static int queue_lock;
 static TAILQ_HEAD(tailhead, qentry) head;
@@ -88,6 +89,7 @@ void initQentry(qentry **q){
     	return;
     } else {
         qentry *item = *q;
+        item->id = 0;
         strcpy(item->function, "");
         item->blocking = -1;
         strcpy(item->datatype, "");
@@ -106,15 +108,15 @@ void initQentry(qentry **q){
         item->withinEagerLimit = -1;
         item->foundMatchWild = -1;
         strcpy(item->usedAlgorithm, "");
-        item->start = 0;
-        item->initializeRequest = 0;
-        item->startRequest = 0;
-        item->requestCompletePmlLevel = 0;
-        item->requestWaitCompletion = 0;
-        item->requestFini = 0;
-        item->sent = 0;
-        item->bufferFree = 0;
-        item->intoQueue = 0;
+        item->start = (struct timeval){0};
+        item->initializeRequest = (struct timeval){0};
+        item->startRequest = (struct timeval){0};
+        item->requestCompletePmlLevel = (struct timeval){0};
+        item->requestWaitCompletion = (struct timeval){0};
+        item->requestFini = (struct timeval){0};
+        item->sent = (struct timeval){0};        
+        item->bufferFree = (struct timeval){0};
+        item->intoQueue = (struct timeval){0};
     }
 }
 
@@ -127,7 +129,7 @@ qentry* dequeue(){
 
 //Needs to be global!
 pthread_t MONITOR_THREAD = NULL;
-pthread_t HELPER_THREAD = NULL;
+int run_thread = 1;
 
 //Database Information
 static MYSQL *conn;
@@ -138,7 +140,6 @@ static char *database = "DataFromMPI";
 
 //static const int LIMIT = 200;
 //static int count = LIMIT;
-static time_t counter_time;
 static int last_one = 0;
 static char *batchstring = "INSERT INTO MPI_Information(function, communicationType, blocking, datatype, count, sendcount, recvcount, datasize, operation, communicationArea, processrank, partnerrank, sendmode, immediate, usedBtl, usedProtocol, withinEagerLimit, foundMatchWild, usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel, time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue)VALUES";
 
@@ -153,25 +154,24 @@ static void insertData(char **batchstr){
     }
 }
 
-static void createTimeString(time_t time, char* timeString){
-    if(time==NULL){
+static void createTimeString(struct timeval time, char* timeString){
+    if(time.tv_usec==NULL){
     	sprintf(timeString, "NULL");
     }
     else {
-    	struct tm tm = *localtime(&time);
-    	struct timeval timestamp;
-    	gettimeofday(&timestamp, &time);
-    	sprintf(timeString, "'%d-%02i-%02i %02i:%02i:%02i.%06li'", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, timestamp.tv_usec);   
+    	struct tm tm = *localtime(&time.tv_sec);
+    	sprintf(timeString, "'%d-%02i-%02i %02i:%02i:%02i.%06li'", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, time.tv_usec);   
     }
 }
 
 void qentryIntoQueue(qentry **q){
-
-//printf("Echtes Samplerandom: %d\n",samplerandom);
+    //printf("IntoQueue: %d\n", count_q_entry++);
+    //printf("Echtes Samplerandom: %d\n",samplerandom);
     //if(time(NULL)-counter_time>0.1){ }
     qentry *item = *q;
-    item->intoQueue = time(NULL);
+    gettimeofday(&item->intoQueue, NULL);
     item->id = ++ID;
+    printf("intoqueue: %d \n", item->id);
     if(item->id==2) lock = 1;
     TAILQ_INSERT_TAIL(&head, item, pointers);
     queue_length++;
@@ -255,12 +255,12 @@ static int generateRandom(int l, int r){
 
 static void* MonitorFunc(void* _arg){
     qentry *item;
-    counter_time = time(NULL);
+    //counter_time = time(NULL);
     char *batch = (char*) malloc(strlen(batchstring)+1);
     strcpy(batch, batchstring);
     int finish = 0;
     struct timeval current_time;
-    
+
     while(!lock){
     	sleep(0.001);
     }
@@ -268,58 +268,67 @@ static void* MonitorFunc(void* _arg){
     qentry *firstOne = TAILQ_FIRST(&head);
     qentry *lastOne;
     
-    while(firstOne != NULL){
-        gettimeofday(&current_time, NULL);
-    	if(timeDifference(current_time, start)>0.1){
-    	    gettimeofday(&start, NULL);
-    	    lastOne = TAILQ_LAST(&head, tailhead);
-    	    int quantity = lastOne->id - firstOne->id+1;
-    	    int steps = quantity/sampling;
-    	    //if(steps==0) continue;
-    	    //printf("%d\n",steps);
-    	    int rest = lastOne->id-(sampling*steps)-firstOne->id+1;
-    	    qentry *q = firstOne;
-    	    int i = 1;
-    	    qentry *prev;
-    	    if(q->id==lastOne->id) break;
-    	    while(q->id < lastOne->id){
-    	        int l = q->id;
-    	        int r;
-    	        if(rest>0){
-    	    	   r = q->id + steps;
-    	    	   rest --;
-    	        }
-    	        else {
-    	            r = q->id + steps-1;
-    	        }
-    	        int random = generateRandom(l,r);
-    	        while(q->id <= r){
-    	        	   //printf("q->id: %d\n", q->id);
-    	            if(q->id == random){
-    	            	collectData(&q, &batch);
-    	            }
-    	            prev = q;
-    	            q = TAILQ_NEXT(q, pointers);
-    	            if(q==NULL) break;
-    	        }
-    	        if(q==NULL) break;
-    	    }
-    	    /*pid()%2==0){
-    	        printf("%s\n\n", batch);
-    	    }*/
-    	    if(strcmp(batch, batchstring) != 0){
-    	    	insertData(&batch);
-    	    	realloc(batch, strlen(batchstring)+1);
-	    	strcpy(batch, batchstring);
+    printf("into_thread\n");
+    
+    while(run_thread){
+	    while(firstOne != NULL){
+		gettimeofday(&current_time, NULL);
+	    	if(timeDifference(current_time, start)>0.1){
+	    	    gettimeofday(&start, NULL);
+	    	    lastOne = TAILQ_LAST(&head, tailhead);
+	    	    int quantity = lastOne->id - firstOne->id+1;
+	    	    int steps = quantity/sampling;
+	    	    //if(steps==0) continue;
+	    	    //printf("%d\n",steps);
+	    	    int rest = lastOne->id-(sampling*steps)-firstOne->id+1;
+	    	    qentry *q = firstOne;
+	    	    int i = 1;
+	    	    qentry *prev;
+	    	    if(q->id==lastOne->id){
+	    	     	break;
+	    	    }
+	    	    while(q->id < lastOne->id){
+	    	        int l = q->id;
+	    	        int r;
+	    	        if(rest>0){
+	    	    	   r = q->id + steps;
+	    	    	   rest --;
+	    	        }
+	    	        else {
+	    	            r = q->id + steps-1;
+	    	        }
+	    	        int random = generateRandom(l,r);
+	    	        while(q->id <= r){
+	    	        	   //printf("q->id: %d\n", q->id);
+	    	            if(q->id == random){
+	    	            	collectData(&q, &batch);
+	    	            }
+	    	            prev = q;
+	    	            q = TAILQ_NEXT(q, pointers);
+	    	            if(q==NULL) break;
+	    	        }
+	    	        if(q==NULL) break;
+	    	    }
+	    	    /*pid()%2==0){
+	    	        printf("%s\n\n", batch);
+	    	    }*/
+	    	    if(strcmp(batch, batchstring) != 0){
+	    	    	insertData(&batch);
+	    	    	realloc(batch, strlen(batchstring)+1);
+		    	strcpy(batch, batchstring);
+		    }
+	    	    firstOne = q;
+	    	    if(firstOne == NULL){
+	    	    	if(TAILQ_NEXT(prev, pointers)!=NULL){
+	    	    	    firstOne = TAILQ_NEXT(prev, pointers);
+	    	    	}
+	    	    }
+	    	}
 	    }
-    	    firstOne = q;
-    	    if(firstOne == NULL){
-    	    	if(TAILQ_NEXT(prev, pointers)!=NULL){
-    	    	    firstOne = TAILQ_NEXT(prev, pointers);
-    	    	}
-    	    }
-    	}
     }
+    
+    printf("outside_thread\n");
+    
     free(batch);
     qentry *n1, *n2;
     n1 = TAILQ_FIRST(&head);
@@ -352,9 +361,7 @@ void initialize()
     }
     
     TAILQ_INIT(&head);
-    //TAILQ_INIT(&helper_head);
     pthread_create(&MONITOR_THREAD, NULL, MonitorFunc, NULL);
-    //pthread_create(&HELPER_THREAD, NULL, 
 }
 
 
@@ -362,10 +369,6 @@ int MPI_Init(int *argc, char ***argv)
 {
     gettimeofday(&start, NULL);
     //printf("Test 1\n");
-    #ifdef SAMPLING
-        srand(time(NULL));
-        samplerandom=rand()%100+1;
-    #endif
     
     #ifdef ENABLE_ANALYSIS
     	initialize();
