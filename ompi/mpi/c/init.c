@@ -99,6 +99,7 @@ void initQentry(qentry **q){
         item->datasize = 0;
         strcpy(item->operation, "");
         strcpy(item->communicationArea, "");
+        strcpy(item->processorname, "");
         item->processrank = -1;
         item->partnerrank = -1;
         strcpy(item->sendmode, "");
@@ -141,7 +142,7 @@ static char *database = "DataFromMPI";
 //static const int LIMIT = 200;
 //static int count = LIMIT;
 static int last_one = 0;
-static char *batchstring = "INSERT INTO MPI_Information(function, communicationType, blocking, datatype, count, sendcount, recvcount, datasize, operation, communicationArea, processrank, partnerrank, sendmode, immediate, usedBtl, usedProtocol, withinEagerLimit, foundMatchWild, usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel, time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue)VALUES";
+static char *batchstring = "INSERT INTO MPI_Information(function, communicationType, blocking, datatype, count, sendcount, recvcount, datasize, operation, communicationArea, processorname, processrank, partnerrank, sendmode, immediate, usedBtl, usedProtocol, withinEagerLimit, foundMatchWild, usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel, time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue)VALUES";
 
 static void insertData(char **batchstr){
     //count = LIMIT;
@@ -171,7 +172,7 @@ void qentryIntoQueue(qentry **q){
     qentry *item = *q;
     gettimeofday(&item->intoQueue, NULL);
     item->id = ++ID;
-    printf("intoqueue: %d \n", item->id);
+    //printf("intoqueue: %d \n", item->id);
     if(item->id==2) lock = 1;
     TAILQ_INSERT_TAIL(&head, item, pointers);
     queue_length++;
@@ -213,11 +214,11 @@ static void collectData(qentry **q, char **batchstr){
     createTimeString(item->intoQueue, time_intoQueue);
 
     //Speicherplatz für alle Einträge als Char + 3* '' für die Chars + 6* , und Leertaste + ()
-    int datalen = strlen(item->function) + strlen(item->communicationType) + blockinglen + strlen(item->datatype) + countlen + sendcountlen + recvcountlen + datasizelen + strlen(item->operation) + strlen(item->communicationArea) + processranklen + partnerranklen + strlen(item->sendmode) + immediatelen + strlen(item->usedBtl) + strlen(item->usedProtocol) + withinEagerLimitlen + foundMatchWildlen + strlen(item->usedAlgorithm)+ timestampslen*9 + 19*2 + 28*2 +2 +1;     
+    int datalen = strlen(item->function) + strlen(item->communicationType) + blockinglen + strlen(item->datatype) + countlen + sendcountlen + recvcountlen + datasizelen + strlen(item->operation) + strlen(item->communicationArea) + strlen(item->processorname) + processranklen + partnerranklen + strlen(item->sendmode) + immediatelen + strlen(item->usedBtl) + strlen(item->usedProtocol) + withinEagerLimitlen + foundMatchWildlen + strlen(item->usedAlgorithm)+ timestampslen*9 + 20*2 + 28*2 +2 +1;     
     //printf("Datalen: %d\n", datalen);
     char *data=(char*)malloc(datalen+1);
     
-    sprintf(data, "('%s', '%s', %d, '%s', %d, %d, %d, %d, '%s', '%s', %d, %d, '%s', '%d', '%s', '%s', %d, %d, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s),", item->function, item->communicationType, item->blocking, item->datatype, item->count, item->sendcount, item->recvcount, item->datasize, item->operation, item->communicationArea, item->processrank, item->partnerrank, item->sendmode, item->immediate, item->usedBtl, item->usedProtocol, item->withinEagerLimit, item->foundMatchWild, item->usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel , time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue);
+    sprintf(data, "('%s', '%s', %d, '%s', %d, %d, %d, %d, '%s', '%s', '%s', %d, %d, '%s', '%d', '%s', '%s', %d, %d, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s),", item->function, item->communicationType, item->blocking, item->datatype, item->count, item->sendcount, item->recvcount, item->datasize, item->operation, item->communicationArea, item->processorname, item->processrank, item->partnerrank, item->sendmode, item->immediate, item->usedBtl, item->usedProtocol, item->withinEagerLimit, item->foundMatchWild, item->usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel , time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue);
     
     free(time_start);
     free(time_initializeRequest);
@@ -268,7 +269,7 @@ static void* MonitorFunc(void* _arg){
     qentry *firstOne = TAILQ_FIRST(&head);
     qentry *lastOne;
     
-    printf("into_thread\n");
+    //printf("into_thread\n");
     
     while(run_thread){
 	    while(firstOne != NULL){

@@ -22,7 +22,8 @@ $ sudo apt install libtool
 
 $ ./autogen.pl
 //Cofigure with Analysis, if you want to use the original Open_MPI, don't use the CFLAGS-Parameter!
-$./configure --prefix=/usr/local LIBS=-lmysqlclient --with-pmix=internal CFLAGS=-DENABLE_ANALYSIS=1
+$./configure --prefix=/home/anna-lena/sharefolder/mpi LIBS=-lmysqlclient --with-pmix=internal CFLAGS=-DENABLE_ANALYSIS=1
+
 
 
 Make MPI:

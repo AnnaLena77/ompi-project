@@ -100,6 +100,13 @@ int MPI_Accumulate(const void *origin_addr, int origin_count, MPI_Datatype origi
     item->partnerrank = target_rank;
     
     MPI_Group_free(&wingroup);
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
 #endif 
 
     int rc;

@@ -76,6 +76,13 @@ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
     strcpy(item->operation, op->o_name);
 
     item->blocking = 1;
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
 #endif 
 
     int err;

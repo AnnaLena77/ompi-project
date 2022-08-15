@@ -15,6 +15,7 @@ CREATE TABLE MPI_Information (
 	datasize INT,
 	operation VARCHAR(255),
 	communicationArea VARCHAR(255),
+	processorname VARCHAR(255),
 	processrank INT,
 	partnerrank INT,
 	sendmode VARCHAR(255),

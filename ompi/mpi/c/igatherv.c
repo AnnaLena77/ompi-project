@@ -91,6 +91,14 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     strcpy(item->communicationArea, comm_name);
     free(comm_name);
     item->blocking = 0;
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
+    
 #endif 
     int i, size, err;
 
