@@ -134,10 +134,11 @@ int run_thread = 1;
 
 //Database Information
 static MYSQL *conn;
-static char *server = "192.168.42.9";
-static char *user = "AnnaLena"; //testuser
-static char *password = "annalena"; //testuser
+static char *server = "10.35.8.10";
+static char *user = "test";
+static char *password = "test_pwd";
 static char *database = "DataFromMPI";
+static char *port = "3306";
 
 //static const int LIMIT = 200;
 //static int count = LIMIT;

@@ -85,7 +85,7 @@ int MPI_Barrier(MPI_Comm comm)
       err = comm->c_coll->coll_barrier(comm, comm->c_coll->coll_barrier_module);
 #else
       err = comm->c_coll->coll_barrier(comm, comm->c_coll->coll_barrier_module, &item);
-      qentryIntoQueue(&item);
+      //qentryIntoQueue(&item);
 #endif
     }
   }
