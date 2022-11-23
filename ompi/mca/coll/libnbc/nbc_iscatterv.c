@@ -106,7 +106,11 @@ static int nbc_scatterv_init(const void* sendbuf, const int *sendcounts, const i
 int ompi_coll_libnbc_iscatterv(const void* sendbuf, const int *sendcounts, const int *displs, MPI_Datatype sendtype,
                                void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
                                struct ompi_communicator_t *comm, ompi_request_t ** request,
-                               mca_coll_base_module_t *module) {
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                               , qentry **q
+#endif
+                               ) {
     int res = nbc_scatterv_init(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root,
                                 comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {
@@ -184,7 +188,11 @@ static int nbc_scatterv_inter_init (const void* sendbuf, const int *sendcounts, 
 int ompi_coll_libnbc_iscatterv_inter(const void* sendbuf, const int *sendcounts, const int *displs, MPI_Datatype sendtype,
                                      void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
                                      struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                     mca_coll_base_module_t *module) {
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     ) {
     int res = nbc_scatterv_inter_init(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root,
                                       comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {

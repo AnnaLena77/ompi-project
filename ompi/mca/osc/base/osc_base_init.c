@@ -40,6 +40,8 @@ ompi_osc_base_select(ompi_win_t *win,
                      int flavor,
                      int *model)
 {
+    //Wird beim Window erstellen vollständig durchlaufen!
+    
     opal_list_item_t *item;
     ompi_osc_base_component_t *best_component = NULL;
     int best_priority = -1, priority;
@@ -85,6 +87,6 @@ ompi_osc_base_select(ompi_win_t *win,
     opal_output_verbose( 10, ompi_osc_base_framework.framework_output,
                          "select: component %s selected",
                          best_component->osc_version.mca_component_name );
-
+    //Siehe Funktion ompi_osc_rdma_component_select aus Datei osc_rdma_component
     return best_component->osc_select(win, base, size, disp_unit, comm, info, flavor, model);
 }

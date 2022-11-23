@@ -56,18 +56,39 @@ ompi_coll_tuned_allreduce_intra_dec_dynamic (const void *sbuf, void *rbuf, int c
                                              struct ompi_datatype_t *dtype,
                                              struct ompi_op_t *op,
                                              struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					, qentry **q
+#endif
+                                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "ompi_coll_tuned_allreduce_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[ALLREDUCE].algorithm) {
+
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_allreduce_intra_do_this(sbuf, rbuf, count, dtype, op, comm, module,
                                                        tuned_module->user_forced[ALLREDUCE].algorithm,
                                                        tuned_module->user_forced[ALLREDUCE].tree_fanout,
                                                        tuned_module->user_forced[ALLREDUCE].segsize);
+#else
+        return ompi_coll_tuned_allreduce_intra_do_this(sbuf, rbuf, count, dtype, op, comm, module,
+                                                       tuned_module->user_forced[ALLREDUCE].algorithm,
+                                                       tuned_module->user_forced[ALLREDUCE].tree_fanout,
+                                                       tuned_module->user_forced[ALLREDUCE].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -84,14 +105,25 @@ ompi_coll_tuned_allreduce_intra_dec_dynamic (const void *sbuf, void *rbuf, int c
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_allreduce_intra_do_this (sbuf, rbuf, count, dtype, op,
                                                             comm, module,
                                                             alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_allreduce_intra_do_this (sbuf, rbuf, count, dtype, op,
+                                                            comm, module,
+                                                            alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allreduce_intra_dec_fixed (sbuf, rbuf, count, dtype, op,
                                                       comm, module);
+#else
+    return ompi_coll_tuned_allreduce_intra_dec_fixed (sbuf, rbuf, count, dtype, op,
+                                                      comm, module, &item);
+#endif
 }
 
 /*
@@ -107,14 +139,28 @@ int ompi_coll_tuned_alltoall_intra_dec_dynamic(const void *sbuf, int scount,
                                                void* rbuf, int rcount,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
-                                               mca_coll_base_module_t *module)
+                                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					  , qentry **q
+#endif
+                                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "ompi_coll_tuned_alltoall_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[ALLTOALL].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_alltoall_intra_do_this(sbuf, scount, sdtype,
                                                       rbuf, rcount, rdtype,
                                                       comm, module,
@@ -122,6 +168,15 @@ int ompi_coll_tuned_alltoall_intra_dec_dynamic(const void *sbuf, int scount,
                                                       tuned_module->user_forced[ALLTOALL].tree_fanout,
                                                       tuned_module->user_forced[ALLTOALL].segsize,
                                                       tuned_module->user_forced[ALLTOALL].max_requests);
+#else
+        return ompi_coll_tuned_alltoall_intra_do_this(sbuf, scount, sdtype,
+                                                      rbuf, rcount, rdtype,
+                                                      comm, module,
+                                                      tuned_module->user_forced[ALLTOALL].algorithm,
+                                                      tuned_module->user_forced[ALLTOALL].tree_fanout,
+                                                      tuned_module->user_forced[ALLTOALL].segsize,
+                                                      tuned_module->user_forced[ALLTOALL].max_requests, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -140,16 +195,29 @@ int ompi_coll_tuned_alltoall_intra_dec_dynamic(const void *sbuf, int scount,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_alltoall_intra_do_this (sbuf, scount, sdtype,
                                                            rbuf, rcount, rdtype,
                                                            comm, module,
                                                            alg, faninout, segsize, max_requests);
+#else
+            return ompi_coll_tuned_alltoall_intra_do_this (sbuf, scount, sdtype,
+                                                           rbuf, rcount, rdtype,
+                                                           comm, module,
+                                                           alg, faninout, segsize, max_requests, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_alltoall_intra_dec_fixed (sbuf, scount, sdtype,
                                                      rbuf, rcount, rdtype,
                                                      comm, module);
+#else
+    return ompi_coll_tuned_alltoall_intra_dec_fixed (sbuf, scount, sdtype,
+                                                     rbuf, rcount, rdtype,
+                                                     comm, module, &item);
+#endif
 }
 
 /*
@@ -163,18 +231,37 @@ int ompi_coll_tuned_alltoallv_intra_dec_dynamic(const void *sbuf, const int *sco
                                                 void* rbuf, const int *rcounts, const int *rdisps,
                                                 struct ompi_datatype_t *rdtype,
                                                 struct ompi_communicator_t *comm,
-                                                mca_coll_base_module_t *module)
+                                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					   , qentry **q
+#endif
+                                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "ompi_coll_tuned_alltoallv_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[ALLTOALLV].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_alltoallv_intra_do_this(sbuf, scounts, sdisps, sdtype,
                                                        rbuf, rcounts, rdisps, rdtype,
                                                        comm, module,
                                                        tuned_module->user_forced[ALLTOALLV].algorithm);
+#else
+        return ompi_coll_tuned_alltoallv_intra_do_this(sbuf, scounts, sdisps, sdtype,
+                                                       rbuf, rcounts, rdisps, rdtype,
+                                                       comm, module,
+                                                       tuned_module->user_forced[ALLTOALLV].algorithm, &item);
+#endif
     }
 
     /**
@@ -191,16 +278,29 @@ int ompi_coll_tuned_alltoallv_intra_dec_dynamic(const void *sbuf, const int *sco
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_alltoallv_intra_do_this (sbuf, scounts, sdisps, sdtype,
                                                             rbuf, rcounts, rdisps, rdtype,
                                                             comm, module,
                                                             alg);
+#else
+            return ompi_coll_tuned_alltoallv_intra_do_this (sbuf, scounts, sdisps, sdtype,
+                                                            rbuf, rcounts, rdisps, rdtype,
+                                                            comm, module,
+                                                            alg, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_alltoallv_intra_dec_fixed(sbuf, scounts, sdisps, sdtype,
                                                      rbuf, rcounts, rdisps, rdtype,
                                                      comm, module);
+#else
+    return ompi_coll_tuned_alltoallv_intra_dec_fixed(sbuf, scounts, sdisps, sdtype,
+                                                     rbuf, rcounts, rdisps, rdtype,
+                                                     comm, module, &item);
+#endif
 }
 
 /*
@@ -211,18 +311,37 @@ int ompi_coll_tuned_alltoallv_intra_dec_dynamic(const void *sbuf, const int *sco
  *    Returns:    - MPI_SUCCESS or error code (passed from the barrier implementation)
  */
 int ompi_coll_tuned_barrier_intra_dec_dynamic(struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					 , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,"ompi_coll_tuned_barrier_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[BARRIER].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_barrier_intra_do_this(comm, module,
                                                      tuned_module->user_forced[BARRIER].algorithm,
                                                      tuned_module->user_forced[BARRIER].tree_fanout,
                                                      tuned_module->user_forced[BARRIER].segsize);
+#else
+        return ompi_coll_tuned_barrier_intra_do_this(comm, module,
+                                                     tuned_module->user_forced[BARRIER].algorithm,
+                                                     tuned_module->user_forced[BARRIER].tree_fanout,
+                                                     tuned_module->user_forced[BARRIER].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -235,12 +354,20 @@ int ompi_coll_tuned_barrier_intra_dec_dynamic(struct ompi_communicator_t *comm,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_barrier_intra_do_this (comm, module,
                                                           alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_barrier_intra_do_this (comm, module,
+                                                          alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_barrier_intra_dec_fixed (comm, module);
+#else
+    return ompi_coll_tuned_barrier_intra_dec_fixed (comm, module, &item);
+#endif
 }
 
 /*
@@ -253,19 +380,41 @@ int ompi_coll_tuned_barrier_intra_dec_dynamic(struct ompi_communicator_t *comm,
 int ompi_coll_tuned_bcast_intra_dec_dynamic(void *buf, int count,
                                             struct ompi_datatype_t *dtype, int root,
                                             struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				        , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:bcast_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[BCAST].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_bcast_intra_do_this(buf, count, dtype,
                                                    root, comm, module,
                                                    tuned_module->user_forced[BCAST].algorithm,
                                                    tuned_module->user_forced[BCAST].chain_fanout,
                                                    tuned_module->user_forced[BCAST].segsize);
+#else
+        return ompi_coll_tuned_bcast_intra_do_this(buf, count, dtype,
+                                                   root, comm, module,
+                                                   tuned_module->user_forced[BCAST].algorithm,
+                                                   tuned_module->user_forced[BCAST].chain_fanout,
+                                                   tuned_module->user_forced[BCAST].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -282,15 +431,25 @@ int ompi_coll_tuned_bcast_intra_dec_dynamic(void *buf, int count,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_bcast_intra_do_this (buf, count, dtype, root,
                                                         comm, module,
                                                         alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_bcast_intra_do_this (buf, count, dtype, root,
+                                                        comm, module,
+                                                        alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_bcast_intra_dec_fixed (buf, count, dtype, root,
                                                   comm, module);
+#else
+    return ompi_coll_tuned_bcast_intra_dec_fixed (buf, count, dtype, root,
+                                                  comm, module, &item);
+#endif
 }
 
 /*
@@ -305,20 +464,42 @@ int ompi_coll_tuned_reduce_intra_dec_dynamic( const void *sbuf, void *rbuf,
                                               int count, struct ompi_datatype_t* dtype,
                                               struct ompi_op_t* op, int root,
                                               struct ompi_communicator_t* comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					 , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:reduce_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[REDUCE].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_reduce_intra_do_this(sbuf, rbuf, count, dtype,
                                                     op, root, comm, module,
                                                     tuned_module->user_forced[REDUCE].algorithm,
                                                     tuned_module->user_forced[REDUCE].chain_fanout,
                                                     tuned_module->user_forced[REDUCE].segsize,
                                                     tuned_module->user_forced[REDUCE].max_requests);
+#else
+        return ompi_coll_tuned_reduce_intra_do_this(sbuf, rbuf, count, dtype,
+                                                    op, root, comm, module,
+                                                    tuned_module->user_forced[REDUCE].algorithm,
+                                                    tuned_module->user_forced[REDUCE].chain_fanout,
+                                                    tuned_module->user_forced[REDUCE].segsize,
+                                                    tuned_module->user_forced[REDUCE].max_requests, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -336,15 +517,27 @@ int ompi_coll_tuned_reduce_intra_dec_dynamic( const void *sbuf, void *rbuf,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return  ompi_coll_tuned_reduce_intra_do_this (sbuf, rbuf, count, dtype,
                                                           op, root, comm, module,
                                                           alg, faninout,
                                                           segsize, max_requests);
+#else
+            return  ompi_coll_tuned_reduce_intra_do_this (sbuf, rbuf, count, dtype,
+                                                          op, root, comm, module,
+                                                          alg, faninout,
+                                                          segsize, max_requests, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_reduce_intra_dec_fixed (sbuf, rbuf, count, dtype,
                                                    op, root, comm, module);
+#else
+    return ompi_coll_tuned_reduce_intra_dec_fixed (sbuf, rbuf, count, dtype,
+                                                   op, root, comm, module, &item);
+#endif
 }
 
 /*
@@ -361,19 +554,40 @@ int ompi_coll_tuned_reduce_scatter_intra_dec_dynamic(const void *sbuf, void *rbu
                                                      struct ompi_datatype_t *dtype,
                                                      struct ompi_op_t *op,
                                                      struct ompi_communicator_t *comm,
-                                                     mca_coll_base_module_t *module)
+                                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					        , qentry **q
+#endif
+                                                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:reduce_scatter_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[REDUCESCATTER].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_reduce_scatter_intra_do_this(sbuf, rbuf, rcounts, dtype,
                                                             op, comm, module,
                                                             tuned_module->user_forced[REDUCESCATTER].algorithm,
                                                             tuned_module->user_forced[REDUCESCATTER].chain_fanout,
                                                             tuned_module->user_forced[REDUCESCATTER].segsize);
+#else
+        return ompi_coll_tuned_reduce_scatter_intra_do_this(sbuf, rbuf, rcounts, dtype,
+                                                            op, comm, module,
+                                                            tuned_module->user_forced[REDUCESCATTER].algorithm,
+                                                            tuned_module->user_forced[REDUCESCATTER].chain_fanout,
+                                                            tuned_module->user_forced[REDUCESCATTER].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -392,14 +606,25 @@ int ompi_coll_tuned_reduce_scatter_intra_dec_dynamic(const void *sbuf, void *rbu
                                                         &segsize, &ignoreme);
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return  ompi_coll_tuned_reduce_scatter_intra_do_this (sbuf, rbuf, rcounts, dtype,
                                                                   op, comm, module,
                                                                   alg, faninout, segsize);
+#else
+            return  ompi_coll_tuned_reduce_scatter_intra_do_this (sbuf, rbuf, rcounts, dtype,
+                                                                  op, comm, module,
+                                                                  alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_reduce_scatter_intra_dec_fixed (sbuf, rbuf, rcounts,
                                                            dtype, op, comm, module);
+#else
+    return ompi_coll_tuned_reduce_scatter_intra_dec_fixed (sbuf, rbuf, rcounts,
+                                                           dtype, op, comm, module, &item);
+#endif
 }
 
 /*
@@ -416,19 +641,39 @@ int ompi_coll_tuned_reduce_scatter_block_intra_dec_dynamic(const void *sbuf, voi
                                                            struct ompi_datatype_t *dtype,
                                                            struct ompi_op_t *op,
                                                            struct ompi_communicator_t *comm,
-                                                           mca_coll_base_module_t *module)
+                                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+						     , qentry **q
+#endif
+                                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:reduce_scatter_block_intra_dec_dynamic"));
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[REDUCESCATTERBLOCK].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_reduce_scatter_block_intra_do_this(sbuf, rbuf, rcount, dtype,
                                                                   op, comm, module,
                                                                   tuned_module->user_forced[REDUCESCATTERBLOCK].algorithm,
                                                                   tuned_module->user_forced[REDUCESCATTERBLOCK].chain_fanout,
                                                                   tuned_module->user_forced[REDUCESCATTERBLOCK].segsize);
+#else
+        return ompi_coll_tuned_reduce_scatter_block_intra_do_this(sbuf, rbuf, rcount, dtype,
+                                                                  op, comm, module,
+                                                                  tuned_module->user_forced[REDUCESCATTERBLOCK].algorithm,
+                                                                  tuned_module->user_forced[REDUCESCATTERBLOCK].chain_fanout,
+                                                                  tuned_module->user_forced[REDUCESCATTERBLOCK].segsize, &item);
+#endif
     }
 
     /* check to see if we have some filebased rules */
@@ -446,14 +691,25 @@ int ompi_coll_tuned_reduce_scatter_block_intra_dec_dynamic(const void *sbuf, voi
                                                        &segsize, &ignoreme);
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return  ompi_coll_tuned_reduce_scatter_block_intra_do_this (sbuf, rbuf, rcount, dtype,
                                                                         op, comm, module,
                                                                         alg, faninout, segsize);
+#else
+            return  ompi_coll_tuned_reduce_scatter_block_intra_do_this (sbuf, rbuf, rcount, dtype,
+                                                                        op, comm, module,
+                                                                        alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /* end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed (sbuf, rbuf, rcount,
                                                                  dtype, op, comm, module);
+#else
+    return ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed (sbuf, rbuf, rcount,
+                                                                 dtype, op, comm, module, &item);
+#endif
 }
 
 /*
@@ -470,8 +726,20 @@ int ompi_coll_tuned_allgather_intra_dec_dynamic(const void *sbuf, int scount,
                                                 void* rbuf, int rcount,
                                                 struct ompi_datatype_t *rdtype,
                                                 struct ompi_communicator_t *comm,
-                                                mca_coll_base_module_t *module)
+                                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				   	   , qentry **q
+#endif
+                                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,
@@ -480,12 +748,21 @@ int ompi_coll_tuned_allgather_intra_dec_dynamic(const void *sbuf, int scount,
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[ALLGATHER].algorithm) {
         /* User-forced algorithm */
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_allgather_intra_do_this(sbuf, scount, sdtype,
                                                        rbuf, rcount, rdtype,
                                                        comm, module,
                                                        tuned_module->user_forced[ALLGATHER].algorithm,
                                                        tuned_module->user_forced[ALLGATHER].tree_fanout,
                                                        tuned_module->user_forced[ALLGATHER].segsize);
+#else
+        return ompi_coll_tuned_allgather_intra_do_this(sbuf, scount, sdtype,
+                                                       rbuf, rcount, rdtype,
+                                                       comm, module,
+                                                       tuned_module->user_forced[ALLGATHER].algorithm,
+                                                       tuned_module->user_forced[ALLGATHER].tree_fanout,
+                                                       tuned_module->user_forced[ALLGATHER].segsize, NULL);
+#endif
     }
 
     if (tuned_module->com_rules[ALLGATHER]) {
@@ -504,17 +781,30 @@ int ompi_coll_tuned_allgather_intra_dec_dynamic(const void *sbuf, int scount,
         if (alg) {
             /* we have found a valid choice from the file based rules for
                this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_allgather_intra_do_this (sbuf, scount, sdtype,
                                                             rbuf, rcount, rdtype,
                                                             comm, module,
                                                             alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_allgather_intra_do_this (sbuf, scount, sdtype,
+                                                            rbuf, rcount, rdtype,
+                                                            comm, module,
+                                                            alg, faninout, segsize, &item);
+#endif
         }
     }
 
     /* Use default decision */
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allgather_intra_dec_fixed (sbuf, scount, sdtype,
                                                       rbuf, rcount, rdtype,
                                                       comm, module);
+#else
+    return ompi_coll_tuned_allgather_intra_dec_fixed (sbuf, scount, sdtype,
+                                                      rbuf, rcount, rdtype,
+                                                      comm, module, &item);
+#endif
 }
 
 /*
@@ -532,8 +822,20 @@ int ompi_coll_tuned_allgatherv_intra_dec_dynamic(const void *sbuf, int scount,
                                                  const int *rdispls,
                                                  struct ompi_datatype_t *rdtype,
                                                  struct ompi_communicator_t *comm,
-                                                 mca_coll_base_module_t *module)
+                                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					    , qentry **q
+#endif
+                                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,
@@ -542,12 +844,21 @@ int ompi_coll_tuned_allgatherv_intra_dec_dynamic(const void *sbuf, int scount,
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[ALLGATHERV].algorithm) {
         /* User-forced algorithm */
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_allgatherv_intra_do_this(sbuf, scount, sdtype,
                                                         rbuf, rcounts, rdispls, rdtype,
                                                         comm, module,
                                                         tuned_module->user_forced[ALLGATHERV].algorithm,
                                                         tuned_module->user_forced[ALLGATHERV].tree_fanout,
                                                         tuned_module->user_forced[ALLGATHERV].segsize);
+#else
+        return ompi_coll_tuned_allgatherv_intra_do_this(sbuf, scount, sdtype,
+                                                        rbuf, rcounts, rdispls, rdtype,
+                                                        comm, module,
+                                                        tuned_module->user_forced[ALLGATHERV].algorithm,
+                                                        tuned_module->user_forced[ALLGATHERV].tree_fanout,
+                                                        tuned_module->user_forced[ALLGATHERV].segsize, &item);
+#endif
     }
 
     if (tuned_module->com_rules[ALLGATHERV]) {
@@ -569,18 +880,33 @@ int ompi_coll_tuned_allgatherv_intra_dec_dynamic(const void *sbuf, int scount,
         if (alg) {
             /* we have found a valid choice from the file based rules for
                this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_allgatherv_intra_do_this (sbuf, scount, sdtype,
                                                              rbuf, rcounts,
                                                              rdispls, rdtype,
                                                              comm, module,
                                                              alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_allgatherv_intra_do_this (sbuf, scount, sdtype,
+                                                             rbuf, rcounts,
+                                                             rdispls, rdtype,
+                                                             comm, module,
+                                                             alg, faninout, segsize, &item);
+#endif
         }
     }
     /* Use default decision */
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allgatherv_intra_dec_fixed (sbuf, scount, sdtype,
                                                        rbuf, rcounts,
                                                        rdispls, rdtype,
                                                        comm, module);
+#else
+    return ompi_coll_tuned_allgatherv_intra_dec_fixed (sbuf, scount, sdtype,
+                                                       rbuf, rcounts,
+                                                       rdispls, rdtype,
+                                                       comm, module, &item);
+#endif
 }
 
 int ompi_coll_tuned_gather_intra_dec_dynamic(const void *sbuf, int scount,
@@ -589,8 +915,23 @@ int ompi_coll_tuned_gather_intra_dec_dynamic(const void *sbuf, int scount,
                                              struct ompi_datatype_t *rdtype,
                                              int root,
                                              struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					, qentry **q
+#endif
+                                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
+
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,
@@ -598,12 +939,21 @@ int ompi_coll_tuned_gather_intra_dec_dynamic(const void *sbuf, int scount,
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[GATHER].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_gather_intra_do_this(sbuf, scount, sdtype,
                                                     rbuf, rcount, rdtype,
                                                     root, comm, module,
                                                     tuned_module->user_forced[GATHER].algorithm,
                                                     tuned_module->user_forced[GATHER].tree_fanout,
                                                     tuned_module->user_forced[GATHER].segsize);
+#else
+        return ompi_coll_tuned_gather_intra_do_this(sbuf, scount, sdtype,
+                                                    rbuf, rcount, rdtype,
+                                                    root, comm, module,
+                                                    tuned_module->user_forced[GATHER].algorithm,
+                                                    tuned_module->user_forced[GATHER].tree_fanout,
+                                                    tuned_module->user_forced[GATHER].segsize, &item);
+#endif
     }
 
     /**
@@ -622,16 +972,28 @@ int ompi_coll_tuned_gather_intra_dec_dynamic(const void *sbuf, int scount,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_gather_intra_do_this (sbuf, scount, sdtype,
                                                          rbuf, rcount, rdtype,
                                                          root, comm, module,
                                                          alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_gather_intra_do_this (sbuf, scount, sdtype,
+                                                         rbuf, rcount, rdtype,
+                                                         root, comm, module,
+                                                         alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_gather_intra_dec_fixed (sbuf, scount, sdtype,
                                                    rbuf, rcount, rdtype,
                                                    root, comm, module);
+#else
+    return ompi_coll_tuned_gather_intra_dec_fixed (sbuf, scount, sdtype,
+                                                   rbuf, rcount, rdtype,
+                                                   root, comm, module, &item);
+#endif
 }
 
 int ompi_coll_tuned_scatter_intra_dec_dynamic(const void *sbuf, int scount,
@@ -639,8 +1001,22 @@ int ompi_coll_tuned_scatter_intra_dec_dynamic(const void *sbuf, int scount,
                                               void* rbuf, int rcount,
                                               struct ompi_datatype_t *rdtype,
                                               int root, struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					 , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,
@@ -648,19 +1024,28 @@ int ompi_coll_tuned_scatter_intra_dec_dynamic(const void *sbuf, int scount,
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[SCATTER].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_scatter_intra_do_this(sbuf, scount, sdtype,
                                                      rbuf, rcount, rdtype,
                                                      root, comm, module,
                                                      tuned_module->user_forced[SCATTER].algorithm,
                                                      tuned_module->user_forced[SCATTER].chain_fanout,
                                                      tuned_module->user_forced[SCATTER].segsize);
+#else
+        return ompi_coll_tuned_scatter_intra_do_this(sbuf, scount, sdtype,
+                                                     rbuf, rcount, rdtype,
+                                                     root, comm, module,
+                                                     tuned_module->user_forced[SCATTER].algorithm,
+                                                     tuned_module->user_forced[SCATTER].chain_fanout,
+                                                     tuned_module->user_forced[SCATTER].segsize, &item);
+#endif
     }
 
     /**
      * check to see if we have some filebased rules.
      */
     if (tuned_module->com_rules[SCATTER]) {
-        int comsize, alg, faninout, segsize, max_requests;
+      	  int comsize, alg, faninout, segsize, max_requests;
         size_t dsize;
 
         comsize = ompi_comm_size(comm);
@@ -672,24 +1057,51 @@ int ompi_coll_tuned_scatter_intra_dec_dynamic(const void *sbuf, int scount,
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_scatter_intra_do_this (sbuf, scount, sdtype,
                                                           rbuf, rcount, rdtype,
                                                           root, comm, module,
                                                           alg, faninout, segsize);
+#else
+            return ompi_coll_tuned_scatter_intra_do_this (sbuf, scount, sdtype,
+                                                          rbuf, rcount, rdtype,
+                                                          root, comm, module,
+                                                          alg, faninout, segsize, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_scatter_intra_dec_fixed (sbuf, scount, sdtype,
                                                     rbuf, rcount, rdtype,
                                                     root, comm, module);
+#else
+    return ompi_coll_tuned_scatter_intra_dec_fixed (sbuf, scount, sdtype,
+                                                    rbuf, rcount, rdtype,
+                                                    root, comm, module, &item);
+#endif
 }
 
 int ompi_coll_tuned_exscan_intra_dec_dynamic(const void *sbuf, void* rbuf, int count,
                                               struct ompi_datatype_t *dtype,
                                               struct ompi_op_t *op,
                                               struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					 , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,
@@ -697,9 +1109,15 @@ int ompi_coll_tuned_exscan_intra_dec_dynamic(const void *sbuf, void* rbuf, int c
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[EXSCAN].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_exscan_intra_do_this(sbuf, rbuf, count, dtype,
                                                     op, comm, module,
                                                     tuned_module->user_forced[EXSCAN].algorithm);
+#else
+        return ompi_coll_tuned_exscan_intra_do_this(sbuf, rbuf, count, dtype,
+                                                    op, comm, module,
+                                                    tuned_module->user_forced[EXSCAN].algorithm, &item);
+#endif
     }
 
     /**
@@ -718,22 +1136,44 @@ int ompi_coll_tuned_exscan_intra_dec_dynamic(const void *sbuf, void* rbuf, int c
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_exscan_intra_do_this (sbuf, rbuf, count, dtype,
                                                          op, comm, module,
                                                          alg);
+#else
+            return ompi_coll_tuned_exscan_intra_do_this (sbuf, rbuf, count, dtype,
+                                                         op, comm, module,
+                                                         alg, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_exscan_intra_linear(sbuf, rbuf, count, dtype,
                                               op, comm, module);
+#else
+    return ompi_coll_base_exscan_intra_linear(sbuf, rbuf, count, dtype,
+                                              op, comm, module, &item);
+#endif
 }
 
 int ompi_coll_tuned_scan_intra_dec_dynamic(const void *sbuf, void* rbuf, int count,
                                            struct ompi_datatype_t *dtype,
                                            struct ompi_op_t *op,
                                            struct ompi_communicator_t *comm,
-                                           mca_coll_base_module_t *module)
+                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				       , qentry **q
+#endif
+                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_tuned_module_t *tuned_module = (mca_coll_tuned_module_t*) module;
 
     OPAL_OUTPUT((ompi_coll_tuned_stream,
@@ -741,9 +1181,15 @@ int ompi_coll_tuned_scan_intra_dec_dynamic(const void *sbuf, void* rbuf, int cou
 
     /* Check first if an algorithm is set explicitly for this collective */
     if (tuned_module->user_forced[SCAN].algorithm) {
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_scan_intra_do_this(sbuf, rbuf, count, dtype,
                                                   op, comm, module,
                                                   tuned_module->user_forced[SCAN].algorithm);
+#else
+        return ompi_coll_tuned_scan_intra_do_this(sbuf, rbuf, count, dtype,
+                                                  op, comm, module,
+                                                  tuned_module->user_forced[SCAN].algorithm, &item);
+#endif
     }
 
     /**
@@ -762,12 +1208,23 @@ int ompi_coll_tuned_scan_intra_dec_dynamic(const void *sbuf, void* rbuf, int cou
 
         if (alg) {
             /* we have found a valid choice from the file based rules for this message size */
+#ifndef ENABLE_ANALYSIS
             return ompi_coll_tuned_scan_intra_do_this (sbuf, rbuf, count, dtype,
                                                        op, comm, module,
                                                        alg);
+#else
+            return ompi_coll_tuned_scan_intra_do_this (sbuf, rbuf, count, dtype,
+                                                       op, comm, module,
+                                                       alg, &item);
+#endif
         } /* found a method */
     } /*end if any com rules to check */
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_scan_intra_linear(sbuf, rbuf, count, dtype,
                                             op, comm, module);
+#else
+    return ompi_coll_base_scan_intra_linear(sbuf, rbuf, count, dtype,
+                                            op, comm, module, &item);
+#endif
 }

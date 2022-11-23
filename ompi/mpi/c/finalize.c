@@ -39,6 +39,7 @@ static const char FUNC_NAME[] = "MPI_Finalize";
 
 int MPI_Finalize(void)
 {
+    run_thread=1;
     /* If --with-spc and ompi_mpi_spc_dump_enabled were specified, print
      * all of the final SPC values aggregated across the whole MPI run.
      * Also, free all SPC memory.

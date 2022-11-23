@@ -41,8 +41,20 @@ mca_coll_basic_neighbor_allgather_cart(const void *sbuf, int scount,
                                        struct ompi_datatype_t *sdtype, void *rbuf,
                                        int rcount, struct ompi_datatype_t *rdtype,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module)
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     const mca_topo_base_comm_cart_2_2_0_t *cart = comm->c_topo->mtc.cart;
     const int rank = ompi_comm_rank (comm);
     ompi_request_t **reqs, **preqs;
@@ -69,18 +81,31 @@ mca_coll_basic_neighbor_allgather_cart(const void *sbuf, int scount,
 
         if (MPI_PROC_NULL != srank) {
             nreqs++;
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, srank,
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim,
                                     comm, preqs++));
+#else
+            rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, srank,
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim,
+                                    comm, preqs++, &item));
+#endif
             if (OMPI_SUCCESS != rc) break;
 
             nreqs++;
             /* remove cast from const when the pml layer is updated to take
              * a const for the send buffer. */
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, srank,
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1,
                                     MCA_PML_BASE_SEND_STANDARD,
                                     comm, preqs++));
+#else
+            rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, srank,
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1,
+                                    MCA_PML_BASE_SEND_STANDARD,
+                                    comm, preqs++, &item));
+#endif
             if (OMPI_SUCCESS != rc) break;
         }
 
@@ -88,16 +113,29 @@ mca_coll_basic_neighbor_allgather_cart(const void *sbuf, int scount,
 
         if (MPI_PROC_NULL != drank) {
             nreqs++;
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, drank,
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1,
                                     comm, preqs++));
+#else
+            rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, drank,
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim - 1,
+                                    comm, preqs++, &item));
+#endif
             if (OMPI_SUCCESS != rc) break;
 
             nreqs++;
+#ifndef ENABLE_ANALYSIS
             rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, drank,
                                     MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim,
                                     MCA_PML_BASE_SEND_STANDARD,
                                     comm, preqs++));
+#else
+            rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, drank,
+                                    MCA_COLL_BASE_TAG_NEIGHBOR_BASE - 2 * dim,
+                                    MCA_PML_BASE_SEND_STANDARD,
+                                    comm, preqs++, &item));
+#endif
             if (OMPI_SUCCESS != rc) break;
         }
 
@@ -121,8 +159,20 @@ mca_coll_basic_neighbor_allgather_graph(const void *sbuf, int scount,
                                         struct ompi_datatype_t *sdtype, void *rbuf,
                                         int rcount, struct ompi_datatype_t *rdtype,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module)
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     const mca_topo_base_comm_graph_2_2_0_t *graph = comm->c_topo->mtc.graph;
     const int rank = ompi_comm_rank (comm);
     const int *edges;
@@ -144,16 +194,27 @@ mca_coll_basic_neighbor_allgather_graph(const void *sbuf, int scount,
     if( NULL == reqs ) { return OMPI_ERR_OUT_OF_RESOURCE; }
 
     for (neighbor = 0; neighbor < degree ; ++neighbor) {
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, edges[neighbor], MCA_COLL_BASE_TAG_ALLGATHER,
                                 comm, preqs++));
+#else
+        rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, edges[neighbor], MCA_COLL_BASE_TAG_ALLGATHER,
+                                comm, preqs++, &item));
+#endif
         if (OMPI_SUCCESS != rc) break;
         rbuf = (char *) rbuf + extent * rcount;
 
         /* remove cast from const when the pml layer is updated to take
          * a const for the send buffer. */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, edges[neighbor],
                                 MCA_COLL_BASE_TAG_ALLGATHER, MCA_PML_BASE_SEND_STANDARD,
                                 comm, preqs++));
+#else
+        rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, edges[neighbor],
+                                MCA_COLL_BASE_TAG_ALLGATHER, MCA_PML_BASE_SEND_STANDARD,
+                                comm, preqs++, &item));
+#endif
         if (OMPI_SUCCESS != rc) break;
     }
 
@@ -174,8 +235,20 @@ mca_coll_basic_neighbor_allgather_dist_graph(const void *sbuf, int scount,
                                              struct ompi_datatype_t *sdtype, void *rbuf,
                                              int rcount, struct ompi_datatype_t *rdtype,
                                              struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                             , qentry **q
+#endif
+                                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     const mca_topo_base_comm_dist_graph_2_2_0_t *dist_graph = comm->c_topo->mtc.dist_graph;
     const int *inedges, *outedges;
     int indegree, outdegree;
@@ -195,9 +268,15 @@ mca_coll_basic_neighbor_allgather_dist_graph(const void *sbuf, int scount,
     if( NULL == reqs ) { return OMPI_ERR_OUT_OF_RESOURCE; }
 
     for (neighbor = 0; neighbor < indegree ; ++neighbor) {
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, inedges[neighbor],
                                 MCA_COLL_BASE_TAG_ALLGATHER,
                                 comm, preqs++));
+#else
+        rc = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, inedges[neighbor],
+                                MCA_COLL_BASE_TAG_ALLGATHER,
+                                comm, preqs++, &item));
+#endif
         if (OMPI_SUCCESS != rc) break;
         rbuf = (char *) rbuf + extent * rcount;
     }
@@ -210,10 +289,17 @@ mca_coll_basic_neighbor_allgather_dist_graph(const void *sbuf, int scount,
     for (neighbor = 0 ; neighbor < outdegree ; ++neighbor) {
         /* remove cast from const when the pml layer is updated to take
          * a const for the send buffer. */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, outedges[neighbor],
                                 MCA_COLL_BASE_TAG_ALLGATHER,
                                 MCA_PML_BASE_SEND_STANDARD,
                                 comm, preqs++));
+#else
+        rc = MCA_PML_CALL(isend((void *) sbuf, scount, sdtype, outedges[neighbor],
+                                MCA_COLL_BASE_TAG_ALLGATHER,
+                                MCA_PML_BASE_SEND_STANDARD,
+                                comm, preqs++, &item));
+#endif
         if (OMPI_SUCCESS != rc) break;
     }
 
@@ -233,21 +319,49 @@ int mca_coll_basic_neighbor_allgather(const void *sbuf, int scount,
                                       struct ompi_datatype_t *sdtype, void *rbuf,
                                       int rcount, struct ompi_datatype_t *rdtype,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module)
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     if (OMPI_COMM_IS_INTER(comm)) {
         return OMPI_ERR_NOT_SUPPORTED;
     }
 
     if (OMPI_COMM_IS_CART(comm)) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_basic_neighbor_allgather_cart (sbuf, scount, sdtype, rbuf,
                                                        rcount, rdtype, comm, module);
+#else
+        return mca_coll_basic_neighbor_allgather_cart (sbuf, scount, sdtype, rbuf,
+                                                       rcount, rdtype, comm, module, &item);
+#endif
     } else if (OMPI_COMM_IS_GRAPH(comm)) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_basic_neighbor_allgather_graph (sbuf, scount, sdtype, rbuf,
                                                         rcount, rdtype, comm, module);
+#else
+        return mca_coll_basic_neighbor_allgather_graph (sbuf, scount, sdtype, rbuf,
+                                                        rcount, rdtype, comm, module, &item);
+#endif
     } else if (OMPI_COMM_IS_DIST_GRAPH(comm)) {
+#ifndef ENABLE_ANALYSIS
         return mca_coll_basic_neighbor_allgather_dist_graph (sbuf, scount, sdtype, rbuf,
                                                              rcount, rdtype, comm, module);
+#else
+        return mca_coll_basic_neighbor_allgather_dist_graph (sbuf, scount, sdtype, rbuf,
+                                                             rcount, rdtype, comm, module, &item);
+#endif
     }
 
     return OMPI_ERR_NOT_SUPPORTED;

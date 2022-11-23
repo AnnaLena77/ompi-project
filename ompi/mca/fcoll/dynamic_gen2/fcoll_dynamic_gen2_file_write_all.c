@@ -251,6 +251,7 @@ int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
     start_comm_time = MPI_Wtime();
 #endif
     if ( 1 == mca_fcoll_dynamic_gen2_num_groups ) {
+#ifndef ENABLE_ANALYSIS
         ret = fh->f_comm->c_coll->coll_allreduce (MPI_IN_PLACE,
                                                   broken_total_lengths,
                                                   dynamic_gen2_num_io_procs,
@@ -258,6 +259,15 @@ int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
                                                   MPI_SUM,
                                                   fh->f_comm,
                                                   fh->f_comm->c_coll->coll_allreduce_module);
+#else
+        ret = fh->f_comm->c_coll->coll_allreduce (MPI_IN_PLACE,
+                                                  broken_total_lengths,
+                                                  dynamic_gen2_num_io_procs,
+                                                  MPI_LONG,
+                                                  MPI_SUM,
+                                                  fh->f_comm,
+                                                  fh->f_comm->c_coll->coll_allreduce_module, NULL);
+#endif
         if( OMPI_SUCCESS != ret){
             goto exit;
         }
@@ -321,6 +331,7 @@ int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
     start_comm_time = MPI_Wtime();
 #endif
     if ( 1 == mca_fcoll_dynamic_gen2_num_groups ) {
+#ifndef ENABLE_ANALYSIS
         ret = fh->f_comm->c_coll->coll_allgather(broken_counts,
                                                 dynamic_gen2_num_io_procs,
                                                 MPI_INT,
@@ -328,7 +339,17 @@ int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
                                                 dynamic_gen2_num_io_procs,
                                                 MPI_INT,
                                                 fh->f_comm,
-                                                fh->f_comm->c_coll->coll_allgather_module);            
+                                                fh->f_comm->c_coll->coll_allgather_module);
+#else
+        ret = fh->f_comm->c_coll->coll_allgather(broken_counts,
+                                                dynamic_gen2_num_io_procs,
+                                                MPI_INT,
+                                                result_counts,
+                                                dynamic_gen2_num_io_procs,
+                                                MPI_INT,
+                                                fh->f_comm,
+                                                fh->f_comm->c_coll->coll_allgather_module, NULL);
+#endif            
     }
     else {
         ret = ompi_fcoll_base_coll_allgather_array (broken_counts,
@@ -407,6 +428,7 @@ int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
         start_comm_time = MPI_Wtime();
 #endif
         if ( 1 == mca_fcoll_dynamic_gen2_num_groups ) {
+#ifndef ENABLE_ANALYSIS
             ret = fh->f_comm->c_coll->coll_allgatherv (broken_iov_arrays[i],
                                                       broken_counts[i],
                                                       fh->f_iov_type,
@@ -416,6 +438,17 @@ int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
                                                       fh->f_iov_type,
                                                       fh->f_comm,
                                                       fh->f_comm->c_coll->coll_allgatherv_module );
+#else
+            ret = fh->f_comm->c_coll->coll_allgatherv (broken_iov_arrays[i],
+                                                      broken_counts[i],
+                                                      fh->f_iov_type,
+                                                      aggr_data[i]->global_iov_array,
+                                                      aggr_data[i]->fview_count,
+                                                      displs,
+                                                      fh->f_iov_type,
+                                                      fh->f_comm,
+                                                      fh->f_comm->c_coll->coll_allgatherv_module, NULL);
+#endif
         }
         else {
             ret = ompi_fcoll_base_coll_allgatherv_array (broken_iov_arrays[i],
@@ -1154,6 +1187,7 @@ static int shuffle_init ( int index, int cycles, int aggregator, int rank, mca_i
                     opal_datatype_type_size(&data->recvtype[i]->super, &datatype_size);
                     
                     if (datatype_size){
+#ifndef ENABLE_ANALYSIS
                         ret = MCA_PML_CALL(irecv(data->global_buf,
                                                  1,
                                                  data->recvtype[i],
@@ -1161,6 +1195,15 @@ static int shuffle_init ( int index, int cycles, int aggregator, int rank, mca_i
                                                  FCOLL_DYNAMIC_GEN2_SHUFFLE_TAG+index,
                                                  data->comm,
                                                  &reqs[i]));
+#else
+		      ret = MCA_PML_CALL(irecv(data->global_buf,
+                                                 1,
+                                                 data->recvtype[i],
+                                                 data->procs_in_group[i],
+                                                 FCOLL_DYNAMIC_GEN2_SHUFFLE_TAG+index,
+                                                 data->comm,
+                                                 &reqs[i], NULL));
+#endif
                         if (OMPI_SUCCESS != ret){
                             goto exit;
                         }
@@ -1231,7 +1274,7 @@ static int shuffle_init ( int index, int cycles, int aggregator, int rank, mca_i
                                           MPI_BYTE,
                                           &newType);
             ompi_datatype_commit(&newType);
-
+#ifndef ENABLE_ANALYSIS
             ret = MCA_PML_CALL(isend((char *)send_mem_address,
                                      1,
                                      newType,
@@ -1240,6 +1283,16 @@ static int shuffle_init ( int index, int cycles, int aggregator, int rank, mca_i
                                      MCA_PML_BASE_SEND_STANDARD,
                                      data->comm,
                                      &reqs[data->procs_per_group]));
+#else
+	   ret = MCA_PML_CALL(isend((char *)send_mem_address,
+                                     1,
+                                     newType,
+                                     aggregator,
+                                     FCOLL_DYNAMIC_GEN2_SHUFFLE_TAG+index,
+                                     MCA_PML_BASE_SEND_STANDARD,
+                                     data->comm,
+                                     &reqs[data->procs_per_group], NULL));
+#endif
             if ( MPI_DATATYPE_NULL != newType ) {
                 ompi_datatype_destroy(&newType);
             }

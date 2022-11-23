@@ -63,8 +63,20 @@ int mca_coll_ucc_alltoallv(const void *sbuf, const int *scounts,
                            void* rbuf, const int *rcounts, const int *rdisps,
                            struct ompi_datatype_t *rdtype,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module)
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_ucc_module_t *ucc_module = (mca_coll_ucc_module_t*)module;
     ucc_coll_req_h         req;
 
@@ -78,9 +90,15 @@ int mca_coll_ucc_alltoallv(const void *sbuf, const int *scounts,
     return OMPI_SUCCESS;
 fallback:
     UCC_VERBOSE(3, "running fallback alltoallv");
+#ifndef ENABLE_ANALYSIS
     return ucc_module->previous_alltoallv(sbuf, scounts, sdisps, sdtype,
                                           rbuf, rcounts, rdisps, rdtype,
                                           comm, ucc_module->previous_alltoallv_module);
+#else
+    return ucc_module->previous_alltoallv(sbuf, scounts, sdisps, sdtype,
+                                          rbuf, rcounts, rdisps, rdtype,
+                                          comm, ucc_module->previous_alltoallv_module, &item);
+#endif
 }
 
 int mca_coll_ucc_ialltoallv(const void *sbuf, const int *scounts,
@@ -89,8 +107,20 @@ int mca_coll_ucc_ialltoallv(const void *sbuf, const int *scounts,
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
                             ompi_request_t** request,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_ucc_module_t *ucc_module = (mca_coll_ucc_module_t*)module;
     ucc_coll_req_h         req;
     mca_coll_ucc_req_t    *coll_req = NULL;
@@ -108,7 +138,13 @@ fallback:
     if (coll_req) {
         mca_coll_ucc_req_free((ompi_request_t **)&coll_req);
     }
+#ifndef ENABLE_ANALYSIS
     return ucc_module->previous_ialltoallv(sbuf, scounts, sdisps, sdtype,
                                           rbuf, rcounts, rdisps, rdtype,
                                            comm, request, ucc_module->previous_ialltoallv_module);
+#else
+    return ucc_module->previous_ialltoallv(sbuf, scounts, sdisps, sdtype,
+                                          rbuf, rcounts, rdisps, rdtype,
+                                           comm, request, ucc_module->previous_ialltoallv_module, &item);
+#endif
 }

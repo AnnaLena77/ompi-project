@@ -33,6 +33,8 @@
 #include "ompi/mca/pml/base/pml_base_bsend.h"
 #include "ompi/memchecker.h"
 #include "ompi/runtime/ompi_spc.h"
+#include <time.h>
+
 
 #if OMPI_BUILD_MPI_PROFILING
 #if OPAL_HAVE_WEAK_SYMBOLS
@@ -43,9 +45,49 @@
 
 static const char FUNC_NAME[] = "MPI_Bsend";
 
-
+//Basic Send with user provided buffering, der User muss selbst einen Buffer-Space bereitstellen.
 int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm)
 {
+        
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    //item->start
+    gettimeofday(&item->start, NULL);
+    //item->function and communicationtype
+    strcpy(item->function, "MPI_Bsend");
+    strcpy(item->communicationType, "p2p");
+    //item->blocking
+    item->blocking = 1;
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(type, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(comm, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = dest;
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
+    
+    #endif
+    
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_BSEND, 1);
@@ -91,8 +133,11 @@ int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
     if (MPI_PROC_NULL == dest) {
         return MPI_SUCCESS;
     }
-
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm));
+#else
+    rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, &item));
+#endif   
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
 

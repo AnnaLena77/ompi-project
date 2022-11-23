@@ -132,17 +132,33 @@ int ompi_coll_tuned_bcast_intra_check_forced_init (coll_tuned_force_algorithm_mc
     return (MPI_SUCCESS);
 }
 
+//HIER!
 int ompi_coll_tuned_bcast_intra_do_this(void *buf, int count,
                                         struct ompi_datatype_t *dtype,
                                         int root,
                                         struct ompi_communicator_t *comm,
                                         mca_coll_base_module_t *module,
-                                        int algorithm, int faninout, int segsize)
+                                        int algorithm, int faninout, int segsize
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
+
     OPAL_OUTPUT((ompi_coll_tuned_stream,"coll:tuned:bcast_intra_do_this algorithm %d topo faninout %d segsize %d",
                  algorithm, faninout, segsize));
-
     switch (algorithm) {
+#ifndef ENABLE_ANALYSIS
     case (0):
         return ompi_coll_tuned_bcast_intra_dec_fixed( buf, count, dtype, root, comm, module );
     case (1):
@@ -164,6 +180,29 @@ int ompi_coll_tuned_bcast_intra_do_this(void *buf, int count,
         return ompi_coll_base_bcast_intra_scatter_allgather(buf, count, dtype, root, comm, module, segsize);
     case (9):
         return ompi_coll_base_bcast_intra_scatter_allgather_ring(buf, count, dtype, root, comm, module, segsize);
+#else
+    case (0):
+        return ompi_coll_tuned_bcast_intra_dec_fixed( buf, count, dtype, root, comm, module, &item );
+    case (1):
+        return ompi_coll_base_bcast_intra_basic_linear( buf, count, dtype, root, comm, module, &item );
+    case (2):
+        return ompi_coll_base_bcast_intra_chain( buf, count, dtype, root, comm, module, segsize, faninout, &item );
+    case (3):
+        return ompi_coll_base_bcast_intra_pipeline( buf, count, dtype, root, comm, module, segsize, &item );
+    case (4):
+        return ompi_coll_base_bcast_intra_split_bintree( buf, count, dtype, root, comm, module, segsize, &item );
+    case (5):
+        return ompi_coll_base_bcast_intra_bintree( buf, count, dtype, root, comm, module, segsize, &item );
+    case (6):
+        return ompi_coll_base_bcast_intra_binomial( buf, count, dtype, root, comm, module, segsize, &item );
+    case (7):
+        return ompi_coll_base_bcast_intra_knomial(buf, count, dtype, root, comm, module,
+                                                  segsize, coll_tuned_bcast_knomial_radix, &item);
+    case (8):
+        return ompi_coll_base_bcast_intra_scatter_allgather(buf, count, dtype, root, comm, module, segsize, &item);
+    case (9):
+        return ompi_coll_base_bcast_intra_scatter_allgather_ring(buf, count, dtype, root, comm, module, segsize, &item);
+#endif
     } /* switch */
     OPAL_OUTPUT((ompi_coll_tuned_stream,"coll:tuned:bcast_intra_do_this attempt to select algorithm %d when only 0-%d is valid?",
                  algorithm, ompi_coll_tuned_forced_max_algorithms[BCAST]));

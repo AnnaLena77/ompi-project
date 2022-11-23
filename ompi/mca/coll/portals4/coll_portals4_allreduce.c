@@ -413,7 +413,11 @@ int ompi_coll_portals4_iallreduce_intra(const void* sendbuf, void* recvbuf, int 
         MPI_Datatype dtype, MPI_Op op,
         struct ompi_communicator_t *comm,
         ompi_request_t ** ompi_request,
-        mca_coll_base_module_t *module)
+        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+        , qentry **q
+#endif
+        )
 {
     mca_coll_portals4_module_t *portals4_module = (mca_coll_portals4_module_t*) module;
     ompi_coll_portals4_request_t *request;

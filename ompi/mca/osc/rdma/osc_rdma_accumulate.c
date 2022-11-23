@@ -791,7 +791,11 @@ static inline int cas_rdma (ompi_osc_rdma_sync_t *sync, const void *source_addr,
 
 int ompi_osc_rdma_compare_and_swap (const void *origin_addr, const void *compare_addr, void *result_addr,
                                     ompi_datatype_t *dt, int target_rank, ptrdiff_t target_disp,
-                                    ompi_win_t *win)
+                                    ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    )
 {
     ompi_osc_rdma_module_t *module = GET_MODULE(win);
     ompi_osc_rdma_peer_t *peer;
@@ -968,7 +972,11 @@ int ompi_osc_rdma_rget_accumulate_internal (ompi_win_t *win, const void *origin_
 int ompi_osc_rdma_get_accumulate (const void *origin_addr, int origin_count, ompi_datatype_t *origin_datatype,
                                   void *result_addr, int result_count, ompi_datatype_t *result_datatype,
                                   int target_rank, MPI_Aint target_disp, int target_count, ompi_datatype_t *target_datatype,
-                                  ompi_op_t *op, ompi_win_t *win)
+                                  ompi_op_t *op, ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  )
 {
     OSC_RDMA_VERBOSE(MCA_BASE_VERBOSE_TRACE, "get_acc: 0x%lx, %d, %s, 0x%lx, %d, %s, %d, 0x%lx, %d, %s, %s, %s",
                      (unsigned long) origin_addr, origin_count, origin_datatype->name,
@@ -986,7 +994,11 @@ int ompi_osc_rdma_get_accumulate (const void *origin_addr, int origin_count, omp
 int ompi_osc_rdma_rget_accumulate (const void *origin_addr, int origin_count, ompi_datatype_t *origin_datatype,
                                    void *result_addr, int result_count, ompi_datatype_t *result_datatype,
                                    int target_rank, MPI_Aint target_disp, int target_count, ompi_datatype_t *target_datatype,
-                                   ompi_op_t *op, ompi_win_t *win, ompi_request_t **request)
+                                   ompi_op_t *op, ompi_win_t *win, ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                   , qentry **q
+#endif
+                                   )
 {
     OSC_RDMA_VERBOSE(MCA_BASE_VERBOSE_TRACE, "rget_acc: 0x%lx, %d, %s, 0x%lx, %d, %s, %d, 0x%lx, %d, %s, %s, %s",
                      (unsigned long) origin_addr, origin_count, origin_datatype->name,
@@ -1001,7 +1013,11 @@ int ompi_osc_rdma_rget_accumulate (const void *origin_addr, int origin_count, om
 
 int ompi_osc_rdma_raccumulate (const void *origin_addr, int origin_count, ompi_datatype_t *origin_datatype, int target_rank,
                                ptrdiff_t target_disp, int target_count, ompi_datatype_t *target_datatype, ompi_op_t *op,
-                               ompi_win_t *win, ompi_request_t **request)
+                               ompi_win_t *win, ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                               , qentry **q
+#endif
+                               )
 {
     OSC_RDMA_VERBOSE(MCA_BASE_VERBOSE_TRACE, "racc: 0x%lx, %d, %s, %d, 0x%lx, %d, %s, %s, %s",
                      (unsigned long) origin_addr, origin_count, origin_datatype->name, target_rank,
@@ -1014,7 +1030,11 @@ int ompi_osc_rdma_raccumulate (const void *origin_addr, int origin_count, ompi_d
 
 int ompi_osc_rdma_accumulate (const void *origin_addr, int origin_count, ompi_datatype_t *origin_datatype, int target_rank,
                               ptrdiff_t target_disp, int target_count, ompi_datatype_t *target_datatype, ompi_op_t *op,
-                              ompi_win_t *win)
+                              ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                              , qentry **q
+#endif
+                              )
 {
     OSC_RDMA_VERBOSE(MCA_BASE_VERBOSE_TRACE, "acc: 0x%lx, %d, %s, %d, 0x%lx, %d, %s, %s, %s",
                      (unsigned long) origin_addr, origin_count, origin_datatype->name, target_rank,
@@ -1027,7 +1047,11 @@ int ompi_osc_rdma_accumulate (const void *origin_addr, int origin_count, ompi_da
 
 
 int ompi_osc_rdma_fetch_and_op (const void *origin_addr, void *result_addr, ompi_datatype_t *dt, int target_rank,
-                                ptrdiff_t target_disp, ompi_op_t *op, ompi_win_t *win)
+                                ptrdiff_t target_disp, ompi_op_t *op, ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+                                )
 {
     OSC_RDMA_VERBOSE(MCA_BASE_VERBOSE_TRACE, "fop: %p, %s, %d, %lu, %s, %s", result_addr, dt->name,
                      target_rank, (unsigned long) target_disp, op->o_name, win->w_name);

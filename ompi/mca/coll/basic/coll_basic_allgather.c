@@ -46,8 +46,20 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
                                void *rbuf, int rcount,
                                struct ompi_datatype_t *rdtype,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rank, root = 0, size, rsize, err, i, line;
     char *tmpbuf_free = NULL, *tmpbuf, *ptmp;
     ptrdiff_t rlb, rextent, incr;
@@ -69,9 +81,15 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
     /* Step one: gather operations: */
     if (rank != root) {
         /* send your data to root */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
                                 MCA_COLL_BASE_TAG_ALLGATHER,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+	err = MCA_PML_CALL(send(sbuf, scount, sdtype, root,
+                                MCA_COLL_BASE_TAG_ALLGATHER,
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
     } else {
         /* receive a msg. from all other procs. */
@@ -83,23 +101,41 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
         if( NULL == reqs ) { line = __LINE__; err = OMPI_ERR_OUT_OF_RESOURCE; goto exit; }
 
         /* Do a send-recv between the two root procs. to avoid deadlock */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(isend(sbuf, scount, sdtype, 0,
                                  MCA_COLL_BASE_TAG_ALLGATHER,
                                  MCA_PML_BASE_SEND_STANDARD,
                                  comm, &reqs[rsize]));
+#else
+	err = MCA_PML_CALL(isend(sbuf, scount, sdtype, 0,
+                                 MCA_COLL_BASE_TAG_ALLGATHER,
+                                 MCA_PML_BASE_SEND_STANDARD,
+                                 comm, &reqs[rsize], &item));
+#endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, 0,
                                  MCA_COLL_BASE_TAG_ALLGATHER, comm,
                                  &reqs[0]));
+#else
+        err = MCA_PML_CALL(irecv(rbuf, rcount, rdtype, 0,
+                                 MCA_COLL_BASE_TAG_ALLGATHER, comm,
+                                 &reqs[0], &item));
+#endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 
         incr = rextent * rcount;
         ptmp = (char *) rbuf + incr;
         for (i = 1; i < rsize; ++i, ptmp += incr) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv(ptmp, rcount, rdtype, i,
                                      MCA_COLL_BASE_TAG_ALLGATHER,
                                      comm, &reqs[i]));
+#else
+	   err = MCA_PML_CALL(irecv(ptmp, rcount, rdtype, i,
+                                     MCA_COLL_BASE_TAG_ALLGATHER,
+                                     comm, &reqs[i], &item));
+#endif
             if (MPI_SUCCESS != err) { line = __LINE__; goto exit; }
         }
 
@@ -111,15 +147,25 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
         tmpbuf_free = (char *) malloc(span);
         if (NULL == tmpbuf_free) { line = __LINE__; err = OMPI_ERR_OUT_OF_RESOURCE; goto exit; }
         tmpbuf = tmpbuf_free - gap;
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(isend(rbuf, rsize * rcount, rdtype, 0,
                                  MCA_COLL_BASE_TAG_ALLGATHER,
                                  MCA_PML_BASE_SEND_STANDARD, comm, &req));
+#else
+        err = MCA_PML_CALL(isend(rbuf, rsize * rcount, rdtype, 0,
+                                 MCA_COLL_BASE_TAG_ALLGATHER,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, &req, &item));
+#endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(tmpbuf, size * scount, sdtype, 0,
                                 MCA_COLL_BASE_TAG_ALLGATHER, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(tmpbuf, size * scount, sdtype, 0,
+                                MCA_COLL_BASE_TAG_ALLGATHER, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 
         err = ompi_request_wait( &req, MPI_STATUS_IGNORE);
@@ -133,19 +179,32 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
      */
     if (rank != root) {
         /* post the recv */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, rsize * rcount, rdtype, 0,
                                 MCA_COLL_BASE_TAG_ALLGATHER, comm,
                                 MPI_STATUS_IGNORE));
+#else
+	err = MCA_PML_CALL(recv(rbuf, rsize * rcount, rdtype, 0,
+                                MCA_COLL_BASE_TAG_ALLGATHER, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
 
     } else {
         /* Send the data to every other process in the remote group
          * except to rank zero. which has it already. */
         for (i = 1; i < rsize; i++) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend(tmpbuf, size * scount, sdtype, i,
                                      MCA_COLL_BASE_TAG_ALLGATHER,
                                      MCA_PML_BASE_SEND_STANDARD,
                                      comm, &reqs[i - 1]));
+#else
+	   err = MCA_PML_CALL(isend(tmpbuf, size * scount, sdtype, i,
+                                     MCA_COLL_BASE_TAG_ALLGATHER,
+                                     MCA_PML_BASE_SEND_STANDARD,
+                                     comm, &reqs[i - 1], &item));
+#endif
             if (OMPI_SUCCESS != err) { line = __LINE__; goto exit; }
         }
 

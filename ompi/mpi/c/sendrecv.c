@@ -48,6 +48,34 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                  MPI_Datatype recvtype, int source, int recvtag,
                  MPI_Comm comm,  MPI_Status *status)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    //item->start
+   gettimeofday(&item->start, NULL);
+    //item->operation
+    strcpy(item->operation, "MPI_Sendrecv");
+    //item->blocking
+    item->blocking = 1;
+    //item->datatype
+    /*char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(type, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
+    item->processrank = processrank;*/
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
+    
+#endif
     ompi_request_t* req;
     int rc = MPI_SUCCESS;
     int rcs = MPI_SUCCESS;
@@ -83,14 +111,24 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     }
 
     if (source != MPI_PROC_NULL) { /* post recv */
+        #ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(recvbuf, recvcount, recvtype,
                                 source, recvtag, comm, &req));
+        #else
+        rc = MCA_PML_CALL(irecv(recvbuf, recvcount, recvtype,
+                                source, recvtag, comm, &req, &item));
+        #endif
         OMPI_ERRHANDLER_CHECK(rc, comm, rc, FUNC_NAME);
     }
 
     if (dest != MPI_PROC_NULL) { /* send */
+        #ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(send(sendbuf, sendcount, sendtype, dest,
                                sendtag, MCA_PML_BASE_SEND_STANDARD, comm));
+        #else
+        rc = MCA_PML_CALL(send(sendbuf, sendcount, sendtype, dest,
+                               sendtag, MCA_PML_BASE_SEND_STANDARD, comm, &item));
+        #endif
         if (OPAL_UNLIKELY(MPI_SUCCESS != rc)) {
             rcs = rc;
 #if OPAL_ENABLE_FT_MPI
@@ -127,6 +165,9 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     if( OPAL_UNLIKELY(MPI_SUCCESS != rcs && MPI_SUCCESS == rc) ) {
         rc = rcs;
     }
+#ifdef ENABLE_ANALYSIS
+    qentryIntoQueue(&item);
+#endif
 
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

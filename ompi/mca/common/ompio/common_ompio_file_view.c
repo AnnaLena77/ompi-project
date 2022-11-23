@@ -397,6 +397,7 @@ OMPI_MPI_OFFSET_TYPE get_contiguous_chunk_size (ompio_file_t *fh, int flag)
         avg[1] = (OMPI_MPI_OFFSET_TYPE) fh->f_iov_count;
         avg[2] = (OMPI_MPI_OFFSET_TYPE) fh->f_view_size;
         
+#ifndef ENABLE_ANALYSIS
         fh->f_comm->c_coll->coll_allreduce (avg,
                                             global_avg,
                                             3,
@@ -404,6 +405,15 @@ OMPI_MPI_OFFSET_TYPE get_contiguous_chunk_size (ompio_file_t *fh, int flag)
                                             MPI_SUM,
                                             fh->f_comm,
                                             fh->f_comm->c_coll->coll_allreduce_module);
+#else
+        fh->f_comm->c_coll->coll_allreduce (avg,
+                                            global_avg,
+                                            3,
+                                            OMPI_OFFSET_DATATYPE,
+                                            MPI_SUM,
+                                            fh->f_comm,
+                                            fh->f_comm->c_coll->coll_allreduce_module, NULL);
+#endif
         global_avg[0] = global_avg[0]/fh->f_size;
         global_avg[1] = global_avg[1]/fh->f_size;
         fh->f_avg_view_size =  global_avg[2]/fh->f_size;

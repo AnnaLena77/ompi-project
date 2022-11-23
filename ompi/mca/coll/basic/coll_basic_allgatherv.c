@@ -43,8 +43,20 @@ mca_coll_basic_allgatherv_inter(const void *sbuf, int scount,
                                 void *rbuf, const int *rcounts, const int *disps,
                                 struct ompi_datatype_t *rdtype,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rsize, err, i;
     int *scounts, *sdisps;
 
@@ -61,9 +73,15 @@ mca_coll_basic_allgatherv_inter(const void *sbuf, int scount,
         sdisps[i] = 0;
     }
 
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_alltoallv(sbuf, scounts, sdisps, sdtype,
                                       rbuf, rcounts, disps, rdtype, comm,
                                       comm->c_coll->coll_alltoallv_module);
+#else
+    err = comm->c_coll->coll_alltoallv(sbuf, scounts, sdisps, sdtype,
+                                      rbuf, rcounts, disps, rdtype, comm,
+                                      comm->c_coll->coll_alltoallv_module, &item);
+#endif
 
     if (NULL != scounts) {
         free(scounts);

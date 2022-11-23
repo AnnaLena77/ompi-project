@@ -21,8 +21,20 @@ int mca_coll_monitoring_scatter(const void *sbuf, int scount,
                                 struct ompi_datatype_t *rdtype,
                                 int root,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     const int my_rank = ompi_comm_rank(comm);
     if( root == my_rank ) {
@@ -43,7 +55,11 @@ int mca_coll_monitoring_scatter(const void *sbuf, int scount,
         }
         mca_common_monitoring_coll_o2a(data_size * (comm_size - 1), monitoring_module->data);
     }
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm, monitoring_module->real.coll_scatter_module);
+#else
+    return monitoring_module->real.coll_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm, monitoring_module->real.coll_scatter_module, &item);
+#endif
 }
 
 
@@ -54,8 +70,20 @@ int mca_coll_monitoring_iscatter(const void *sbuf, int scount,
                                  int root,
                                  struct ompi_communicator_t *comm,
                                  ompi_request_t ** request,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     const int my_rank = ompi_comm_rank(comm);
     if( root == my_rank ) {
@@ -76,5 +104,9 @@ int mca_coll_monitoring_iscatter(const void *sbuf, int scount,
         }
         mca_common_monitoring_coll_o2a(data_size * (comm_size - 1), monitoring_module->data);
     }
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_iscatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm, request, monitoring_module->real.coll_iscatter_module);
+#else
+    return monitoring_module->real.coll_iscatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm, request, monitoring_module->real.coll_iscatter_module, &item);
+#endif
 }

@@ -308,8 +308,13 @@ han_module_enable(mca_coll_base_module_t * module,
     HAN_SAVE_PREV_COLL_API(scatter);
 
     /* set reproducible algos */
+#ifndef ENABLE_ANALYSIS
     mca_coll_han_reduce_reproducible_decision(comm, module);
     mca_coll_han_allreduce_reproducible_decision(comm, module);
+#else
+    mca_coll_han_reduce_reproducible_decision(comm, module, NULL);
+    mca_coll_han_allreduce_reproducible_decision(comm, module, NULL);
+#endif
 
     return OMPI_SUCCESS;
 

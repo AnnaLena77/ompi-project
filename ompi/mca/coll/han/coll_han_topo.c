@@ -118,9 +118,15 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
 
         int reduce_vals[] = {ranks_non_consecutive, low_size, -low_size};
 
+#ifndef ENABLE_ANALYSIS
         up_comm->c_coll->coll_allreduce(MPI_IN_PLACE, &reduce_vals, 3,
                                         MPI_INT, MPI_MAX, up_comm,
                                         up_comm->c_coll->coll_allreduce_module);
+#else
+        up_comm->c_coll->coll_allreduce(MPI_IN_PLACE, &reduce_vals, 3,
+                                        MPI_INT, MPI_MAX, up_comm,
+                                        up_comm->c_coll->coll_allreduce_module, NULL);
+#endif
 
         /* is the distribution of processes balanced per node? */
         is_imbalanced = (reduce_vals[1] == -reduce_vals[2]) ? 0 : 1;
@@ -129,17 +135,28 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
         if ( ranks_non_consecutive && !is_imbalanced ) {
             /* kick off up_comm allgather to collect non-consecutive rank information at node leaders */
             ranks_map = malloc(sizeof(int)*size);
+#ifndef ENABLE_ANALYSIS
             up_comm->c_coll->coll_iallgather(my_low_rank_map, low_size, MPI_INT,
                                              ranks_map, low_size, MPI_INT, up_comm, &request,
                                              up_comm->c_coll->coll_iallgather_module);
+#else
+            up_comm->c_coll->coll_iallgather(my_low_rank_map, low_size, MPI_INT,
+                                             ranks_map, low_size, MPI_INT, up_comm, &request,
+                                             up_comm->c_coll->coll_iallgather_module, NULL);
+#endif
         }
     }
 
 
     /* broadcast balanced and consecutive properties from node leaders to remaining ranks */
     int bcast_vals[] = {is_imbalanced, ranks_non_consecutive};
+#ifndef ENABLE_ANALYSIS
     low_comm->c_coll->coll_bcast(bcast_vals, 2, MPI_INT, 0,
                                  low_comm, low_comm->c_coll->coll_bcast_module);
+#else
+    low_comm->c_coll->coll_bcast(bcast_vals, 2, MPI_INT, 0,
+                                 low_comm, low_comm->c_coll->coll_bcast_module, NULL);
+#endif
     is_imbalanced = bcast_vals[0];
     ranks_non_consecutive = bcast_vals[1];
 
@@ -190,8 +207,13 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
     }
 
     /* broadcast topology from node leaders to remaining ranks */
+#ifndef ENABLE_ANALYSIS
     low_comm->c_coll->coll_bcast(topo, num_topo_level*size, MPI_INT, 0,
                                 low_comm, low_comm->c_coll->coll_bcast_module);
+#else
+    low_comm->c_coll->coll_bcast(topo, num_topo_level*size, MPI_INT, 0,
+                                low_comm, low_comm->c_coll->coll_bcast_module, NULL);
+#endif
     free(my_low_rank_map);
     han_module->cached_topo = topo;
 #if OPAL_ENABLE_DEBUG

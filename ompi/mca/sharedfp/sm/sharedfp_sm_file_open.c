@@ -117,7 +117,11 @@ int mca_sharedfp_sm_file_open (struct ompi_communicator_t *comm,
         my_pid = getpid();
         int_pid = (int) my_pid;
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_bcast (&int_pid, 1, MPI_INT, 0, comm, comm->c_coll->coll_bcast_module );
+#else
+    err = comm->c_coll->coll_bcast (&int_pid, 1, MPI_INT, 0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != err ) {
         opal_output(0,"mca_sharedfp_sm_file_open: Error in bcast operation \n");
         free(sm_filename);
@@ -147,7 +151,11 @@ int mca_sharedfp_sm_file_open (struct ompi_communicator_t *comm,
         memset ( &sm_offset, 0, sizeof (struct mca_sharedfp_sm_offset ));
         write ( sm_fd, &sm_offset, sizeof(struct mca_sharedfp_sm_offset));
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_barrier (comm, comm->c_coll->coll_barrier_module );
+#else
+    err = comm->c_coll->coll_barrier (comm, comm->c_coll->coll_barrier_module, NULL);
+#endif
     if ( OMPI_SUCCESS != err ) {
         opal_output(0,"mca_sharedfp_sm_file_open: Error in barrier operation \n");
         free(sm_filename);
@@ -215,7 +223,11 @@ int mca_sharedfp_sm_file_open (struct ompi_communicator_t *comm,
         return OMPI_ERROR;
     }
 
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_barrier (comm, comm->c_coll->coll_barrier_module );
+#else
+    err = comm->c_coll->coll_barrier (comm, comm->c_coll->coll_barrier_module, NULL);
+#endif
     if ( OMPI_SUCCESS != err ) {
         opal_output(0,"mca_sharedfp_sm_file_open: Error in barrier operation \n");
         free(sm_filename);
@@ -251,7 +263,12 @@ int mca_sharedfp_sm_file_close (ompio_file_t *fh)
      * all processes are ready to release the
      * shared file pointer resources
      */
+#ifndef ENABLE_ANALYSIS
     fh->f_comm->c_coll->coll_barrier (fh->f_comm, fh->f_comm->c_coll->coll_barrier_module );
+#else
+    fh->f_comm->c_coll->coll_barrier (fh->f_comm, fh->f_comm->c_coll->coll_barrier_module, NULL);
+#endif
+
 
     file_data = (sm_data_global*)(sh->selected_module_data);
     if (file_data)  {

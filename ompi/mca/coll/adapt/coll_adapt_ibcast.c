@@ -21,8 +21,15 @@
 #include "opal/sys/atomic.h"
 #include "ompi/mca/pml/ob1/pml_ob1.h"
 
+#ifndef ENABLE_ANALYSIS
 static int ompi_coll_adapt_ibcast_generic(IBCAST_ARGS,
-                                   ompi_coll_tree_t * tree, size_t seg_size);
+                                   ompi_coll_tree_t * tree, size_t seg_size
+                                   );
+#else
+static int ompi_coll_adapt_ibcast_generic(IBCAST_ARGS,
+                                   ompi_coll_tree_t * tree, size_t seg_size, qentry **q
+                                   );
+#endif
 
 /*
  * Set up MCA parameters of MPI_Bcast and MPI_IBcast
@@ -114,6 +121,7 @@ static int ibcast_request_fini(ompi_coll_adapt_bcast_context_t * context)
  */
 static int send_cb(ompi_request_t * req)
 {
+    printf("\nHELLO AUS SEND_CB, coll_adapt_ibcast\n");
     ompi_coll_adapt_bcast_context_t *context =
         (ompi_coll_adapt_bcast_context_t *) req->req_complete_cb_data;
     int err;
@@ -150,10 +158,17 @@ static int send_cb(ompi_request_t * req)
                              ompi_comm_rank(send_context->con->comm), send_context->frag_id,
                              send_context->peer, (void *) send_context->buff, send_count,
                              send_context->con->ibcast_tag - new_id));
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(isend
                            (send_buff, send_count, send_context->con->datatype, send_context->peer,
                             send_context->con->ibcast_tag - new_id,
                             MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req));
+#else
+	err = MCA_PML_CALL(isend
+                           (send_buff, send_count, send_context->con->datatype, send_context->peer,
+                            send_context->con->ibcast_tag - new_id,
+                            MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req, NULL));
+#endif
         if (MPI_SUCCESS != err) {
             opal_free_list_return(mca_coll_adapt_component.adapt_ibcast_context_free_list,
                                   (opal_free_list_item_t *)send_context);
@@ -234,10 +249,17 @@ static int recv_cb(ompi_request_t * req)
                              ompi_comm_rank(context->con->comm), context->frag_id, context->peer,
                              (void *) recv_buff, recv_count,
                              recv_context->con->ibcast_tag - recv_context->frag_id));
+#ifndef ENABLE_ANALYSIS
         MCA_PML_CALL(irecv
                      (recv_buff, recv_count, recv_context->con->datatype, recv_context->peer,
                       recv_context->con->ibcast_tag - recv_context->frag_id,
                       recv_context->con->comm, &recv_req));
+#else
+	MCA_PML_CALL(irecv
+                     (recv_buff, recv_count, recv_context->con->datatype, recv_context->peer,
+                      recv_context->con->ibcast_tag - recv_context->frag_id,
+                      recv_context->con->comm, &recv_req, NULL));
+#endif
 
         /* Set the receive callback */
         ompi_request_set_callback(recv_req, recv_cb, recv_context);
@@ -274,12 +296,21 @@ static int recv_cb(ompi_request_t * req)
                                  ompi_comm_rank(send_context->con->comm), send_context->frag_id,
                                  send_context->peer, (void *) send_context->buff, send_count,
                                  send_context->con->ibcast_tag - send_context->frag_id));
+#ifndef ENABLE_ANALYSIS
             err =
                 MCA_PML_CALL(isend
                              (send_buff, send_count, send_context->con->datatype,
                               send_context->peer,
                               send_context->con->ibcast_tag - send_context->frag_id,
                               MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req));
+#else
+	   err =
+                MCA_PML_CALL(isend
+                             (send_buff, send_count, send_context->con->datatype,
+                              send_context->peer,
+                              send_context->con->ibcast_tag - send_context->frag_id,
+                              MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req, NULL));
+#endif
             if (MPI_SUCCESS != err) {
                 opal_free_list_return(mca_coll_adapt_component.adapt_ibcast_context_free_list,
                                       (opal_free_list_item_t *)send_context);
@@ -320,8 +351,21 @@ static int recv_cb(ompi_request_t * req)
 
 int ompi_coll_adapt_ibcast(void *buff, int count, struct ompi_datatype_t *datatype, int root,
                           struct ompi_communicator_t *comm, ompi_request_t ** request,
-                          mca_coll_base_module_t * module)
+                          mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+    	if(*q!=NULL){
+    	    item=*q;
+    	}
+    	else item = NULL;
+    } else item = NULL;
+#endif
     OPAL_OUTPUT_VERBOSE((10, mca_coll_adapt_component.adapt_output,
                          "ibcast root %d, algorithm %d, coll_adapt_ibcast_segment_size %zu, coll_adapt_ibcast_max_send_requests %d, coll_adapt_ibcast_max_recv_requests %d\n",
                          root, mca_coll_adapt_component.adapt_ibcast_algorithm,
@@ -334,17 +378,36 @@ int ompi_coll_adapt_ibcast(void *buff, int count, struct ompi_datatype_t *dataty
         return OMPI_ERR_NOT_IMPLEMENTED;
     }
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module,
                                           adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm),
                                           mca_coll_adapt_component.adapt_ibcast_segment_size);
+#else
+    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module,
+                                          adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm),
+                                          mca_coll_adapt_component.adapt_ibcast_segment_size, &item);
+#endif
 }
 
 
 int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t *datatype, int root,
                                    struct ompi_communicator_t *comm, ompi_request_t ** request,
                                    mca_coll_base_module_t * module, ompi_coll_tree_t * tree,
-                                   size_t seg_size)
+                                   size_t seg_size
+#ifdef ENABLE_ANALYSIS
+			        , qentry **q
+#endif
+                                   )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+    	if(*q!=NULL){
+    	    item=*q;
+    	}
+    	else item = NULL;
+    } else item = NULL;
+#endif
     int i, j, rank, err;
     /* The min of num_segs and SEND_NUM or RECV_NUM, in case the num_segs is less than SEND_NUM or RECV_NUM */
     int min;
@@ -361,7 +424,12 @@ int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t
 
     mca_pml_base_send_mode_t sendmode = (mca_coll_adapt_component.adapt_ibcast_synchronous_send)
                                         ? MCA_PML_BASE_SEND_SYNCHRONOUS : MCA_PML_BASE_SEND_STANDARD;
-
+#ifdef ENABLE_ANALYSIS    
+    if(item!=NULL){
+    	if(sendmode == MCA_PML_BASE_SEND_SYNCHRONOUS) strcpy(item->sendmode, "SYNCHRONOUS");
+    	else if (sendmode == MCA_PML_BASE_SEND_STANDARD) strcpy(item->sendmode, "STANDARD");
+    }
+#endif
     /* The request passed outside */
     ompi_coll_base_nbc_request_t *temp_request = NULL;
     opal_mutex_t *mutex;
@@ -495,11 +563,19 @@ int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t
                                      "[%d]: Send(start in main): segment %d to %d at buff %p send_count %d tag %d\n",
                                      rank, context->frag_id, context->peer,
                                      (void *) send_buff, send_count, con->ibcast_tag - i));
+#ifndef ENABLE_ANALYSIS
                 err =
                     MCA_PML_CALL(isend
                                  (send_buff, send_count, datatype, context->peer,
                                   con->ibcast_tag - i, sendmode, comm,
                                   &send_req));
+#else
+	      err =
+                    MCA_PML_CALL(isend
+                                 (send_buff, send_count, datatype, context->peer,
+                                  con->ibcast_tag - i, sendmode, comm,
+                                  &send_req, &item));
+#endif
                 if (MPI_SUCCESS != err) {
                     return err;
                 }
@@ -553,10 +629,17 @@ int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t
                                  ompi_comm_rank(context->con->comm), context->frag_id,
                                  context->peer, (void *) recv_buff, recv_count,
                                  con->ibcast_tag - i));
+#ifndef ENABLE_ANALYSIS
             err =
                 MCA_PML_CALL(irecv
                              (recv_buff, recv_count, datatype, context->peer,
                               con->ibcast_tag - i, comm, &recv_req));
+#else
+	  err =
+                MCA_PML_CALL(irecv
+                             (recv_buff, recv_count, datatype, context->peer,
+                              con->ibcast_tag - i, comm, &recv_req, &item));
+#endif
             if (MPI_SUCCESS != err) {
                 return err;
             }

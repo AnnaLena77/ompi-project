@@ -38,7 +38,11 @@ int mca_coll_self_scatter_intra(const void *sbuf, int scount,
                                 struct ompi_datatype_t *rdtype,
                                 int root,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
     if (MPI_IN_PLACE == rbuf) {
         return MPI_SUCCESS;

@@ -585,7 +585,11 @@ void* fd_progress(opal_object_t* obj) {
     }
     OPAL_THREAD_ADD_FETCH32(&fd_thread_active, 1);
     while( 1 == fd_thread_active ); /* wait for init stage 2: start_detector */
+#ifndef ENABLE_ANALYSIS
     ret = MCA_PML_CALL(irecv(NULL, 0, MPI_BYTE, 0, MCA_COLL_BASE_TAG_FT_END, &ompi_mpi_comm_self.comm, &req));
+#else
+    ret = MCA_PML_CALL(irecv(NULL, 0, MPI_BYTE, 0, MCA_COLL_BASE_TAG_FT_END, &ompi_mpi_comm_self.comm, &req, NULL));
+#endif
     while( fd_thread_active ) {
         opal_event_loop(fd_event_base, OPAL_EVLOOP_ONCE);
 #if 0

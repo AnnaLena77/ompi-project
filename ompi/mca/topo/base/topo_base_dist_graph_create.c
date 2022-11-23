@@ -113,10 +113,15 @@ int mca_topo_base_dist_graph_distribute(mca_topo_base_module_t* module,
             index++;
         }
     }
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_reduce_scatter_block( MPI_IN_PLACE, idx, 2,
                                                   (ompi_datatype_t*)&ompi_mpi_int, MPI_SUM, comm,
                                                   comm->c_coll->coll_reduce_scatter_block_module);
+#else
+    err = comm->c_coll->coll_reduce_scatter_block( MPI_IN_PLACE, idx, 2,
+                                                  (ompi_datatype_t*)&ompi_mpi_int, MPI_SUM, comm,
+                                                  comm->c_coll->coll_reduce_scatter_block_module, NULL);
+#endif
     /**
      * At this point in the indexes array we have:
      * - idx[0].in  total number of IN  edges
@@ -168,9 +173,15 @@ int mca_topo_base_dist_graph_distribute(mca_topo_base_module_t* module,
                 count *= 2;  /* don't forget the weights */
                 position *= 2;
             }
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend( &rin[position], count, (ompi_datatype_t*)&ompi_mpi_int,
                                       i, MCA_TOPO_BASE_TAG_DIST_EDGE_IN, MCA_PML_BASE_SEND_STANDARD,
                                       comm, &reqs[pending_reqs]));
+#else
+	  err = MCA_PML_CALL(isend( &rin[position], count, (ompi_datatype_t*)&ompi_mpi_int,
+                                      i, MCA_TOPO_BASE_TAG_DIST_EDGE_IN, MCA_PML_BASE_SEND_STANDARD,
+                                      comm, &reqs[pending_reqs], NULL));
+#endif
             pending_reqs++;
         }
         if( 0 != (count = cnt[i].out) ) {
@@ -179,9 +190,15 @@ int mca_topo_base_dist_graph_distribute(mca_topo_base_module_t* module,
                 count *= 2;  /* don't forget the weights */
                 position *= 2;
             }
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend(&rout[position], count, (ompi_datatype_t*)&ompi_mpi_int,
                                      i, MCA_TOPO_BASE_TAG_DIST_EDGE_OUT, MCA_PML_BASE_SEND_STANDARD,
                                      comm, &reqs[pending_reqs]));
+#else
+	  err = MCA_PML_CALL(isend(&rout[position], count, (ompi_datatype_t*)&ompi_mpi_int,
+                                     i, MCA_TOPO_BASE_TAG_DIST_EDGE_OUT, MCA_PML_BASE_SEND_STANDARD,
+                                     comm, &reqs[pending_reqs], NULL));
+#endif
             pending_reqs++;
         }
     }
@@ -206,9 +223,15 @@ int mca_topo_base_dist_graph_distribute(mca_topo_base_module_t* module,
     }
     for( left_over = count, current_pos = i = 0; left_over > 0; i++ ) {
 
+#ifndef ENABLE_ANALYSIS
         MCA_PML_CALL(recv( &temp[count - left_over], left_over, (ompi_datatype_t*)&ompi_mpi_int,  /* keep receiving in the same buffer */
                            MPI_ANY_SOURCE, MCA_TOPO_BASE_TAG_DIST_EDGE_IN,
-                           comm, &status ));
+                           comm, &status));
+#else
+	MCA_PML_CALL(recv( &temp[count - left_over], left_over, (ompi_datatype_t*)&ompi_mpi_int,  /* keep receiving in the same buffer */
+                           MPI_ANY_SOURCE, MCA_TOPO_BASE_TAG_DIST_EDGE_IN,
+                           comm, &status, NULL ));
+#endif
         how_much = status._ucount / int_size;
         if (MPI_UNWEIGHTED != weights) {
             for( j = 0; j < ((int)how_much >> 1); j++, current_pos++ ) {
@@ -241,10 +264,15 @@ int mca_topo_base_dist_graph_distribute(mca_topo_base_module_t* module,
         }
     }
     for( left_over = count, current_pos = i = 0; left_over > 0; i++ ) {
-
+#ifndef ENABLE_ANALYSIS
         MCA_PML_CALL(recv( &temp[count - left_over], left_over, (ompi_datatype_t*)&ompi_mpi_int,  /* keep receiving in the same buffer */
                            MPI_ANY_SOURCE, MCA_TOPO_BASE_TAG_DIST_EDGE_OUT,
                            comm, &status ));
+#else
+	MCA_PML_CALL(recv( &temp[count - left_over], left_over, (ompi_datatype_t*)&ompi_mpi_int,  /* keep receiving in the same buffer */
+                           MPI_ANY_SOURCE, MCA_TOPO_BASE_TAG_DIST_EDGE_OUT,
+                           comm, &status, NULL ));
+#endif
         how_much = status._ucount / int_size;
 
         if (MPI_UNWEIGHTED != weights) {

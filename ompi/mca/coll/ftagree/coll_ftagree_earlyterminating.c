@@ -143,9 +143,15 @@ mca_coll_ftagree_eta_intra(void *contrib,
 
             if( NEED_TO_RECV(i) ) {
                 /* Need to know more about this guy */
+#ifndef ENABLE_ANALYSIS
                 MCA_PML_CALL(irecv(((char*)in) + (i*msg_size), msg_size, MPI_BYTE,
                                    i, FTAGREE_ETA_TAG_AGREEMENT, comm,
                                    &reqs[nr++]));
+#else
+	       MCA_PML_CALL(irecv(((char*)in) + (i*msg_size), msg_size, MPI_BYTE,
+                                   i, FTAGREE_ETA_TAG_AGREEMENT, comm,
+                                   &reqs[nr++], NULL));
+#endif
                 proc_status[i] &= ~STATUS_RECV_COMPLETE;
                 OPAL_OUTPUT_VERBOSE((100, ompi_ftmpi_output_handle,
                                      "%s ftagree:agreement (ETA) Request for recv of rank %d is at %d(%p)\n",
@@ -155,10 +161,17 @@ mca_coll_ftagree_eta_intra(void *contrib,
             }
             if( NEED_TO_SEND(i) ) {
                 /* Need to communicate with this guy */
+#ifndef ENABLE_ANALYSIS
                 MCA_PML_CALL(isend(out, msg_size, MPI_BYTE,
                                    i, FTAGREE_ETA_TAG_AGREEMENT,
                                    MCA_PML_BASE_SEND_STANDARD, comm,
                                    &reqs[nr++]));
+#else
+	       MCA_PML_CALL(isend(out, msg_size, MPI_BYTE,
+                                   i, FTAGREE_ETA_TAG_AGREEMENT,
+                                   MCA_PML_BASE_SEND_STANDARD, comm,
+                                   &reqs[nr++], NULL));
+#endif
                 proc_status[i] &= ~STATUS_SEND_COMPLETE;
                 OPAL_OUTPUT_VERBOSE((100, ompi_ftmpi_output_handle,
                                      "%s ftagree:agreement (ETA) Request for send of rank %d is at %d(%p)\n",

@@ -98,10 +98,17 @@ OMPI_DECLSPEC int ompi_comm_allgather_pml(void *src_buf, void *dest_buf, int cou
             /* receive the data into the correct location - will use 2
              * messages in the recursive doubling phase */
             dest_buf_current=(char *)dest_buf+message_extent*extra_rank;
+#ifndef ENABLE_ANALYSIS
             rc=MCA_PML_CALL(recv(dest_buf_current,
                     count,dtype,ranks_in_comm[extra_rank],
                     -OMPI_COMMON_TAG_ALLREDUCE,
                     comm, MPI_STATUSES_IGNORE));
+#else
+	  rc=MCA_PML_CALL(recv(dest_buf_current,
+                    count,dtype,ranks_in_comm[extra_rank],
+                    -OMPI_COMMON_TAG_ALLREDUCE,
+                    comm, MPI_STATUSES_IGNORE, NULL));
+#endif
             if( 0 > rc ) {
                 goto  Error;
             }
@@ -113,11 +120,19 @@ OMPI_DECLSPEC int ompi_comm_allgather_pml(void *src_buf, void *dest_buf, int cou
              */
             extra_rank=my_exchange_node.rank_extra_source;
             src_buf_current=(char *)src_buf;
+#ifndef ENABLE_ANALYSIS
             rc=MCA_PML_CALL(send(src_buf_current,
                     count,dtype,ranks_in_comm[extra_rank],
                     -OMPI_COMMON_TAG_ALLREDUCE,
                     MCA_PML_BASE_SEND_STANDARD,
                     comm));
+#else
+	   rc=MCA_PML_CALL(send(src_buf_current,
+                    count,dtype,ranks_in_comm[extra_rank],
+                    -OMPI_COMMON_TAG_ALLREDUCE,
+                    MCA_PML_BASE_SEND_STANDARD,
+                    comm, NULL));
+#endif
             if( 0 > rc ) {
                 goto  Error;
             }
@@ -173,21 +188,34 @@ OMPI_DECLSPEC int ompi_comm_allgather_pml(void *src_buf, void *dest_buf, int cou
             recv_iov[1].iov_len=n_extra*count;
             iovec_len=2;
         }
-
+#ifndef ENABLE_ANALYSIS
         rc=MCA_PML_CALL(irecv(recv_iov[0].iov_base,
                     current_data_count,dtype,ranks_in_comm[pair_rank],
                     -OMPI_COMMON_TAG_ALLREDUCE,
                     comm,&(requests[msg_cnt])));
+#else
+        rc=MCA_PML_CALL(irecv(recv_iov[0].iov_base,
+                    current_data_count,dtype,ranks_in_comm[pair_rank],
+                    -OMPI_COMMON_TAG_ALLREDUCE,
+                    comm,&(requests[msg_cnt]), NULL));
+#endif
         if( 0 > rc ) {
             goto Error;
         }
         msg_cnt++;
 
         if(iovec_len > 1 ) {
+#ifndef ENABLE_ANALYSIS
             rc=MCA_PML_CALL(irecv(recv_iov[1].iov_base,
                         recv_iov[1].iov_len,dtype,ranks_in_comm[pair_rank],
                         -OMPI_COMMON_TAG_ALLREDUCE,
                         comm,&(requests[msg_cnt])));
+#else
+	   rc=MCA_PML_CALL(irecv(recv_iov[1].iov_base,
+                        recv_iov[1].iov_len,dtype,ranks_in_comm[pair_rank],
+                        -OMPI_COMMON_TAG_ALLREDUCE,
+                        comm,&(requests[msg_cnt]), NULL));
+#endif
             if( 0 > rc ) {
                 goto Error;
             }
@@ -218,20 +246,33 @@ OMPI_DECLSPEC int ompi_comm_allgather_pml(void *src_buf, void *dest_buf, int cou
             send_iov[1].iov_len=n_extra*count;
             iovec_len=2;
         }
-
+#ifndef ENABLE_ANALYSIS
         rc=MCA_PML_CALL(isend(send_iov[0].iov_base,
                     current_data_count,dtype,ranks_in_comm[pair_rank],
                     -OMPI_COMMON_TAG_ALLREDUCE,MCA_PML_BASE_SEND_STANDARD,
                     comm,&(requests[msg_cnt])));
+#else
+        rc=MCA_PML_CALL(isend(send_iov[0].iov_base,
+                    current_data_count,dtype,ranks_in_comm[pair_rank],
+                    -OMPI_COMMON_TAG_ALLREDUCE,MCA_PML_BASE_SEND_STANDARD,
+                    comm,&(requests[msg_cnt]), NULL));
+#endif
         if( 0 > rc ) {
             goto Error;
         }
         msg_cnt++;
         if( iovec_len > 1 ) {
+#ifndef ENABLE_ANALYSIS
             rc=MCA_PML_CALL(isend(send_iov[1].iov_base,
                         send_iov[1].iov_len,dtype,ranks_in_comm[pair_rank],
                         -OMPI_COMMON_TAG_ALLREDUCE,MCA_PML_BASE_SEND_STANDARD,
                         comm,&(requests[msg_cnt])));
+#else
+	   rc=MCA_PML_CALL(isend(send_iov[1].iov_base,
+                        send_iov[1].iov_len,dtype,ranks_in_comm[pair_rank],
+                        -OMPI_COMMON_TAG_ALLREDUCE,MCA_PML_BASE_SEND_STANDARD,
+                        comm,&(requests[msg_cnt]), NULL));
+#endif
             if( 0 > rc ) {
                 goto Error;
             }
@@ -259,11 +300,17 @@ OMPI_DECLSPEC int ompi_comm_allgather_pml(void *src_buf, void *dest_buf, int cou
              ** receive the data
              ** */
             extra_rank=my_exchange_node.rank_extra_source;
-
+#ifndef ENABLE_ANALYSIS
             rc=MCA_PML_CALL(recv(dest_buf,
                     count*n_peers,dtype,ranks_in_comm[extra_rank],
                     -OMPI_COMMON_TAG_ALLREDUCE,
                     comm,MPI_STATUSES_IGNORE));
+#else
+	   rc=MCA_PML_CALL(recv(dest_buf,
+                    count*n_peers,dtype,ranks_in_comm[extra_rank],
+                    -OMPI_COMMON_TAG_ALLREDUCE,
+                    comm,MPI_STATUSES_IGNORE, NULL));
+#endif
             if(0 > rc ) {
                 goto  Error;
             }
@@ -273,11 +320,19 @@ OMPI_DECLSPEC int ompi_comm_allgather_pml(void *src_buf, void *dest_buf, int cou
              */
 
             extra_rank=my_exchange_node.rank_extra_source;
+#ifndef ENABLE_ANALYSIS
             rc=MCA_PML_CALL(send(dest_buf,
                     count*n_peers,dtype,ranks_in_comm[extra_rank],
                     -OMPI_COMMON_TAG_ALLREDUCE,
                     MCA_PML_BASE_SEND_STANDARD,
                     comm));
+#else
+	   rc=MCA_PML_CALL(send(dest_buf,
+                    count*n_peers,dtype,ranks_in_comm[extra_rank],
+                    -OMPI_COMMON_TAG_ALLREDUCE,
+                    MCA_PML_BASE_SEND_STANDARD,
+                    comm, NULL));
+#endif
             if( 0 > rc ) {
                 goto  Error;
             }

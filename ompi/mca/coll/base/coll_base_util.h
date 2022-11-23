@@ -109,7 +109,11 @@ int ompi_coll_base_sendrecv_actual( const void* sendbuf, size_t scount,
                                     ompi_datatype_t* rdatatype,
                                     int source, int rtag,
                                     struct ompi_communicator_t* comm,
-                                    ompi_status_public_t* status );
+                                    ompi_status_public_t* status 
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    );
 
 
 /**
@@ -124,16 +128,33 @@ ompi_coll_base_sendrecv( void* sendbuf, size_t scount, ompi_datatype_t* sdatatyp
                           void* recvbuf, size_t rcount, ompi_datatype_t* rdatatype,
                           int source, int rtag,
                           struct ompi_communicator_t* comm,
-                          ompi_status_public_t* status, int myid )
+                          ompi_status_public_t* status, int myid 
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     if ((dest == source) && (source == myid)) {
         return (int) ompi_datatype_sndrcv(sendbuf, (int32_t) scount, sdatatype,
                                           recvbuf, (int32_t) rcount, rdatatype);
+                                          
     }
     return ompi_coll_base_sendrecv_actual (sendbuf, scount, sdatatype,
                                            dest, stag,
                                            recvbuf, rcount, rdatatype,
-                                           source, rtag, comm, status);
+                                           source, rtag, comm, status
+#ifdef ENABLE_ANALYSIS
+				       , &item
+#endif	
+                                           );
 }
 
 /**

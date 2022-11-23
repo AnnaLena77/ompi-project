@@ -42,10 +42,46 @@
 
 static const char FUNC_NAME[] = "MPI_Compare_and_swap";
 
-
+//Vergleich zweier Werte von origin und Target
 int MPI_Compare_and_swap(const void *origin_addr, const void *compare_addr, void *result_addr,
                          MPI_Datatype datatype, int target_rank, MPI_Aint target_disp, MPI_Win win)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    gettimeofday(&item->start, NULL);
+    //Basic information
+    strcpy(item->function, "MPI_Compare_and_swap");
+    strcpy(item->communicationType, "one-sided");
+    item->blocking = 0; //One-Sided-Communication is always non-blocking!
+    /*Datatype --> if there is a difference between the origin_datatype and the target_datatype, 
+    write both into database*/
+    char *origin_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int origin_name_length;
+    MPI_Type_get_name(datatype, origin_name, &origin_name_length);
+    strcpy(item->datatype, origin_name);
+    free(origin_name);
+    //count and datasize
+    item->count = 1;
+    item->datasize = sizeof(datatype);
+  
+    //Name of communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    ompi_win_get_communicator(win, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    
+    MPI_Group wingroup;
+    MPI_Win_get_group(win, &wingroup);
+    //processrank and partnerrank
+    int processrank;
+    MPI_Group_rank(wingroup, &processrank);
+    item->processrank = processrank;
+    item->partnerrank = target_rank;
+    
+    MPI_Group_free(&wingroup);
+#endif 
     int rc;
 
     if (MPI_PARAM_CHECK) {
@@ -67,8 +103,12 @@ int MPI_Compare_and_swap(const void *origin_addr, const void *compare_addr, void
     }
 
     if (MPI_PROC_NULL == target_rank) return MPI_SUCCESS;
-
+#ifndef ENABLE_ANALYSIS
     rc = win->w_osc_module->osc_compare_and_swap(origin_addr, compare_addr, result_addr,
                                                  datatype, target_rank, target_disp, win);
+#else
+    rc = win->w_osc_module->osc_compare_and_swap(origin_addr, compare_addr, result_addr,
+                                                 datatype, target_rank, target_disp, win, &item);
+#endif
     OMPI_ERRHANDLER_RETURN(rc, win, rc, FUNC_NAME);
 }

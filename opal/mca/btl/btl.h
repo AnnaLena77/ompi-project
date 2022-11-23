@@ -127,6 +127,7 @@
 #include "opal/mca/rcache/rcache.h"
 #include "opal/prefetch.h" /* For OPAL_LIKELY */
 #include "opal/types.h"
+#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 
@@ -888,10 +889,17 @@ typedef int (*mca_btl_base_module_deregister_mem_fn_t)(
  * @retval OPAL_ERROR      The descriptor was NOT successfully queued for a send
  * @retval OPAL_ERR_UNREACH The endpoint is not reachable
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_btl_base_module_send_fn_t)(struct mca_btl_base_module_t *btl,
                                              struct mca_btl_base_endpoint_t *endpoint,
                                              struct mca_btl_base_descriptor_t *descriptor,
                                              mca_btl_base_tag_t tag);
+#else
+typedef int (*mca_btl_base_module_send_fn_t)(struct mca_btl_base_module_t *btl,
+                                             struct mca_btl_base_endpoint_t *endpoint,
+                                             struct mca_btl_base_descriptor_t *descriptor,
+                                             mca_btl_base_tag_t tag, qentry **q);
+#endif
 
 /**
  * Initiate an immediate blocking send.
@@ -921,12 +929,21 @@ typedef int (*mca_btl_base_module_send_fn_t)(struct mca_btl_base_module_t *btl,
  * @retval OPAL_ERR_RESOURCE_BUSY The BTL is busy a descriptor will be returned
  *                                (via the OUT param) if descriptors are available
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_btl_base_module_sendi_fn_t)(struct mca_btl_base_module_t *btl,
                                               struct mca_btl_base_endpoint_t *endpoint,
                                               struct opal_convertor_t *convertor, void *header,
                                               size_t header_size, size_t payload_size,
                                               uint8_t order, uint32_t flags, mca_btl_base_tag_t tag,
                                               mca_btl_base_descriptor_t **descriptor);
+#else
+typedef int (*mca_btl_base_module_sendi_fn_t)(struct mca_btl_base_module_t *btl,
+                                              struct mca_btl_base_endpoint_t *endpoint,
+                                              struct opal_convertor_t *convertor, void *header,
+                                              size_t header_size, size_t payload_size,
+                                              uint8_t order, uint32_t flags, mca_btl_base_tag_t tag,
+                                              mca_btl_base_descriptor_t **descriptor, qentry **q);
+#endif
 
 /**
  * Initiate an asynchronous put.

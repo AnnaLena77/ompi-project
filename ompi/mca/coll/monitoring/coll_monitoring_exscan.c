@@ -20,8 +20,21 @@ int mca_coll_monitoring_exscan(const void *sbuf, void *rbuf, int count,
                                struct ompi_datatype_t *dtype,
                                struct ompi_op_t *op,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size;
     const int comm_size = ompi_comm_size(comm);
@@ -39,7 +52,11 @@ int mca_coll_monitoring_exscan(const void *sbuf, void *rbuf, int count,
             mca_common_monitoring_record_coll(rank, data_size);
         }
     }
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_exscan(sbuf, rbuf, count, dtype, op, comm, monitoring_module->real.coll_exscan_module);
+#else
+    return monitoring_module->real.coll_exscan(sbuf, rbuf, count, dtype, op, comm, monitoring_module->real.coll_exscan_module, &item);
+#endif
 }
 
 int mca_coll_monitoring_iexscan(const void *sbuf, void *rbuf, int count,
@@ -47,8 +64,20 @@ int mca_coll_monitoring_iexscan(const void *sbuf, void *rbuf, int count,
                                 struct ompi_op_t *op,
                                 struct ompi_communicator_t *comm,
                                 ompi_request_t ** request,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size;
     const int comm_size = ompi_comm_size(comm);
@@ -66,5 +95,9 @@ int mca_coll_monitoring_iexscan(const void *sbuf, void *rbuf, int count,
             mca_common_monitoring_record_coll(rank, data_size);
         }
     }
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_iexscan(sbuf, rbuf, count, dtype, op, comm, request, monitoring_module->real.coll_iexscan_module);
+#else
+    return monitoring_module->real.coll_iexscan(sbuf, rbuf, count, dtype, op, comm, request, monitoring_module->real.coll_iexscan_module, &item);
+#endif
 }

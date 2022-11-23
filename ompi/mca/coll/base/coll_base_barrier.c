@@ -19,7 +19,7 @@
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
- *
+ *  
  * $HEADER$
  */
 
@@ -44,21 +44,43 @@
 static inline int
 ompi_coll_base_sendrecv_zero( int dest, int stag,
                               int source, int rtag,
-                              MPI_Comm comm )
+                              MPI_Comm comm
+#ifdef ENABLE_ANALYSIS
+                              , qentry **q
+#endif
+                               )
 
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rc, line = 0;
     ompi_request_t *req = MPI_REQUEST_NULL;
     ompi_status_public_t status;
 
     /* post new irecv */
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(irecv( NULL, 0, MPI_BYTE, source, rtag,
-                             comm, &req ));
+                             comm, &req));
+#else
+    rc = MCA_PML_CALL(irecv( NULL, 0, MPI_BYTE, source, rtag,
+                             comm, &req, &item ));
+#endif
     if( MPI_SUCCESS != rc ) { line = __LINE__; goto error_handler; }
 
     /* send data to children */
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(send( NULL, 0, MPI_BYTE, dest, stag,
-                            MCA_PML_BASE_SEND_STANDARD, comm ));
+                            MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+    rc = MCA_PML_CALL(send( NULL, 0, MPI_BYTE, dest, stag,
+                            MCA_PML_BASE_SEND_STANDARD, comm, &item ));
+#endif
     if( MPI_SUCCESS != rc ) { line = __LINE__; goto error_handler; }
 
     rc = ompi_request_wait( &req, &status );
@@ -114,8 +136,20 @@ ompi_coll_base_sendrecv_zero( int dest, int stag,
  *
  */
 int ompi_coll_base_barrier_intra_doublering(struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                             , qentry **q
+#endif
+                                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rank, size, err = 0, line = 0, left, right;
 
     size = ompi_comm_size(comm);
@@ -129,45 +163,81 @@ int ompi_coll_base_barrier_intra_doublering(struct ompi_communicator_t *comm,
     right = ((rank+1)%size);
 
     if (rank > 0) { /* receive message from the left */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, left,
                                 MCA_COLL_BASE_TAG_BARRIER, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, left,
+                                MCA_COLL_BASE_TAG_BARRIER, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl; }
     }
 
     /* Send message to the right */
+#ifndef ENABLE_ANALYSIS
     err = MCA_PML_CALL(send((void*)NULL, 0, MPI_BYTE, right,
                             MCA_COLL_BASE_TAG_BARRIER,
                             MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+    err = MCA_PML_CALL(send((void*)NULL, 0, MPI_BYTE, right,
+                            MCA_COLL_BASE_TAG_BARRIER,
+                            MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
     if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl;  }
 
     /* root needs to receive from the last node */
     if (rank == 0) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, left,
                                 MCA_COLL_BASE_TAG_BARRIER, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, left,
+                                MCA_COLL_BASE_TAG_BARRIER, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl; }
     }
 
     /* Allow nodes to exit */
     if (rank > 0) { /* post Receive from left */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, left,
                                 MCA_COLL_BASE_TAG_BARRIER, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, left,
+                                MCA_COLL_BASE_TAG_BARRIER, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl; }
     }
 
     /* send message to the right one */
+#ifndef ENABLE_ANALYSIS
     err = MCA_PML_CALL(send((void*)NULL, 0, MPI_BYTE, right,
                             MCA_COLL_BASE_TAG_BARRIER,
                             MCA_PML_BASE_SEND_SYNCHRONOUS, comm));
+#else
+    err = MCA_PML_CALL(send((void*)NULL, 0, MPI_BYTE, right,
+                            MCA_COLL_BASE_TAG_BARRIER,
+                            MCA_PML_BASE_SEND_SYNCHRONOUS, comm, &item));
+#endif
     if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl;  }
 
     /* rank 0 post receive from the last node */
     if (rank == 0) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, left,
                                 MCA_COLL_BASE_TAG_BARRIER, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, left,
+                                MCA_COLL_BASE_TAG_BARRIER, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl;  }
     }
 
@@ -186,8 +256,20 @@ int ompi_coll_base_barrier_intra_doublering(struct ompi_communicator_t *comm,
  */
 
 int ompi_coll_base_barrier_intra_recursivedoubling(struct ompi_communicator_t *comm,
-                                                    mca_coll_base_module_t *module)
+                                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                    , qentry **q
+#endif
+                                                    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rank, size, adjsize, err, line, mask, remote;
 
     size = ompi_comm_size(comm);
@@ -207,17 +289,29 @@ int ompi_coll_base_barrier_intra_recursivedoubling(struct ompi_communicator_t *c
         if (rank >= adjsize) {
             /* send message to lower ranked node */
             remote = rank - adjsize;
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv_zero(remote, MCA_COLL_BASE_TAG_BARRIER,
                                                remote, MCA_COLL_BASE_TAG_BARRIER,
                                                comm);
+#else
+            err = ompi_coll_base_sendrecv_zero(remote, MCA_COLL_BASE_TAG_BARRIER,
+                                               remote, MCA_COLL_BASE_TAG_BARRIER,
+                                               comm, &item);
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl;}
 
         } else if (rank < (size - adjsize)) {
 
             /* receive message from high level rank */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, rank+adjsize,
                                     MCA_COLL_BASE_TAG_BARRIER, comm,
                                     MPI_STATUS_IGNORE));
+#else
+            err = MCA_PML_CALL(recv((void*)NULL, 0, MPI_BYTE, rank+adjsize,
+                                    MCA_COLL_BASE_TAG_BARRIER, comm,
+                                    MPI_STATUS_IGNORE, &item));
+#endif
 
             if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl;}
         }
@@ -232,9 +326,15 @@ int ompi_coll_base_barrier_intra_recursivedoubling(struct ompi_communicator_t *c
             if (remote >= adjsize) continue;
 
             /* post receive from the remote node */
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv_zero(remote, MCA_COLL_BASE_TAG_BARRIER,
                                                remote, MCA_COLL_BASE_TAG_BARRIER,
                                                comm);
+#else
+            err = ompi_coll_base_sendrecv_zero(remote, MCA_COLL_BASE_TAG_BARRIER,
+                                               remote, MCA_COLL_BASE_TAG_BARRIER,
+                                               comm, &item);
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl;}
         }
     }
@@ -244,9 +344,15 @@ int ompi_coll_base_barrier_intra_recursivedoubling(struct ompi_communicator_t *c
         if (rank < (size - adjsize)) {
             /* send enter message to higher ranked node */
             remote = rank + adjsize;
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send((void*)NULL, 0, MPI_BYTE, remote,
                                     MCA_COLL_BASE_TAG_BARRIER,
                                     MCA_PML_BASE_SEND_SYNCHRONOUS, comm));
+#else
+            err = MCA_PML_CALL(send((void*)NULL, 0, MPI_BYTE, remote,
+                                    MCA_COLL_BASE_TAG_BARRIER,
+                                    MCA_PML_BASE_SEND_SYNCHRONOUS, comm, &item));
+#endif
 
             if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl;}
         }
@@ -267,8 +373,20 @@ int ompi_coll_base_barrier_intra_recursivedoubling(struct ompi_communicator_t *c
  */
 
 int ompi_coll_base_barrier_intra_bruck(struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module)
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rank, size, distance, to, from, err, line = 0;
 
     size = ompi_comm_size(comm);
@@ -284,9 +402,15 @@ int ompi_coll_base_barrier_intra_bruck(struct ompi_communicator_t *comm,
         to   = (rank + distance) % size;
 
         /* send message to lower ranked node */
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv_zero(to, MCA_COLL_BASE_TAG_BARRIER,
                                            from, MCA_COLL_BASE_TAG_BARRIER,
                                            comm);
+#else
+        err = ompi_coll_base_sendrecv_zero(to, MCA_COLL_BASE_TAG_BARRIER,
+                                           from, MCA_COLL_BASE_TAG_BARRIER,
+                                           comm, &item);
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto err_hndl;}
     }
 
@@ -305,8 +429,20 @@ int ompi_coll_base_barrier_intra_bruck(struct ompi_communicator_t *comm,
  */
 /* special case for two processes */
 int ompi_coll_base_barrier_intra_two_procs(struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int remote, size, err;
 
     size = ompi_comm_size(comm);
@@ -322,9 +458,15 @@ int ompi_coll_base_barrier_intra_two_procs(struct ompi_communicator_t *comm,
 
     remote = (remote + 1) & 0x1;
 
+#ifndef ENABLE_ANALYSIS
     err = ompi_coll_base_sendrecv_zero(remote, MCA_COLL_BASE_TAG_BARRIER,
                                        remote, MCA_COLL_BASE_TAG_BARRIER,
                                        comm);
+#else
+    err = ompi_coll_base_sendrecv_zero(remote, MCA_COLL_BASE_TAG_BARRIER,
+                                       remote, MCA_COLL_BASE_TAG_BARRIER,
+                                       comm, &item);
+#endif
     return (err);
 }
 
@@ -344,8 +486,20 @@ int ompi_coll_base_barrier_intra_two_procs(struct ompi_communicator_t *comm,
 /* copied function (with appropriate renaming) starts here */
 
 int ompi_coll_base_barrier_intra_basic_linear(struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, err, rank, size, line;
     ompi_request_t** requests = NULL;
 
@@ -356,14 +510,25 @@ int ompi_coll_base_barrier_intra_basic_linear(struct ompi_communicator_t *comm,
 
     /* All non-root send & receive zero-length message. */
     if (rank > 0) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send (NULL, 0, MPI_BYTE, 0,
                                  MCA_COLL_BASE_TAG_BARRIER,
                                  MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err = MCA_PML_CALL(send (NULL, 0, MPI_BYTE, 0,
+                                 MCA_COLL_BASE_TAG_BARRIER,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv (NULL, 0, MPI_BYTE, 0,
                                  MCA_COLL_BASE_TAG_BARRIER,
                                  comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv (NULL, 0, MPI_BYTE, 0,
+                                 MCA_COLL_BASE_TAG_BARRIER,
+                                 comm, MPI_STATUS_IGNORE, &item));
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
     }
 
@@ -374,9 +539,15 @@ int ompi_coll_base_barrier_intra_basic_linear(struct ompi_communicator_t *comm,
         if( NULL == requests ) { err = OMPI_ERR_OUT_OF_RESOURCE; line = __LINE__; goto err_hndl; }
 
         for (i = 1; i < size; ++i) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv(NULL, 0, MPI_BYTE, MPI_ANY_SOURCE,
                                      MCA_COLL_BASE_TAG_BARRIER, comm,
                                      &(requests[i])));
+#else
+            err = MCA_PML_CALL(irecv(NULL, 0, MPI_BYTE, MPI_ANY_SOURCE,
+                                     MCA_COLL_BASE_TAG_BARRIER, comm,
+                                     &(requests[i]), &item));
+#endif
             if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
         }
         err = ompi_request_wait_all( size-1, requests+1, MPI_STATUSES_IGNORE );
@@ -384,9 +555,15 @@ int ompi_coll_base_barrier_intra_basic_linear(struct ompi_communicator_t *comm,
         requests = NULL;  /* we're done the requests array is clean */
 
         for (i = 1; i < size; ++i) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(NULL, 0, MPI_BYTE, i,
                                     MCA_COLL_BASE_TAG_BARRIER,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+            err = MCA_PML_CALL(send(NULL, 0, MPI_BYTE, i,
+                                    MCA_COLL_BASE_TAG_BARRIER,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
             if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
         }
     }
@@ -425,8 +602,20 @@ int ompi_coll_base_barrier_intra_basic_linear(struct ompi_communicator_t *comm,
  * we go up the tree and back down the tree.
  */
 int ompi_coll_base_barrier_intra_tree(struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module)
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rank, size, depth, err, jump, partner;
 
     size = ompi_comm_size(comm);
@@ -444,15 +633,27 @@ int ompi_coll_base_barrier_intra_tree(struct ompi_communicator_t *comm,
         partner = rank ^ jump;
         if (!(partner & (jump-1)) && partner < size) {
             if (partner > rank) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(recv (NULL, 0, MPI_BYTE, partner,
                                          MCA_COLL_BASE_TAG_BARRIER, comm,
                                          MPI_STATUS_IGNORE));
+#else
+                err = MCA_PML_CALL(recv (NULL, 0, MPI_BYTE, partner,
+                                         MCA_COLL_BASE_TAG_BARRIER, comm,
+                                         MPI_STATUS_IGNORE, &item));
+#endif
                 if (MPI_SUCCESS != err)
                     return err;
             } else if (partner < rank) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(send (NULL, 0, MPI_BYTE, partner,
                                          MCA_COLL_BASE_TAG_BARRIER,
                                          MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+                err = MCA_PML_CALL(send (NULL, 0, MPI_BYTE, partner,
+                                         MCA_COLL_BASE_TAG_BARRIER,
+                                         MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
                 if (MPI_SUCCESS != err)
                     return err;
             }
@@ -464,15 +665,27 @@ int ompi_coll_base_barrier_intra_tree(struct ompi_communicator_t *comm,
         partner = rank ^ jump;
         if (!(partner & (jump-1)) && partner < size) {
             if (partner > rank) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(send (NULL, 0, MPI_BYTE, partner,
                                          MCA_COLL_BASE_TAG_BARRIER,
                                          MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+                err = MCA_PML_CALL(send (NULL, 0, MPI_BYTE, partner,
+                                         MCA_COLL_BASE_TAG_BARRIER,
+                                         MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
                 if (MPI_SUCCESS != err)
                     return err;
             } else if (partner < rank) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(recv (NULL, 0, MPI_BYTE, partner,
                                          MCA_COLL_BASE_TAG_BARRIER, comm,
                                          MPI_STATUS_IGNORE));
+#else
+                err = MCA_PML_CALL(recv (NULL, 0, MPI_BYTE, partner,
+                                         MCA_COLL_BASE_TAG_BARRIER, comm,
+                                         MPI_STATUS_IGNORE, &item));
+#endif
                 if (MPI_SUCCESS != err)
                     return err;
             }

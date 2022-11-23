@@ -36,6 +36,7 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/group/group.h"
 #include "ompi/mca/osc/osc.h"
+#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 
@@ -80,7 +81,9 @@ struct ompi_win_t {
     opal_mutex_t  w_lock;
 
     char w_name[MPI_MAX_OBJECT_NAME];
-  
+#ifdef ENABLE_ANALYSIS
+    char w_comm[MPI_MAX_OBJECT_NAME];
+#endif
     /* Group associated with this window. */
     ompi_group_t *w_group;
 
@@ -146,7 +149,9 @@ int ompi_win_free(ompi_win_t *win);
 
 OMPI_DECLSPEC int ompi_win_set_name(ompi_win_t *win, const char *win_name);
 OMPI_DECLSPEC int ompi_win_get_name(ompi_win_t *win, char *win_name, int *length);
-
+#ifdef ENABLE_ANALYSIS
+OMPI_DECLSPEC int ompi_win_get_communicator(ompi_win_t *win, char *comm_name, int *length);
+#endif
 OMPI_DECLSPEC int ompi_win_group(ompi_win_t *win, ompi_group_t **group);
 
 /* Note that the defintion of an "invalid" window is closely related

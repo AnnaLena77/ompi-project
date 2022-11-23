@@ -124,7 +124,7 @@ static int nbc_neighbor_allgather_init(const void *sbuf, int scount, MPI_Datatyp
     }
 
 #ifdef NBC_CACHE_SCHEDULE
-    /* save schedule to tree */
+    /*   save schedule to tree */
     args = (NBC_Ineighbor_allgather_args *) malloc (sizeof (args));
     if (NULL != args) {
       args->sbuf = sbuf;
@@ -165,7 +165,12 @@ static int nbc_neighbor_allgather_init(const void *sbuf, int scount, MPI_Datatyp
 
 int ompi_coll_libnbc_ineighbor_allgather(const void *sbuf, int scount, MPI_Datatype stype, void *rbuf,
                                          int rcount, MPI_Datatype rtype, struct ompi_communicator_t *comm,
-                                         ompi_request_t ** request, mca_coll_base_module_t *module) {
+                                         ompi_request_t ** request, mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         ) {
+
     int res = nbc_neighbor_allgather_init(sbuf, scount, stype, rbuf, rcount, rtype,
                                           comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {
@@ -185,8 +190,10 @@ int ompi_coll_libnbc_ineighbor_allgather(const void *sbuf, int scount, MPI_Datat
 int ompi_coll_libnbc_neighbor_allgather_init(const void *sbuf, int scount, MPI_Datatype stype, void *rbuf,
                                              int rcount, MPI_Datatype rtype, struct ompi_communicator_t *comm,
                                              MPI_Info info, ompi_request_t ** request, mca_coll_base_module_t *module) {
+
     int res = nbc_neighbor_allgather_init(sbuf, scount, stype, rbuf, rcount, rtype,
                                           comm, request, module, true);
+
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {
         return res;
     }

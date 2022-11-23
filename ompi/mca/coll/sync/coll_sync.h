@@ -53,13 +53,21 @@ int mca_coll_sync_bcast(void *buff, int count,
                         struct ompi_datatype_t *datatype,
                         int root,
                         struct ompi_communicator_t *comm,
-                        mca_coll_base_module_t *module);
+                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		      , qentry **q
+#endif
+                        );
 
 int mca_coll_sync_exscan(const void *sbuf, void *rbuf, int count,
                          struct ompi_datatype_t *dtype,
                          struct ompi_op_t *op,
                          struct ompi_communicator_t *comm,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         );
 
 int mca_coll_sync_gather(const void *sbuf, int scount,
                          struct ompi_datatype_t *sdtype,
@@ -67,7 +75,11 @@ int mca_coll_sync_gather(const void *sbuf, int scount,
                          struct ompi_datatype_t *rdtype,
                          int root,
                          struct ompi_communicator_t *comm,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         );
 
 int mca_coll_sync_gatherv(const void *sbuf, int scount,
                           struct ompi_datatype_t *sdtype,
@@ -75,27 +87,43 @@ int mca_coll_sync_gatherv(const void *sbuf, int scount,
                           struct ompi_datatype_t *rdtype,
                           int root,
                           struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t *module);
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif	
+                          );
 
 int mca_coll_sync_reduce(const void *sbuf, void *rbuf, int count,
                          struct ompi_datatype_t *dtype,
                          struct ompi_op_t *op,
                          int root,
                          struct ompi_communicator_t *comm,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         );
 
 int mca_coll_sync_reduce_scatter(const void *sbuf, void *rbuf,
                                  const int *rcounts,
                                  struct ompi_datatype_t *dtype,
                                  struct ompi_op_t *op,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 );
 
 int mca_coll_sync_scan(const void *sbuf, void *rbuf, int count,
                        struct ompi_datatype_t *dtype,
                        struct ompi_op_t *op,
                        struct ompi_communicator_t *comm,
-                       mca_coll_base_module_t *module);
+                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		     , qentry **q
+#endif	
+                       );
 
 int mca_coll_sync_scatter(const void *sbuf, int scount,
                           struct ompi_datatype_t *sdtype,
@@ -103,7 +131,11 @@ int mca_coll_sync_scatter(const void *sbuf, int scount,
                           struct ompi_datatype_t *rdtype,
                           int root,
                           struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t *module);
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          );
 
 int mca_coll_sync_scatterv(const void *sbuf, const int *scounts, const int *disps,
                            struct ompi_datatype_t *sdtype,
@@ -111,7 +143,11 @@ int mca_coll_sync_scatterv(const void *sbuf, const int *scounts, const int *disp
                            struct ompi_datatype_t *rdtype,
                            int root,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module);
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           );
 
 /* Types */
 /* Module */
@@ -154,7 +190,7 @@ typedef struct mca_coll_sync_component_t {
 OMPI_MODULE_DECLSPEC extern mca_coll_sync_component_t mca_coll_sync_component;
 
 /* Macro used in most of the collectives */
-
+#ifndef ENABLE_ANALYSIS
 #define COLL_SYNC(m, op) \
 do { \
     int err = MPI_SUCCESS; \
@@ -176,7 +212,29 @@ do { \
     (m)->in_operation = false;                                                  \
     return err;                                                                 \
 } while(0)
-
+#else
+#define COLL_SYNC(m, op) \
+do { \
+    int err = MPI_SUCCESS; \
+    (m)->in_operation = true; \
+    if (OPAL_UNLIKELY(++((m)->before_num_operations) ==                         \
+                      mca_coll_sync_component.barrier_before_nops)) {           \
+        (m)->before_num_operations = 0;                                         \
+        err = (m)->c_coll.coll_barrier(comm, (m)->c_coll.coll_barrier_module, NULL);  \
+    }                                                                           \
+    if (OPAL_LIKELY(MPI_SUCCESS == err)) {                                      \
+        err = op;                                                               \
+    }                                                                           \
+    if (OPAL_UNLIKELY(++((m)->after_num_operations) ==                          \
+                      mca_coll_sync_component.barrier_after_nops) &&            \
+        OPAL_LIKELY(MPI_SUCCESS == err)) {                                      \
+        (m)->after_num_operations = 0;                                          \
+        err = (m)->c_coll.coll_barrier(comm, (m)->c_coll.coll_barrier_module, NULL);  \
+    }                                                                           \
+    (m)->in_operation = false;                                                  \
+    return err;                                                                 \
+} while(0)
+#endif
 END_C_DECLS
 
 #endif /* MCA_COLL_SYNC_EXPORT_H */

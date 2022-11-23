@@ -448,6 +448,7 @@ static inline bool ompi_request_tag_is_collective(int tag) {
 
 static inline void ompi_request_wait_completion(ompi_request_t *req)
 {
+    //printf("Hier wird gewartet\n");
     if (opal_using_threads ()) {
         if(!REQUEST_COMPLETE(req)) {
             void *_tmp_ptr;
@@ -487,7 +488,7 @@ static inline void ompi_request_wait_completion(ompi_request_t *req)
      }
      opal_atomic_rmb();
     } else {
-        while(!REQUEST_COMPLETE(req)) {
+        while(!REQUEST_COMPLETE(req)) {            
             opal_progress();
 #if OPAL_ENABLE_FT_MPI
             /* Check to make sure that process failure did not break the

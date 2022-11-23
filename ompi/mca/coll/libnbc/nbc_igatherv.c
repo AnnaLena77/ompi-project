@@ -108,7 +108,11 @@ static int nbc_gatherv_init(const void* sendbuf, int sendcount, MPI_Datatype sen
 int ompi_coll_libnbc_igatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
                               void* recvbuf, const int *recvcounts, const int *displs, MPI_Datatype recvtype,
                               int root, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                              mca_coll_base_module_t *module) {
+                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                              , qentry **q
+#endif
+                              ) {
     int res = nbc_gatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root,
                                comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {
@@ -188,7 +192,11 @@ static int nbc_gatherv_inter_init (const void* sendbuf, int sendcount, MPI_Datat
 int ompi_coll_libnbc_igatherv_inter(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
                                     void* recvbuf, const int *recvcounts, const int *displs, MPI_Datatype recvtype,
                                     int root, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                    mca_coll_base_module_t *module) {
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    ) {
     int res = nbc_gatherv_inter_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root,
                                      comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {

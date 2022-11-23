@@ -45,8 +45,20 @@ mca_coll_inter_allreduce_inter(const void *sbuf, void *rbuf, int count,
                                struct ompi_datatype_t *dtype,
                                struct ompi_op_t *op,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int err, rank, root = 0;
     char *tmpbuf = NULL, *pml_buffer = NULL;
     ptrdiff_t gap, span;
@@ -62,30 +74,51 @@ mca_coll_inter_allreduce_inter(const void *sbuf, void *rbuf, int count,
     }
     pml_buffer = tmpbuf - gap;
 
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_reduce(sbuf, pml_buffer, count,
 						 dtype, op, root,
 						 comm->c_local_comm,
                                                  comm->c_local_comm->c_coll->coll_reduce_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_reduce(sbuf, pml_buffer, count,
+						 dtype, op, root,
+						 comm->c_local_comm,
+                                                 comm->c_local_comm->c_coll->coll_reduce_module, &item);
+#endif
     if (OMPI_SUCCESS != err) {
 	goto exit;
     }
 
     if (rank == root) {
 	/* Do a send-recv between the two root procs. to avoid deadlock */
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv_actual(pml_buffer, count, dtype, 0,
                                              MCA_COLL_BASE_TAG_ALLREDUCE,
                                              rbuf, count, dtype, 0,
                                              MCA_COLL_BASE_TAG_ALLREDUCE,
                                              comm, MPI_STATUS_IGNORE);
+#else
+        err = ompi_coll_base_sendrecv_actual(pml_buffer, count, dtype, 0,
+                                             MCA_COLL_BASE_TAG_ALLREDUCE,
+                                             rbuf, count, dtype, 0,
+                                             MCA_COLL_BASE_TAG_ALLREDUCE,
+                                             comm, MPI_STATUS_IGNORE, &item);
+#endif
         if (OMPI_SUCCESS != err) {
             goto exit;
         }
     }
 
     /* bcast the message to all the local processes */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_bcast(rbuf, count, dtype,
 						root, comm->c_local_comm,
                                                 comm->c_local_comm->c_coll->coll_bcast_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_bcast(rbuf, count, dtype,
+						root, comm->c_local_comm,
+                                                comm->c_local_comm->c_coll->coll_bcast_module, &item);
+#endif
     if (OMPI_SUCCESS != err) {
             goto exit;
     }

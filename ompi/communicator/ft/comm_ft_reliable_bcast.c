@@ -242,7 +242,12 @@ int ompi_comm_rbcast_send_msg(ompi_proc_t* proc, ompi_comm_rbcast_message_t* msg
     assert( des->des_segments->seg_len == size ) ;
     des->des_cbfunc = ompi_rbcast_bml_send_complete_cb;
     memcpy(des->des_segments->seg_addr.pval, msg, size);
+#ifndef ENABLE_ANALYSIS
     ret = mca_bml_base_send(bml_btl, des, MCA_BTL_TAG_FT_RBCAST);
+#else
+    printf("HIER IST EIN PROBLEM: comm_ft_reliable_bcast\n");
+    ret = mca_bml_base_send(bml_btl, des, MCA_BTL_TAG_FT_RBCAST, NULL);
+#endif
     if(OPAL_LIKELY( ret >= 0 )) {
         if(OPAL_LIKELY( 1 == ret )) {
             OPAL_OUTPUT_VERBOSE((5, ompi_ftmpi_output_handle,

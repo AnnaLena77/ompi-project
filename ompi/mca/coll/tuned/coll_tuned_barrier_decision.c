@@ -88,13 +88,26 @@ int ompi_coll_tuned_barrier_intra_check_forced_init (coll_tuned_force_algorithm_
 
 int ompi_coll_tuned_barrier_intra_do_this (struct ompi_communicator_t *comm,
                                            mca_coll_base_module_t *module,
-                                           int algorithm, int faninout, int segsize)
+                                           int algorithm, int faninout, int segsize
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     OPAL_OUTPUT((ompi_coll_tuned_stream,
                  "coll:tuned:barrier_intra_do_this selected algorithm %d topo fanin/out%d",
                  algorithm, faninout));
 
     switch (algorithm) {
+#ifndef ENABLE_ANALYSIS
     case (0):   return ompi_coll_tuned_barrier_intra_dec_fixed(comm, module);
     case (1):   return ompi_coll_base_barrier_intra_basic_linear(comm, module);
     case (2):   return ompi_coll_base_barrier_intra_doublering(comm, module);
@@ -102,6 +115,15 @@ int ompi_coll_tuned_barrier_intra_do_this (struct ompi_communicator_t *comm,
     case (4):   return ompi_coll_base_barrier_intra_bruck(comm, module);
     case (5):   return ompi_coll_base_barrier_intra_two_procs(comm, module);
     case (6):   return ompi_coll_base_barrier_intra_tree(comm, module);
+#else
+    case (0):   return ompi_coll_tuned_barrier_intra_dec_fixed(comm, module, &item);
+    case (1):   return ompi_coll_base_barrier_intra_basic_linear(comm, module, &item);
+    case (2):   return ompi_coll_base_barrier_intra_doublering(comm, module, &item);
+    case (3):   return ompi_coll_base_barrier_intra_recursivedoubling(comm, module, &item);
+    case (4):   return ompi_coll_base_barrier_intra_bruck(comm, module, &item);
+    case (5):   return ompi_coll_base_barrier_intra_two_procs(comm, module, &item);
+    case (6):   return ompi_coll_base_barrier_intra_tree(comm, module, &item);
+#endif
     } /* switch */
     OPAL_OUTPUT((ompi_coll_tuned_stream,"coll:tuned:barrier_intra_do_this attempt to select algorithm %d when only 0-%d is valid?",
                  algorithm, ompi_coll_tuned_forced_max_algorithms[BARRIER]));

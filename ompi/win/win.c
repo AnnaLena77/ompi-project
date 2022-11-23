@@ -41,6 +41,8 @@
 
 #include "ompi/runtime/params.h"
 
+#include "ompi/mpi/c/init.h"
+
 /*
  * Table for Fortran <-> C communicator handle conversion.  Note that
  * these are not necessarily global.
@@ -151,6 +153,14 @@ static int alloc_window(struct ompi_communicator_t *comm, opal_info_t *info, int
     if (NULL == win) {
         return OMPI_ERR_OUT_OF_RESOURCE;
     }
+    
+#ifdef ENABLE_ANALYSIS
+    //item->communicator
+    char comm_name[MPI_MAX_OBJECT_NAME];
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(win->w_comm, comm_name);
+#endif
 
     ret = opal_info_get_value_enum (info, "accumulate_ops", &acc_ops,
                                     OMPI_WIN_ACCUMULATE_OPS_SAME_OP_NO_OP,
@@ -237,12 +247,11 @@ ompi_win_create(void *base, size_t size,
     ompi_win_t *win;
     int model;
     int ret;
-
     ret = alloc_window (comm, info, MPI_WIN_FLAVOR_CREATE, &win);
     if (OMPI_SUCCESS != ret) {
         return ret;
     }
-
+    
     ret = ompi_osc_base_select(win, &base, size, disp_unit, comm, info, MPI_WIN_FLAVOR_CREATE, &model);
     if (OMPI_SUCCESS != ret) {
         OBJ_RELEASE(win);
@@ -256,7 +265,6 @@ ompi_win_create(void *base, size_t size,
     }
 
     *newwin = win;
-
     return OMPI_SUCCESS;
 }
 
@@ -402,6 +410,16 @@ ompi_win_get_name(ompi_win_t *win, char *win_name, int *length)
     return OMPI_SUCCESS;
 }
 
+#ifdef ENABLE_ANALYSIS
+OMPI_DECLSPEC int ompi_win_get_communicator(ompi_win_t *win, char *comm_name, int *length)
+{
+    OPAL_THREAD_LOCK(&(win->w_lock));
+    strcpy(comm_name, win->w_comm);
+    OPAL_THREAD_UNLOCK(&(win->w_lock));
+
+    return OMPI_SUCCESS;
+}
+#endif
 
 int
 ompi_win_group(ompi_win_t *win, ompi_group_t **group) {

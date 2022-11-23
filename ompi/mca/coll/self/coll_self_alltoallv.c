@@ -39,7 +39,11 @@ mca_coll_self_alltoallv_intra(const void *sbuf, const int *scounts, const int *s
                               void *rbuf, const int *rcounts, const int *rdisps,
                               struct ompi_datatype_t *rdtype,
                               struct ompi_communicator_t *comm,
-                              mca_coll_base_module_t *module)
+                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			   , qentry **q
+#endif
+                              )
 {
     int err;
     ptrdiff_t lb, rextent, sextent;

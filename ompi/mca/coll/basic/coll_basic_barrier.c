@@ -39,8 +39,20 @@
  */
 int
 mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i;
     int err;
     int peer;
@@ -62,9 +74,15 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
     for (i = dim, mask = 1 << i; i > hibit; --i, mask >>= 1) {
         peer = rank | mask;
         if (peer < size) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(NULL, 0, MPI_BYTE, peer,
                                     MCA_COLL_BASE_TAG_BARRIER,
                                     comm, MPI_STATUS_IGNORE));
+#else
+	   err = MCA_PML_CALL(recv(NULL, 0, MPI_BYTE, peer,
+                                    MCA_COLL_BASE_TAG_BARRIER,
+                                    comm, MPI_STATUS_IGNORE, &item));
+#endif
             if (MPI_SUCCESS != err) {
                 return err;
             }
@@ -75,18 +93,31 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
 
     if (rank > 0) {
         peer = rank & ~(1 << hibit);
+#ifndef ENABLE_ANALYSIS
         err =
             MCA_PML_CALL(send
                          (NULL, 0, MPI_BYTE, peer,
                           MCA_COLL_BASE_TAG_BARRIER,
                           MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err =
+            MCA_PML_CALL(send
+                         (NULL, 0, MPI_BYTE, peer,
+                          MCA_COLL_BASE_TAG_BARRIER,
+                          MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
         if (MPI_SUCCESS != err) {
             return err;
         }
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(NULL, 0, MPI_BYTE, peer,
                                 MCA_COLL_BASE_TAG_BARRIER,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(NULL, 0, MPI_BYTE, peer,
+                                MCA_COLL_BASE_TAG_BARRIER,
+                                comm, MPI_STATUS_IGNORE, &item));
+#endif
         if (MPI_SUCCESS != err) {
             return err;
         }
@@ -97,9 +128,15 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
     for (i = hibit + 1, mask = 1 << i; i <= dim; ++i, mask <<= 1) {
         peer = rank | mask;
         if (peer < size) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(NULL, 0, MPI_BYTE, peer,
                                     MCA_COLL_BASE_TAG_BARRIER,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+            err = MCA_PML_CALL(send(NULL, 0, MPI_BYTE, peer,
+                                    MCA_COLL_BASE_TAG_BARRIER,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
             if (MPI_SUCCESS != err) {
                 return err;
             }
@@ -121,12 +158,29 @@ mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
  */
 int
 mca_coll_basic_barrier_inter_lin(struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int rank;
     int result;
 
     rank = ompi_comm_rank(comm);
+#ifndef ENABLE_ANALYSIS
     return comm->c_coll->coll_allreduce(&rank, &result, 1, MPI_INT, MPI_MAX,
                                        comm, comm->c_coll->coll_allreduce_module);
+#else
+    return comm->c_coll->coll_allreduce(&rank, &result, 1, MPI_INT, MPI_MAX,
+                                       comm, comm->c_coll->coll_allreduce_module, &item);
+#endif
 }

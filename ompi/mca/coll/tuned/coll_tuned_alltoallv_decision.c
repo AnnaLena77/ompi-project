@@ -94,13 +94,27 @@ int ompi_coll_tuned_alltoallv_intra_do_this(const void *sbuf, const int *scounts
                                             struct ompi_datatype_t *rdtype,
                                             struct ompi_communicator_t *comm,
                                             mca_coll_base_module_t *module,
-                                            int algorithm)
+                                            int algorithm
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
     OPAL_OUTPUT((ompi_coll_tuned_stream,
                  "coll:tuned:alltoallv_intra_do_this selected algorithm %d ",
                  algorithm));
+                 
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
 
     switch (algorithm) {
+#ifndef ENABLE_ANALYSIS
     case (0):
         return ompi_coll_tuned_alltoallv_intra_dec_fixed(sbuf, scounts, sdisps, sdtype,
                                                          rbuf, rcounts, rdisps, rdtype,
@@ -113,6 +127,20 @@ int ompi_coll_tuned_alltoallv_intra_do_this(const void *sbuf, const int *scounts
         return ompi_coll_base_alltoallv_intra_pairwise(sbuf, scounts, sdisps, sdtype,
                                                        rbuf, rcounts, rdisps, rdtype,
                                                        comm, module);
+#else
+    case (0):
+        return ompi_coll_tuned_alltoallv_intra_dec_fixed(sbuf, scounts, sdisps, sdtype,
+                                                         rbuf, rcounts, rdisps, rdtype,
+                                                         comm, module, &item);
+    case (1):
+        return ompi_coll_base_alltoallv_intra_basic_linear(sbuf, scounts, sdisps, sdtype,
+                                                           rbuf, rcounts, rdisps, rdtype,
+                                                           comm, module, &item);
+    case (2):
+        return ompi_coll_base_alltoallv_intra_pairwise(sbuf, scounts, sdisps, sdtype,
+                                                       rbuf, rcounts, rdisps, rdtype,
+                                                       comm, module, &item);
+#endif
     }  /* switch */
     OPAL_OUTPUT((ompi_coll_tuned_stream,
                  "coll:tuned:alltoall_intra_do_this attempt to select "
