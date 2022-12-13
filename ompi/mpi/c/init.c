@@ -32,6 +32,8 @@
 #include <sys/queue.h>
 #include <sys/time.h>
 #include <mysql/mysql.h>
+#include <mongoc/mongoc.h>
+#include <bson/bson.h>
 
 #include "opal/util/show_help.h"
 #include "ompi/runtime/ompi_spc.h"
@@ -49,39 +51,47 @@
 #define MPI_Init PMPI_Init
 #endif
 
+//#define SQL 1
+#define MongoDB 1
+
 //samplerate pro Minute!
-//#define SAMPLING 15
+//#define SAMPLING 300
 static struct timeval start;
 
 
 static ID=0;
 static count_q_entry = 0;
-static sampling = 300;
 static int queue_lock;
 static TAILQ_HEAD(tailhead, qentry) head;
 //static TAILQ_HEAD(, qentry) helper_head;
 static int queue_length=0;
-static int samplerate = 10;
 static int lock = 0;
 //sem_t ENSURE_INIT;
 
-#ifdef SAMPLING
-    static int samplecount = 1;
-    static int samplerandom;
-#endif
+//Database Information
+static MYSQL *conn;
+static char *server = "10.35.8.10";
+static char *user = "test";
+static char *password = "test_pwd";
+static char *database = "DataFromMPI";
+static char *port = "3306";
+
+static const char *uri_string = "mongodb://10.35.8.10:27017";
+static mongoc_uri_t *uri;
+static mongoc_client_t *client;
+static mongoc_database_t *db;
+static mongoc_collection_t *collection;
+static bson_t *command, reply, *insert;
+static bson_error_t error;
+static char *str;
+static bool retval;
+
+
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
     float microseconds = (a.tv_usec-b.tv_usec)*0.000001;
     return seconds+microseconds;
-    
-    /*struct timeval time;
-    gettimeofday(&time, NULL);
-    int64_t s1 = (int64_t)(time.tv_sec);
-    printf("S1: %d\n", s1);
-    int64_t s2 = (time.tv_usec);
-    printf("S2: %d\n", s2);
-    return s1+s2;*/
 }
 
 void initQentry(qentry **q){
@@ -132,20 +142,13 @@ qentry* dequeue(){
 pthread_t MONITOR_THREAD = NULL;
 int run_thread = 1;
 
-//Database Information
-static MYSQL *conn;
-static char *server = "10.35.8.10";
-static char *user = "test";
-static char *password = "test_pwd";
-static char *database = "DataFromMPI";
-static char *port = "3306";
-
 //static const int LIMIT = 200;
 //static int count = LIMIT;
 static int last_one = 0;
 static char *batchstring = "INSERT INTO MPI_Information(function, communicationType, blocking, datatype, count, sendcount, recvcount, datasize, operation, communicationArea, processorname, processrank, partnerrank, sendmode, immediate, usedBtl, usedProtocol, withinEagerLimit, foundMatchWild, usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel, time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue)VALUES";
 
 static void insertData(char **batchstr){
+    printf("InsertData: n");
     //count = LIMIT;
     char *batch = *batchstr;
     batch[strlen(batch)-1]=';';
@@ -255,14 +258,152 @@ static int generateRandom(int l, int r){
 
 }
 
-static void* MonitorFunc(void* _arg){
+static bson_t * generateBson(qentry **q){
+    qentry *item = *q;
+    /*bson_t *document = BCON_NEW(
+    	"function", 
+    	"communicationType", 
+    	"blocking",
+    	"datatype", 
+    	"count", 
+    	"sendcount", 
+    	"recvcount" , 
+    	"datasize" , 
+    	"operation" , 
+    	"communicationArea" , 
+    	"processorname" , 
+    	"processrank", 
+    	"partnerrank", 
+    	"sendmode", 
+    	"immediate", 
+    	"usedBtl", 
+    	"usedProtocol", 
+    	"withinEagerLimit", 
+    	"foundMatchWild", 
+    	"usedAlgorithm", 
+    	"time_start", 
+    	"time_initializeRequest", 
+    	"time_startRequest", 
+    	"time_requestCompletePmlLevel", 
+    	"time_requestWaitCompletion", 
+    	"time_requestFini", 
+    	"time_sent", 
+    	"time_bufferFree", 
+    	"time_intoQueue"
+    );*/
+    
+    bson_t *document = bson_new();
+    
+    bson_append_utf8 (document, "function", -1, item->function, -1);
+    bson_append_utf8 (document, "communicationType", -1, item->communicationType, -1);
+    bson_append_bool (document, "blocking", -1, item->blocking);
+    bson_append_utf8 (document, "datatype", -1, item->datatype, -1);
+    bson_append_int32 (document, "count", -1, item->count);
+    bson_append_int32 (document, "sendcount", -1, item->sendcount);
+    bson_append_int32 (document, "recvcount", -1, item->recvcount);
+    bson_append_int32 (document, "datasize", -1, item->datasize);
+    bson_append_utf8 (document, "operation", -1, item->operation, -1);
+    bson_append_utf8 (document, "communicationArea", -1, item->communicationArea, -1);
+    bson_append_utf8 (document, "processorname", -1, item->processorname, -1);
+    bson_append_int32 (document, "processrank", -1, item->processrank);
+    bson_append_int32 (document, "partnerrank", -1, item->partnerrank);
+    bson_append_utf8 (document, "sendmode", -1, item->sendmode, -1);
+    bson_append_bool (document, "immediate", -1, item->immediate);
+    bson_append_utf8 (document, "usedBTL", -1, item->usedBtl, -1);
+    bson_append_utf8 (document, "usedProtocol", -1, item->usedProtocol, -1);
+    bson_append_bool (document, "withinEagerLimit", -1, item->withinEagerLimit);
+    bson_append_bool (document, "foundMatchWild", -1, item->foundMatchWild);
+    bson_append_utf8 (document, "usedAlgorithm", -1, item->usedAlgorithm, -1);  
+    bson_append_timeval(document, "start", -1, &item->start);
+    bson_append_timeval(document, "initializeRequest", -1, &item->initializeRequest);
+    bson_append_timeval(document, "startRequest", -1, &item->startRequest);
+    bson_append_timeval(document, "requestCompletePmlLevel", -1, &item->requestCompletePmlLevel);
+    bson_append_timeval(document, "requestWaitCompletion", -1, &item->requestWaitCompletion);
+    bson_append_timeval(document, "requesrFini", -1, &item->requestFini);
+    bson_append_timeval(document, "sent", -1, &item->sent);
+    bson_append_timeval(document, "bufferFree", -1, &item->bufferFree);
+    bson_append_timeval(document, "intoQueue", -1, &item->intoQueue);
+    
+    return document;
+}
+
+static void* MongoMonitorFunc(void* _arg){
+    bson_oid_t oid;
+    mongoc_bulk_operation_t *bulk;
+
+    while(TAILQ_EMPTY(&head)){
+    	sleep(0.1);
+    }
+    while ((TAILQ_LAST(&head, tailhead))->id < 5){
+    	sleep(0.1);
+    }
+    
+    qentry *queueiteration = TAILQ_FIRST(&head);
+    qentry *prev;
+    
+
+    
+    while(queueiteration != NULL){
+    	//if(queueiteration->id == 6) break;
+    
+    	qentry *first = queueiteration;
+    	qentry *last = TAILQ_LAST(&head, tailhead);
+    	if(first->id == last->id) continue;
+    	
+    	bulk = mongoc_collection_create_bulk_operation(collection, true, NULL);
+    	bson_t *doc;
+    	bson_t reply;
+    	bson_error_t error;
+    	
+    	printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
+    	
+    	int length = last->id-first->id + 1;
+    	bson_t *documents[length];
+    	int index = 0;
+       	
+    	while(index<length){
+    	    documents[index] = generateBson(&first);
+    	    //doc = generateBson(&first);
+    	    //printf("Size: %d", sizeof(doc));
+    	    //mongoc_bulk_operation_insert(bulk, doc);
+    	    //bson_destroy(doc);
+    	    first = TAILQ_NEXT(first, pointers);
+    	    index++;
+    	}
+    	
+    	/*if (!mongoc_bulk_operation_execute(bulk, &reply, &error)) {
+            fprintf (stderr, "%s\n", error.message);
+        }*/
+        
+        //mongoc_bulk_operation_destroy(bulk);
+        //bulk = mongoc_collection_create_bulk_operation(collection, true, NULL);
+
+       if (!mongoc_collection_insert_many (collection, (const bson_t**) documents, length, NULL, NULL, &error)) {
+            fprintf (stderr, "%s\n", error.message);
+        }
+        
+        //bson_destroy(documents);
+        
+        prev = last;
+        queueiteration = TAILQ_NEXT(last, pointers);
+        if(queueiteration == NULL){
+            sleep(1);
+            queueiteration = TAILQ_NEXT(prev, pointers);
+        }
+    }
+
+}
+
+
+//Monitor-Function for SQL-Connection
+static void* SQLMonitorFunc(void* _arg){
     qentry *item;
     //counter_time = time(NULL);
+    //#ifdef SQL
     char *batch = (char*) malloc(strlen(batchstring)+1);
     strcpy(batch, batchstring);
     int finish = 0;
     struct timeval current_time;
-
     while(!lock){
     	sleep(0.001);
     }
@@ -272,78 +413,110 @@ static void* MonitorFunc(void* _arg){
     
     //printf("into_thread\n");
     
-    while(run_thread){
-	    while(firstOne != NULL){
-		gettimeofday(&current_time, NULL);
-	    	if(timeDifference(current_time, start)>0.1){
-	    	    gettimeofday(&start, NULL);
-	    	    lastOne = TAILQ_LAST(&head, tailhead);
-	    	    int quantity = lastOne->id - firstOne->id+1;
-	    	    int steps = quantity/sampling;
-	    	    //if(steps==0) continue;
-	    	    //printf("%d\n",steps);
-	    	    int rest = lastOne->id-(sampling*steps)-firstOne->id+1;
-	    	    qentry *q = firstOne;
-	    	    int i = 1;
-	    	    qentry *prev;
-	    	    if(q->id==lastOne->id){
-	    	     	break;
-	    	    }
-	    	    while(q->id < lastOne->id){
-	    	        int l = q->id;
-	    	        int r;
-	    	        if(rest>0){
-	    	    	   r = q->id + steps;
-	    	    	   rest --;
-	    	        }
-	    	        else {
-	    	            r = q->id + steps-1;
-	    	        }
-	    	        int random = generateRandom(l,r);
-	    	        while(q->id <= r){
-	    	        	   //printf("q->id: %d\n", q->id);
-	    	            if(q->id == random){
-	    	            	collectData(&q, &batch);
-	    	            }
-	    	            prev = q;
-	    	            q = TAILQ_NEXT(q, pointers);
-	    	            if(q==NULL) break;
-	    	        }
-	    	        if(q==NULL) break;
-	    	    }
-	    	    /*pid()%2==0){
-	    	        printf("%s\n\n", batch);
-	    	    }*/
-	    	    if(strcmp(batch, batchstring) != 0){
-	    	    	insertData(&batch);
-	    	    	realloc(batch, strlen(batchstring)+1);
-		    	strcpy(batch, batchstring);
-		    }
-	    	    firstOne = q;
-	    	    if(firstOne == NULL){
-	    	    	if(TAILQ_NEXT(prev, pointers)!=NULL){
-	    	    	    firstOne = TAILQ_NEXT(prev, pointers);
-	    	    	}
-	    	    }
-	    	}
+    #ifdef SAMPLING
+    while(firstOne != NULL){
+         gettimeofday(&current_time, NULL);
+	if(timeDifference(current_time, start)>0.1){
+	    gettimeofday(&start, NULL);
+	    lastOne = TAILQ_LAST(&head, tailhead);
+	    //Anzahl der Items, die zu diesem Zeitpunkt in der Queue stehen
+	    int quantity = lastOne->id - firstOne->id+1;
+	    //aus allen "steps" items soll eines in die Datenbank
+	    int steps = quantity/SAMPLING;
+	    //Der nicht teilbare Rest, der untergebracht werden muss
+	    int rest = lastOne->id - SAMPLING*steps - firstOne->id+1;
+	    //Item, um durch die Items zu iterieren
+	    qentry *q = firstOne;
+	    int i = 1;
+	    qentry *prev;
+	    if(q->id==lastOne->id){
+	        break;
 	    }
+	    while(q->id < lastOne->id){
+	        int l = q->id;
+	        int r;
+	        if(rest>0){
+	            r = q->id + steps;
+	    	   rest --;
+	        }
+	        else {
+	    	   r = q->id + steps-1;
+	        }
+	        int random = generateRandom(l,r);
+	        while(q->id <= r){
+	            if(q->id == random){
+	    	       collectData(&q, &batch);
+	            }
+	            prev = q;
+	            q = TAILQ_NEXT(q, pointers);
+	            if(q==NULL) break;
+	        }	
+	        if(q==NULL) break;
+	    }
+	    if(strcmp(batch, batchstring) != 0){
+	    	insertData(&batch);
+	    	realloc(batch, strlen(batchstring)+1);
+		strcpy(batch, batchstring);
+	    }
+	    firstOne = q;
+	    if(firstOne == NULL){
+	        if(TAILQ_NEXT(prev, pointers)!=NULL){
+	            firstOne = TAILQ_NEXT(prev, pointers);
+	        }
+	        else {
+	        	   closeMongoDB();
+	        }
+	    }
+         }
     }
-    
-    printf("outside_thread\n");
-    
+    #else
+    int counter = 0;
+    while(firstOne != NULL){
+        qentry *previousq;
+        qentry *iterateq = firstOne;
+        lastOne = TAILQ_LAST(&head, tailhead);
+        
+        gettimeofday(&current_time, NULL);
+        if(timeDifference(current_time, start)>0.2){
+	   gettimeofday(&start, NULL);
+	   while(iterateq->id <= lastOne->id){
+	       counter++;
+	       collectData(&iterateq, &batch);
+	       iterateq = TAILQ_NEXT(iterateq, pointers);
+	       if(counter>4000){
+	           if(strcmp(batch, batchstring) != 0){
+	               insertData(&batch);
+	    	      realloc(batch, strlen(batchstring)+1);
+		      strcpy(batch, batchstring);
+                    }
+                    counter = 0;
+                }
+                if(iterateq == NULL) break;   
+	   }
+        }
+        if(iterateq == NULL){
+        	   firstOne = TAILQ_NEXT(lastOne, pointers);
+        	   if(firstOne==NULL){
+        	   	printf("firstOne wurde NULL");
+        	         /*if(strcmp(batch, batchstring) != 0){
+            	    insertData(&batch);
+	             realloc(batch, strlen(batchstring)+1);
+	             strcpy(batch, batchstring);
+                  }*/
+            	break;
+            }
+        } else {
+            firstOne = iterateq;
+        }
+    }
+    #endif
     free(batch);
-    qentry *n1, *n2;
-    n1 = TAILQ_FIRST(&head);
-    while (n1 != NULL) {
-        n2 = TAILQ_NEXT(n1, pointers);
-        free(n1);
-        n1 = n2;
-    }
 }
 
 static const char FUNC_NAME[] = "MPI_Init";
 
-void initialize()
+
+void initializeSQL()
 {
     conn = mysql_init(NULL);
     //if Proxy should be used: Port 6033 after database
@@ -363,7 +536,47 @@ void initialize()
     }
     
     TAILQ_INIT(&head);
-    pthread_create(&MONITOR_THREAD, NULL, MonitorFunc, NULL);
+    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
+}
+
+
+void initializeMongoDB()
+{
+    //Initialize libmongo's internals
+    mongoc_init();
+    
+    uri = mongoc_uri_new_with_error (uri_string, &error);
+    
+    //Client-Instance
+    client = mongoc_client_new_from_uri(uri);
+    if (!client) {
+        return EXIT_FAILURE;
+    }
+    
+    //register application name for profile logs on the server
+    mongoc_client_set_appname (client, "EduMPI-Connection");
+    
+    //handle on database and collection
+    db = mongoc_client_get_database (client, "DataFromMPI");
+    collection = mongoc_client_get_collection (client, "DataFromMPI", "MPI_Information");
+    
+    if(!mongoc_collection_drop (collection, &error)) {
+            fprintf (stderr, "%s\n", error.message);
+    }
+    
+    TAILQ_INIT(&head);
+    pthread_create(&MONITOR_THREAD, NULL, MongoMonitorFunc, NULL);
+}
+
+void closeMongoDB()
+{
+    //Release handles
+    mongoc_collection_destroy (collection);
+    mongoc_database_destroy (db);
+    mongoc_uri_destroy (uri);
+    mongoc_client_destroy (client);
+    mongoc_cleanup ();
+
 }
 
 
@@ -372,8 +585,11 @@ int MPI_Init(int *argc, char ***argv)
     gettimeofday(&start, NULL);
     //printf("Test 1\n");
     
-    #ifdef ENABLE_ANALYSIS
-    	initialize();
+    #ifdef SQL
+    	initializeSQL();
+    #endif
+    #ifdef MongoDB
+    	initializeMongoDB();
     #endif
     int err;
     int provided;
