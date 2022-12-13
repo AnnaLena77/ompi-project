@@ -350,12 +350,11 @@ static void* MongoMonitorFunc(void* _arg){
     	qentry *last = TAILQ_LAST(&head, tailhead);
     	if(first->id == last->id) continue;
     	
-    	bulk = mongoc_collection_create_bulk_operation(collection, true, NULL);
     	bson_t *doc;
     	bson_t reply;
     	bson_error_t error;
     	
-    	printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
+    	//printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
     	
     	int length = last->id-first->id + 1;
     	bson_t *documents[length];

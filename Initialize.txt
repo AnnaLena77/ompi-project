@@ -22,7 +22,7 @@ $ sudo apt install libtool
 
 $ ./autogen.pl
 //Cofigure with Analysis, if you want to use the original Open_MPI, don't use the CFLAGS-Parameter!
-$ ./configure --prefix=/usr/local LIBS="-lmongoc-1.0 -lmysqlclient" --with-pmix=internal CFLAGS="-DENABLE_ANALYSIS=1 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0"
+$ ./configure --prefix=/sharefolder/mpi LIBS="-lmongoc-1.0 -lmysqlclient" --with-pmix=internal CFLAGS="-DENABLE_ANALYSIS=1 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0"
 
 
 
@@ -35,10 +35,13 @@ Compile and run MPI-Program:
 $ mpicc mpitest.c -o mpitest
 $ mpirun -n 2 --oversubscribe ./mpitest
 
-mpirun -np 24 --hostfile /home/anna-lena/sharefolder/my_hosts ./osu_allreduce
+/home/anna-lena/sharefolder/mpi/bin/mpirun -np 24 --hostfile /home/anna-lena/sharefolder/my_hosts ./osu_allgather
+
 
 
 ------------MONGO DB-------------------------------
+
+apt-get install libmongoc-1.0-0
 
 sudo apt-get install cmake libssl-dev libsasl2-dev
 

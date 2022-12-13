@@ -69,8 +69,8 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     MPI_Comm_rank(comm, &processrank);
     item->processrank = processrank;
     
-    printf("Root: %d\n", root);
-    printf("Processrank: %d\n", processrank);
+    //printf("Root: %d\n", root);
+    //printf("Processrank: %d\n", processrank);
     //item->partnerrank
     if(processrank==root){
     	item->partnerrank = -1;
