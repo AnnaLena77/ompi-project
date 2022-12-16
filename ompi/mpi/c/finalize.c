@@ -39,7 +39,6 @@ static const char FUNC_NAME[] = "MPI_Finalize";
 
 int MPI_Finalize(void)
 {
-    run_thread=1;
     /* If --with-spc and ompi_mpi_spc_dump_enabled were specified, print
      * all of the final SPC values aggregated across the whole MPI run.
      * Also, free all SPC memory.
@@ -54,7 +53,12 @@ int MPI_Finalize(void)
     /* Pretty simple */
 
     //sleep(8);
+    
+#ifdef ENABLE_ANALYSIS
+    //printf("run_thread wird 0\n");
+    run_thread = 0;
     pthread_join(MONITOR_THREAD, NULL);
     closeMongoDB();
+#endif
     return ompi_mpi_finalize();
 }

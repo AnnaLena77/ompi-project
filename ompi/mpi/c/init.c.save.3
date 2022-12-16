@@ -86,7 +86,7 @@ static bson_error_t error;
 static char *str;
 static bool retval;
 
-static int count_qentries=0;
+
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
@@ -345,23 +345,14 @@ static void* MongoMonitorFunc(void* _arg){
     
     while(queueiteration != NULL){
     	//if(queueiteration->id == 6) break;
-        bson_error_t error;
+    
     	qentry *first = queueiteration;
     	qentry *last = TAILQ_LAST(&head, tailhead);
-    	if(first->id == last->id){
-            if(run_thread){
-                continue;
-            }
-            else {
-                bson_t *lastdoc = generateBson(&last);
-                if (!mongoc_collection_insert_one (collection, (const bson_t*) lastdoc, NULL, NULL, &error)){ 
-                    fprintf (stderr, "%s\n", error.message);
-                }
-            }
-        }
+    	if(first->id == last->id) continue;
     	
     	bson_t *doc;
     	bson_t reply;
+    	bson_error_t error;
     	
     	//printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
     	
@@ -394,16 +385,13 @@ static void* MongoMonitorFunc(void* _arg){
         
         prev = last;
         queueiteration = TAILQ_NEXT(last, pointers);
-        while(queueiteration == NULL && run_thread){
-            sleep(0.5);
-            //printf("PROBLEM!\n");
-            qentry *lastone = TAILQ_LAST(&head, tailhead);
-            if(prev->id != lastone->id){
-                queueiteration = TAILQ_NEXT(prev, pointers);
-            }
+        if(queueiteration == NULL){
+            while(run_thread){
+                if(!prev->id == 
+            queueiteration = TAILQ_NEXT(prev, pointers);
         }
     }
-   // printf("Length: %d\n", queue_length);
+
 }
 
 
