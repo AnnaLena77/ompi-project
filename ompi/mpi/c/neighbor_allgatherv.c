@@ -52,6 +52,43 @@ int MPI_Neighbor_allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sen
                             void *recvbuf, const int recvcounts[], const int displs[],
                             MPI_Datatype recvtype, MPI_Comm comm)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    gettimeofday(&item->start, NULL);
+    strcpy(item->function, "MPI_Neighbor_allgatherv");
+    strcpy(item->communicationType, "collective");
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(sendtype, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(comm, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = -1;
+
+
+    item->blocking = 1;
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
+    
+#endif 
     int in_size, out_size, err;
 
     SPC_RECORD(OMPI_SPC_NEIGHBOR_ALLGATHERV, 1);
@@ -151,8 +188,17 @@ int MPI_Neighbor_allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sen
 #endif
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_neighbor_allgatherv(sendbuf, sendcount, sendtype,
                                                 recvbuf, recvcounts, displs,
                                                 recvtype, comm, comm->c_coll->coll_neighbor_allgatherv_module);
+#else
+    err = comm->c_coll->coll_neighbor_allgatherv(sendbuf, sendcount, sendtype,
+                                                recvbuf, recvcounts, displs,
+                                                recvtype, comm, comm->c_coll->coll_neighbor_allgatherv_module, &item);
+#endif
+#ifdef ENABLE_ANALYSIS
+    qentryIntoQueue(&item);
+#endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

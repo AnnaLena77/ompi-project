@@ -70,8 +70,21 @@ mca_coll_han_reduce_intra(const void *sbuf,
                           ompi_op_t* op,
                           int root,
                           struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t * module)
+                          mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *) module;
     ptrdiff_t extent, lb;
     int seg_count = count, w_rank;
@@ -90,8 +103,13 @@ mca_coll_han_reduce_intra(const void *sbuf,
                              "han cannot handle reduce with this communicator. Drop HAN support in this communicator and fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all modules */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
                                          comm, comm->c_coll->coll_reduce_module);
+#else
+        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
+                                         comm, comm->c_coll->coll_reduce_module, &item);
+#endif
     }
 
     /* Topo must be initialized to know rank distribution which then is used to
@@ -104,8 +122,13 @@ mca_coll_han_reduce_intra(const void *sbuf,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, reduce);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
                                          comm, comm->c_coll->coll_reduce_module);
+#else
+        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
+                                         comm, comm->c_coll->coll_reduce_module, &item);
+#endif
     }
 
     ompi_datatype_get_extent(dtype, &lb, &extent);
@@ -187,9 +210,15 @@ mca_coll_han_reduce_intra(const void *sbuf,
     return OMPI_SUCCESS;
 
  prev_reduce_intra:
+#ifndef ENABLE_ANALYSIS
     return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
                                        comm,
                                        han_module->previous_reduce_module);
+#else
+    return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                       comm,
+                                       han_module->previous_reduce_module, &item);
+#endif
 }
 
 /* t0 task: issue and wait for the low level reduce of segment 0 */
@@ -201,9 +230,15 @@ int mca_coll_han_reduce_t0_task(void *task_args)
     OBJ_RELEASE(t->cur_task);
     ptrdiff_t extent, lb;
     ompi_datatype_get_extent(t->dtype, &lb, &extent);
+#ifndef ENABLE_ANALYSIS
     t->low_comm->c_coll->coll_reduce((char *) t->sbuf, (char *) t->rbuf, t->seg_count, t->dtype,
                                      t->op, t->root_low_rank, t->low_comm,
                                      t->low_comm->c_coll->coll_reduce_module);
+#else
+    t->low_comm->c_coll->coll_reduce((char *) t->sbuf, (char *) t->rbuf, t->seg_count, t->dtype,
+                                     t->op, t->root_low_rank, t->low_comm,
+                                     t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
     return OMPI_SUCCESS;
 }
 
@@ -225,15 +260,27 @@ int mca_coll_han_reduce_t1_task(void *task_args) {
         int up_rank = ompi_comm_rank(t->up_comm);
         /* ur of cur_seg */
         if (up_rank == t->root_up_rank) {
+#ifndef ENABLE_ANALYSIS
             t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE, (char *) t->rbuf, tmp_count, t->dtype,
                                              t->op, t->root_up_rank, t->up_comm, &ireduce_req,
                                              t->up_comm->c_coll->coll_ireduce_module);
+#else
+            t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE, (char *) t->rbuf, tmp_count, t->dtype,
+                                             t->op, t->root_up_rank, t->up_comm, &ireduce_req,
+                                             t->up_comm->c_coll->coll_ireduce_module, NULL);
+#endif
         } else {
             /* this is a node leader that is not root so alternate between the two allocated segments */
             char *tmp_sbuf = (char*)t->rbuf + (cur_seg % 2)*(extent * t->seg_count);
+#ifndef ENABLE_ANALYSIS
             t->up_comm->c_coll->coll_ireduce(tmp_sbuf, NULL, tmp_count,
                                              t->dtype, t->op, t->root_up_rank, t->up_comm,
                                              &ireduce_req, t->up_comm->c_coll->coll_ireduce_module);
+#else
+            t->up_comm->c_coll->coll_ireduce(tmp_sbuf, NULL, tmp_count,
+                                             t->dtype, t->op, t->root_up_rank, t->up_comm,
+                                             &ireduce_req, t->up_comm->c_coll->coll_ireduce_module, NULL);
+#endif
         }
     }
     /* lr of cur_seg+1 */
@@ -249,10 +296,17 @@ int mca_coll_han_reduce_t1_task(void *task_args) {
         } else if (NULL != t->rbuf) {
             tmp_rbuf = (char*)t->rbuf + extent * t->seg_count;
         }
+#ifndef ENABLE_ANALYSIS
         t->low_comm->c_coll->coll_reduce((char *) t->sbuf + extent * t->seg_count,
                                          (char *) tmp_rbuf, tmp_count,
                                          t->dtype, t->op, t->root_low_rank, t->low_comm,
                                          t->low_comm->c_coll->coll_reduce_module);
+#else
+        t->low_comm->c_coll->coll_reduce((char *) t->sbuf + extent * t->seg_count,
+                                         (char *) tmp_rbuf, tmp_count,
+                                         t->dtype, t->op, t->root_low_rank, t->low_comm,
+                                         t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
 
     }
     if (!t->noop && ireduce_req) {
@@ -272,8 +326,22 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
                                  ompi_op_t *op,
                                  int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     int w_rank; /* information about the global communicator */
     int root_low_rank, root_up_rank; /* root ranks for both sub-communicators */
     int ret;
@@ -296,8 +364,13 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
                              "han cannot handle reduce with this communicator. Drop HAN support in this communicator and fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
                                          comm, comm->c_coll->coll_reduce_module);
+#else
+        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
+                                         comm, comm->c_coll->coll_reduce_module, &item);
+#endif
     }
 
     /* Topo must be initialized to know rank distribution which then is used to
@@ -310,8 +383,13 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, reduce);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
                                          comm, comm->c_coll->coll_reduce_module);
+#else
+        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
+                                         comm, comm->c_coll->coll_reduce_module, &item);
+#endif
     }
 
     ompi_communicator_t *low_comm =
@@ -342,9 +420,15 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
      * it is ok to use it for intermediary reduces since it is also a local root*/
 
     /* Low_comm reduce */
+#ifndef ENABLE_ANALYSIS
     ret = low_comm->c_coll->coll_reduce((char *)sbuf, (char *)tmp_buf,
                 count, dtype, op, root_low_rank,
                 low_comm, low_comm->c_coll->coll_reduce_module);
+#else
+    ret = low_comm->c_coll->coll_reduce((char *)sbuf, (char *)tmp_buf,
+                count, dtype, op, root_low_rank,
+                low_comm, low_comm->c_coll->coll_reduce_module, &item);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)){
         if (root_low_rank == low_rank && w_rank != root){
             free(tmp_buf);
@@ -358,16 +442,28 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
     /* Up_comm reduce */
     if (root_low_rank == low_rank ){
         if(w_rank != root){
+#ifndef ENABLE_ANALYSIS
             ret = up_comm->c_coll->coll_reduce((char *)tmp_buf, NULL,
                         count, dtype, op, root_up_rank,
                         up_comm, up_comm->c_coll->coll_reduce_module);
+#else
+            ret = up_comm->c_coll->coll_reduce((char *)tmp_buf, NULL,
+                        count, dtype, op, root_up_rank,
+                        up_comm, up_comm->c_coll->coll_reduce_module, &item);
+#endif
             free(tmp_buf);
         } else {
             /* Take advantage of any optimisation made for IN_PLACE
              * communcations */
+#ifndef ENABLE_ANALYSIS
             ret = up_comm->c_coll->coll_reduce(MPI_IN_PLACE, (char *)tmp_buf,
                         count, dtype, op, root_up_rank,
                         up_comm, up_comm->c_coll->coll_reduce_module);
+#else
+            ret = up_comm->c_coll->coll_reduce(MPI_IN_PLACE, (char *)tmp_buf,
+                        count, dtype, op, root_up_rank,
+                        up_comm, up_comm->c_coll->coll_reduce_module, &item);
+#endif
         }
         if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)){
             OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
@@ -379,8 +475,13 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
     return OMPI_SUCCESS;
 
  prev_reduce_intra:
+#ifndef ENABLE_ANALYSIS
     return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
                                        comm, han_module->previous_reduce_module);
+#else
+    return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                       comm, han_module->previous_reduce_module, &item);
+#endif
 }
 
 
@@ -389,7 +490,11 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
  */
 int
 mca_coll_han_reduce_reproducible_decision(struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				      , qentry **q
+#endif
+                                          )
 {
     int w_rank = ompi_comm_rank(comm);
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
@@ -439,11 +544,31 @@ mca_coll_han_reduce_reproducible(const void *sbuf,
                                   struct ompi_op_t *op,
                                   int root,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module)
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		   	       , qentry **q
+#endif
+                                  )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
+#ifndef ENABLE_ANALYSIS
     return han_module->reproducible_reduce(sbuf, rbuf, count, dtype,
                                            op, root, comm,
                                            han_module
                                            ->reproducible_reduce_module);
+#else
+    return han_module->reproducible_reduce(sbuf, rbuf, count, dtype,
+                                           op, root, comm,
+                                           han_module
+                                           ->reproducible_reduce_module, &item);
+#endif
 }

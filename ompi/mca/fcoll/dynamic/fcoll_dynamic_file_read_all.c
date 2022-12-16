@@ -751,6 +751,7 @@ mca_fcoll_dynamic_file_read_all (ompio_file_t *fh,
                                                   MPI_BYTE,
                                                   &sendtype[i]);
                     ompi_datatype_commit(&sendtype[i]);
+#ifndef ENABLE_ANALYSIS
                     ret = MCA_PML_CALL (isend(global_buf,
                                               1,
                                               sendtype[i],
@@ -759,6 +760,16 @@ mca_fcoll_dynamic_file_read_all (ompio_file_t *fh,
                                               MCA_PML_BASE_SEND_STANDARD,
                                               fh->f_comm,
                                               &send_req[i]));
+#else
+		  ret = MCA_PML_CALL (isend(global_buf,
+                                              1,
+                                              sendtype[i],
+                                              fh->f_procs_in_group[i],
+                                              123,
+                                              MCA_PML_BASE_SEND_STANDARD,
+                                              fh->f_comm,
+                                              &send_req[i], NULL));
+#endif
                     if(OMPI_SUCCESS != ret){
                         goto exit;
                     }
@@ -791,6 +802,7 @@ mca_fcoll_dynamic_file_read_all (ompio_file_t *fh,
 #if OMPIO_FCOLL_WANT_TIME_BREAKDOWN
         start_rcomm_time = MPI_Wtime();
 #endif
+#ifndef ENABLE_ANALYSIS
         ret = MCA_PML_CALL(irecv(receive_buf,
                                  bytes_received,
                                  MPI_BYTE,
@@ -798,6 +810,15 @@ mca_fcoll_dynamic_file_read_all (ompio_file_t *fh,
                                  123,
                                  fh->f_comm,
                                  &recv_req));
+#else
+        ret = MCA_PML_CALL(irecv(receive_buf,
+                                 bytes_received,
+                                 MPI_BYTE,
+                                 my_aggregator,
+                                 123,
+                                 fh->f_comm,
+                                 &recv_req, NULL));
+#endif
         if (OMPI_SUCCESS != ret){
             goto exit;
         }

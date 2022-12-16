@@ -39,14 +39,34 @@ mca_coll_demo_alltoallv_intra(void *sbuf, int *scounts, int *sdisps,
                               void *rbuf, int *rcounts, int *rdisps,
                               struct ompi_datatype_t *rdtype,
                               struct ompi_communicator_t *comm,
-                              mca_coll_base_module_t *module)
+                              mca_coll_base_module_t *module
+#ifndef ENABLE_ANALYSIS
+			   , qentry **q
+#endif
+                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_demo_module_t *demo_module = (mca_coll_demo_module_t*) module;
     opal_output_verbose(10, ompi_coll_base_framework.framework_output, "In demo alltoallv_intra");
+#ifndef ENABLE_ANALYSIS
     return demo_module->underlying.coll_alltoallv(sbuf, scounts, sdisps,
                                                   sdtype, rbuf, rcounts,
                                                   rdisps, rdtype, comm,
                                                   demo_module->underlying.coll_alltoallv_module);
+#else
+    return demo_module->underlying.coll_alltoallv(sbuf, scounts, sdisps,
+                                                  sdtype, rbuf, rcounts,
+                                                  rdisps, rdtype, comm,
+                                                  demo_module->underlying.coll_alltoallv_module, &item);
+#endif
 }
 
 
@@ -63,12 +83,32 @@ mca_coll_demo_alltoallv_inter(void *sbuf, int *scounts, int *sdisps,
                               int *rcounts, int *rdisps,
                               struct ompi_datatype_t *rdtype,
                               struct ompi_communicator_t *comm,
-                              mca_coll_base_module_t *module)
+                              mca_coll_base_module_t *module
+#ifndef ENABLE_ANALYSIS
+			   , qentry **q
+#endif	
+                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_demo_module_t *demo_module = (mca_coll_demo_module_t*) module;
     opal_output_verbose(10, ompi_coll_base_framework.framework_output, "In demo alltoallv_inter");
+#ifndef ENABLE_ANALYSIS
     return demo_module->underlying.coll_alltoallv(sbuf, scounts, sdisps,
                                                   sdtype, rbuf, rcounts,
                                                   rdisps, rdtype, comm,
                                                   demo_module->underlying.coll_alltoallv_module);
+#else
+    return demo_module->underlying.coll_alltoallv(sbuf, scounts, sdisps,
+                                                  sdtype, rbuf, rcounts,
+                                                  rdisps, rdtype, comm,
+                                                  demo_module->underlying.coll_alltoallv_module, &item);
+#endif
 }

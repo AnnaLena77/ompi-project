@@ -25,6 +25,7 @@
 #include "btl_tcp_frag.h"
 #include "opal/class/opal_list.h"
 #include "opal/util/event.h"
+
 BEGIN_C_DECLS
 
 #define MCA_BTL_TCP_ENDPOINT_CACHE      1
@@ -88,7 +89,11 @@ typedef struct {
 
 void mca_btl_tcp_set_socket_options(int sd);
 void mca_btl_tcp_endpoint_close(mca_btl_base_endpoint_t *);
+#ifndef ENABLE_ANALYSIS
 int mca_btl_tcp_endpoint_send(mca_btl_base_endpoint_t *, struct mca_btl_tcp_frag_t *);
+#else
+int mca_btl_tcp_endpoint_send(mca_btl_base_endpoint_t *, struct mca_btl_tcp_frag_t *, qentry **q);
+#endif
 void mca_btl_tcp_endpoint_accept(mca_btl_base_endpoint_t *, struct sockaddr *, int);
 void mca_btl_tcp_endpoint_shutdown(mca_btl_base_endpoint_t *);
 

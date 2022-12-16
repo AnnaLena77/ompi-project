@@ -650,7 +650,11 @@ ompi_coll_portals4_scatter_intra(const void *sbuf, int scount, struct ompi_datat
                                  void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
                                  int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
     int ret, line;
 
@@ -710,7 +714,11 @@ ompi_coll_portals4_iscatter_intra(const void *sbuf, int scount, struct ompi_data
                                  int root,
                                  struct ompi_communicator_t *comm,
                                  ompi_request_t **ompi_request,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
     int ret, line;
 

@@ -14,13 +14,54 @@ Configure MPI:
 $ sudo apt-get install flex
 $ sudo apt-get install pandoc
 
+$ git clone https://github.com/AnnaLena77/ompi-project.git --recurse-submodules
 
-$ autoreconf -f -i
-$ ./configure --prefix=/usr/local LIBS=-lmysqlclient
+Needed packages for autogen:
+$ sudo apt install autoconf
+$ sudo apt install libtool
+
+$ ./autogen.pl
+//Cofigure with Analysis, if you want to use the original Open_MPI, don't use the CFLAGS-Parameter!
+$ ./configure --prefix=/home/anna-lena/sharefolder/mpi LIBS="-lmongoc-1.0 -lmysqlclient" --with-pmix=internal CFLAGS="-DENABLE_ANALYSIS=1 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0"
+
+
 
 Make MPI:
 $ sudo make all install
 
+$ sudo ldconfig
+
 Compile and run MPI-Program:
 $ mpicc mpitest.c -o mpitest
 $ mpirun -n 2 --oversubscribe ./mpitest
+
+/home/anna-lena/sharefolder/mpi/bin/mpirun -np 24 --hostfile /home/anna-lena/sharefolder/my_hosts ./osu_allgather
+
+
+
+------------MONGO DB-------------------------------
+
+apt-get install libmongoc-1.0-0
+
+sudo apt-get install cmake libssl-dev libsasl2-dev
+
+wget https://github.com/mongodb/mongo-c-driver/releases/download/1.23.1/mongo-c-driver-1.23.1.tar.gz
+
+tar xzf mongo-c-driver-1.23.1.tar.gz
+
+cd mongo-c-driver-1.23.1
+
+mkdir cmake-build
+
+cd cmake-build
+
+cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF ..
+
+cmake --build .
+
+sudo cmake --build . --target install
+
+if following error occurs while running an application: error "while loading shared libraries: libmongoc-1.0.so.0: cannot open shared object file: No such file or directory" --> Install newest version of clang: 
+sudo apt get install clang
+
+

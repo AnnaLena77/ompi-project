@@ -37,13 +37,32 @@ int mca_coll_demo_scan_intra(void *sbuf, void *rbuf, int count,
                              struct ompi_datatype_t *dtype,
                              struct ompi_op_t *op,
                              struct ompi_communicator_t *comm,
-                             mca_coll_base_module_t *module)
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_demo_module_t *demo_module = (mca_coll_demo_module_t*) module;
     opal_output_verbose(10, ompi_coll_base_framework.framework_output, "In demo scan_intra");
+#ifndef ENABLE_ANALYSIS
     return demo_module->underlying.coll_scan(sbuf, rbuf, count,
                                              dtype, op, comm,
                                              demo_module->underlying.coll_scan_module);
+#else
+    return demo_module->underlying.coll_scan(sbuf, rbuf, count,
+                                             dtype, op, comm,
+                                             demo_module->underlying.coll_scan_module, &item);
+#endif
 }
 
 

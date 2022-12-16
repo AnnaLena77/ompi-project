@@ -34,16 +34,40 @@ int mca_coll_sync_scatter(const void *sbuf, int scount,
                           void *rbuf, int rcount,
                           struct ompi_datatype_t *rdtype,
                           int root, struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t *module)
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_sync_module_t *s = (mca_coll_sync_module_t*) module;
 
     if (s->in_operation) {
+#ifndef ENABLE_ANALYSIS
         return s->c_coll.coll_scatter(sbuf, scount, sdtype,
                                       rbuf, rcount, rdtype, root, comm,
                                       s->c_coll.coll_scatter_module);
+#else
+        return s->c_coll.coll_scatter(sbuf, scount, sdtype,
+                                      rbuf, rcount, rdtype, root, comm,
+                                      s->c_coll.coll_scatter_module, &item);
+#endif
     }
+#ifndef ENABLE_ANALYSIS
     COLL_SYNC(s, s->c_coll.coll_scatter(sbuf, scount, sdtype,
                                         rbuf, rcount, rdtype, root, comm,
                                         s->c_coll.coll_scatter_module));
+#else
+    COLL_SYNC(s, s->c_coll.coll_scatter(sbuf, scount, sdtype,
+                                        rbuf, rcount, rdtype, root, comm,
+                                        s->c_coll.coll_scatter_module, &item));
+#endif
 }

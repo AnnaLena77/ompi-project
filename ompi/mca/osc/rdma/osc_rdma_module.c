@@ -65,8 +65,13 @@ int ompi_osc_rdma_free(ompi_win_t *win)
 
         /* finish with a barrier */
         if (ompi_group_size(win->w_group) > 1) {
+#ifndef ENABLE_ANALYSIS
             (void) module->comm->c_coll->coll_barrier (module->comm,
                                                       module->comm->c_coll->coll_barrier_module);
+#else
+            (void) module->comm->c_coll->coll_barrier (module->comm,
+                                                      module->comm->c_coll->coll_barrier_module, NULL);  
+#endif
         }
 
         /* remove from component information */

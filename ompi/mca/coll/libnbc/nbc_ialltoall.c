@@ -283,7 +283,11 @@ static int nbc_alltoall_init(const void* sendbuf, int sendcount, MPI_Datatype se
 
 int ompi_coll_libnbc_ialltoall(const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf, int recvcount,
                                MPI_Datatype recvtype, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                               mca_coll_base_module_t *module) {
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                               , qentry **q
+#endif
+                               ) {
     int res = nbc_alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype,
                                 comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {
@@ -367,7 +371,11 @@ static int nbc_alltoall_inter_init (const void* sendbuf, int sendcount, MPI_Data
 
 int ompi_coll_libnbc_ialltoall_inter (const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf, int recvcount,
 				      MPI_Datatype recvtype, struct ompi_communicator_t *comm, ompi_request_t ** request,
-				      mca_coll_base_module_t *module) {
+				      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+				      ) {
     int res = nbc_alltoall_inter_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype,
                                       comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {

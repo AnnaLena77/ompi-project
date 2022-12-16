@@ -44,8 +44,22 @@ mca_coll_inter_reduce_inter(const void *sbuf, void *rbuf, int count,
                             struct ompi_datatype_t *dtype,
                             struct ompi_op_t *op,
                             int root, struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int rank, err;
 
     /* Initialize */
@@ -68,14 +82,26 @@ mca_coll_inter_reduce_inter(const void *sbuf, void *rbuf, int count,
 	}
 	pml_buffer = free_buffer - gap;
 
+#ifndef ENABLE_ANALYSIS
 	err = comm->c_local_comm->c_coll->coll_reduce(sbuf, pml_buffer, count,
 						     dtype, op, 0, comm->c_local_comm,
                                                      comm->c_local_comm->c_coll->coll_reduce_module);
+#else
+	err = comm->c_local_comm->c_coll->coll_reduce(sbuf, pml_buffer, count,
+						     dtype, op, 0, comm->c_local_comm,
+                                                     comm->c_local_comm->c_coll->coll_reduce_module, &item);
+#endif
 	if (0 == rank) {
 	    /* First process sends the result to the root */
+#ifndef ENABLE_ANALYSIS
 	    err = MCA_PML_CALL(send(pml_buffer, count, dtype, root,
 				    MCA_COLL_BASE_TAG_REDUCE,
 				    MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+	    err = MCA_PML_CALL(send(pml_buffer, count, dtype, root,
+				    MCA_COLL_BASE_TAG_REDUCE,
+				    MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
 	    if (OMPI_SUCCESS != err) {
                 return err;
             }
@@ -86,9 +112,15 @@ mca_coll_inter_reduce_inter(const void *sbuf, void *rbuf, int count,
 	}
     } else {
         /* Root receives the reduced message from the first process  */
+#ifndef ENABLE_ANALYSIS
 	err = MCA_PML_CALL(recv(rbuf, count, dtype, 0,
 				MCA_COLL_BASE_TAG_REDUCE, comm,
 				MPI_STATUS_IGNORE));
+#else
+	err = MCA_PML_CALL(recv(rbuf, count, dtype, 0,
+				MCA_COLL_BASE_TAG_REDUCE, comm,
+				MPI_STATUS_IGNORE, &item));
+#endif
 	if (OMPI_SUCCESS != err) {
 	    return err;
 	}

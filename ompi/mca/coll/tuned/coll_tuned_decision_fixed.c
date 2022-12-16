@@ -56,8 +56,21 @@ ompi_coll_tuned_allreduce_intra_dec_fixed(const void *sbuf, void *rbuf, int coun
                                           struct ompi_datatype_t *dtype,
                                           struct ompi_op_t *op,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     size_t dsize, total_dsize;
     int communicator_size, alg;
     communicator_size = ompi_comm_size(comm);
@@ -213,8 +226,21 @@ ompi_coll_tuned_allreduce_intra_dec_fixed(const void *sbuf, void *rbuf, int coun
         }
     }
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allreduce_intra_do_this (sbuf, rbuf, count, dtype, op,
                                                     comm, module, alg, 0, 0);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "basic_linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "nonoverlapping");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "recursive_doubling");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "ring");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "segmented_ring");
+        else if(alg == 6) strcpy(item->usedAlgorithm, "rabenseifner");
+    }
+    return ompi_coll_tuned_allreduce_intra_do_this (sbuf, rbuf, count, dtype, op,
+                                                    comm, module, alg, 0, 0, &item);
+#endif
 }
 
 /*
@@ -230,8 +256,20 @@ int ompi_coll_tuned_alltoall_intra_dec_fixed(const void *sbuf, int scount,
                                              void* rbuf, int rcount,
                                              struct ompi_datatype_t *rdtype,
                                              struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                             , qentry **q
+#endif
+                                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int communicator_size, alg;
     size_t dsize, total_dsize;
 
@@ -404,10 +442,25 @@ int ompi_coll_tuned_alltoall_intra_dec_fixed(const void *sbuf, int scount,
         }
     }
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_alltoall_intra_do_this (sbuf, scount, sdtype,
                                                    rbuf, rcount, rdtype,
                                                    comm, module,
                                                    alg, 0, 0, ompi_coll_tuned_alltoall_max_requests);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "pairwise");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "modified_bruck");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "linear_sync");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "two_proc");
+    }
+    
+    return ompi_coll_tuned_alltoall_intra_do_this (sbuf, scount, sdtype,
+                                                   rbuf, rcount, rdtype,
+                                                   comm, module,
+                                                   alg, 0, 0, ompi_coll_tuned_alltoall_max_requests, &item);
+#endif
 }
 
 /*
@@ -420,8 +473,20 @@ int ompi_coll_tuned_alltoallv_intra_dec_fixed(const void *sbuf, const int *scoun
                                               void *rbuf, const int *rcounts, const int *rdisps,
                                               struct ompi_datatype_t *rdtype,
                                               struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int communicator_size, alg;
     communicator_size = ompi_comm_size(comm);
 
@@ -447,10 +512,21 @@ int ompi_coll_tuned_alltoallv_intra_dec_fixed(const void *sbuf, const int *scoun
 		alg = 1;
     }
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_alltoallv_intra_do_this (sbuf, scounts, sdisps, sdtype,
                                                     rbuf, rcounts, rdisps, rdtype,
                                                     comm, module,
                                                     alg);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "basic_linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "pairwise");
+    }
+    return ompi_coll_tuned_alltoallv_intra_do_this (sbuf, scounts, sdisps, sdtype,
+                                                    rbuf, rcounts, rdisps, rdtype,
+                                                    comm, module,
+                                                    alg, &item);
+#endif
 }
 
 
@@ -462,8 +538,20 @@ int ompi_coll_tuned_alltoallv_intra_dec_fixed(const void *sbuf, const int *scoun
  *	Returns:	- MPI_SUCCESS or error code (passed from the barrier implementation)
  */
 int ompi_coll_tuned_barrier_intra_dec_fixed(struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int communicator_size, alg;
     communicator_size = ompi_comm_size(comm);
 
@@ -497,8 +585,21 @@ int ompi_coll_tuned_barrier_intra_dec_fixed(struct ompi_communicator_t *comm,
         alg = 4;
     }
 
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "double_ring");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "recoursive_doubling");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "bruck");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "two_proc");
+        else if(alg == 6) strcpy(item->usedAlgorithm, "tree");
+    }
+    return ompi_coll_tuned_barrier_intra_do_this (comm, module,
+                                                  alg, 0, 0, &item);
+#else
     return ompi_coll_tuned_barrier_intra_do_this (comm, module,
                                                   alg, 0, 0);
+#endif
 }
 
 
@@ -512,8 +613,22 @@ int ompi_coll_tuned_barrier_intra_dec_fixed(struct ompi_communicator_t *comm,
 int ompi_coll_tuned_bcast_intra_dec_fixed(void *buff, int count,
                                           struct ompi_datatype_t *datatype, int root,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     size_t total_dsize, dsize;
     int communicator_size, alg;
 	communicator_size = ompi_comm_size(comm);
@@ -645,10 +760,26 @@ int ompi_coll_tuned_bcast_intra_dec_fixed(void *buff, int count,
             alg = 8;
         }
     }
-
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "basic_linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "chain");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "pipeline");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "split_binary_tree");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "binomial");
+        else if(alg == 6) strcpy(item->usedAlgorithm, "knomial");
+        else if(alg == 7) strcpy(item->usedAlgorithm, "scatter_allgather");
+        else if(alg == 8) strcpy(item->usedAlgorithm, "scatter_allgather_ring");
+    }
+    
+    return ompi_coll_tuned_bcast_intra_do_this (buff, count, datatype, root,
+                                                comm, module,
+                                                alg, 0, 0, &item);
+#else
     return ompi_coll_tuned_bcast_intra_do_this (buff, count, datatype, root,
                                                 comm, module,
                                                 alg, 0, 0);
+#endif
 }
 
 /*
@@ -663,8 +794,22 @@ int ompi_coll_tuned_reduce_intra_dec_fixed( const void *sendbuf, void *recvbuf,
                                             int count, struct ompi_datatype_t* datatype,
                                             struct ompi_op_t* op, int root,
                                             struct ompi_communicator_t* comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int communicator_size, alg;
     size_t total_dsize, dsize;
 
@@ -808,9 +953,24 @@ int ompi_coll_tuned_reduce_intra_dec_fixed( const void *sendbuf, void *recvbuf,
         }
     }
 
+#ifndef ENABLE_ANALYSIS
     return  ompi_coll_tuned_reduce_intra_do_this (sendbuf, recvbuf, count, datatype,
                                                   op, root, comm, module,
                                                   alg, 0, 0, 0);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "chain");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "pipeline");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "binary");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "binominal");
+        else if(alg == 6) strcpy(item->usedAlgorithm, "in-order-binary");
+        else if(alg == 7) strcpy(item->usedAlgorithm, "rabenseifner");
+    }
+        return  ompi_coll_tuned_reduce_intra_do_this (sendbuf, recvbuf, count, datatype,
+                                                  op, root, comm, module,
+                                                  alg, 0, 0, 0, &item);
+#endif
 }
 
 /*
@@ -826,8 +986,23 @@ int ompi_coll_tuned_reduce_scatter_intra_dec_fixed( const void *sbuf, void *rbuf
                                                     struct ompi_datatype_t *dtype,
                                                     struct ompi_op_t *op,
                                                     struct ompi_communicator_t *comm,
-                                                    mca_coll_base_module_t *module)
+                                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                    , qentry **q
+#endif
+                                                    )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
+
     int communicator_size, i, alg;
     size_t total_dsize, dsize;
 
@@ -955,10 +1130,21 @@ int ompi_coll_tuned_reduce_scatter_intra_dec_fixed( const void *sbuf, void *rbuf
             }
         }
     }
-
+#ifndef ENABLE_ANALYSIS
     return  ompi_coll_tuned_reduce_scatter_intra_do_this (sbuf, rbuf, rcounts, dtype,
                                                           op, comm, module,
                                                           alg, 0, 0);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "non-overlapping");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "recursive_halving");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "ring");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "butterfly");
+    }
+    return  ompi_coll_tuned_reduce_scatter_intra_do_this (sbuf, rbuf, rcounts, dtype,
+                                                          op, comm, module,
+                                                          alg, 0, 0, &item);
+#endif
 }
 
 /*
@@ -974,8 +1160,23 @@ int ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed(const void *sbuf, void 
                                                          struct ompi_datatype_t *dtype,
                                                          struct ompi_op_t *op,
                                                          struct ompi_communicator_t *comm,
-                                                         mca_coll_base_module_t *module)
+                                                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                         , qentry **q
+#endif
+                                                         )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
+
     int communicator_size, alg;
     size_t dsize, total_dsize;
 
@@ -1076,9 +1277,21 @@ int ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed(const void *sbuf, void 
         }
     }
 
+#ifndef ENABLE_ANALYSIS
     return  ompi_coll_tuned_reduce_scatter_block_intra_do_this (sbuf, rbuf, rcount, dtype,
                                                                 op, comm, module,
                                                                 alg, 0, 0);
+#else
+   if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "basic_linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "recursive_doubling");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "recursive_halving");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "butterfly");
+    }
+    return  ompi_coll_tuned_reduce_scatter_block_intra_do_this (sbuf, rbuf, rcount, dtype,
+                                                                op, comm, module,
+                                                                alg, 0, 0, &item);
+#endif
 }
 
 /*
@@ -1095,8 +1308,21 @@ int ompi_coll_tuned_allgather_intra_dec_fixed(const void *sbuf, int scount,
                                               void* rbuf, int rcount,
                                               struct ompi_datatype_t *rdtype,
                                               struct ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *module)
+                                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     int communicator_size, alg;
     size_t dsize, total_dsize;
     if (MPI_IN_PLACE != sbuf) {
@@ -1221,10 +1447,23 @@ int ompi_coll_tuned_allgather_intra_dec_fixed(const void *sbuf, int scount,
 
     OPAL_OUTPUT((ompi_coll_tuned_stream, "ompi_coll_tuned_allgather_intra_dec_fixed"
                  " rank %d com_size %d", ompi_comm_rank(comm), communicator_size));
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allgather_intra_do_this(sbuf, scount, sdtype,
                                                    rbuf, rcount, rdtype,
                                                    comm, module, alg, 0, 0);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "bruck");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "recursive_doubling");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "ring");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "neighbor");
+        else if(alg == 6) strcpy(item->usedAlgorithm, "two_proc");
+    }
+    return ompi_coll_tuned_allgather_intra_do_this(sbuf, scount, sdtype,
+                                                   rbuf, rcount, rdtype,
+                                                   comm, module, alg, 0, 0, &item);
+#endif
 }
 
 /*
@@ -1242,8 +1481,21 @@ int ompi_coll_tuned_allgatherv_intra_dec_fixed(const void *sbuf, int scount,
                                                const int *rdispls,
                                                struct ompi_datatype_t *rdtype,
                                                struct ompi_communicator_t *comm,
-                                               mca_coll_base_module_t *module)
+                                               mca_coll_base_module_t *module
+
+#ifdef ENABLE_ANALYSIS
+                                               , qentry **q
+#endif
+                                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int communicator_size, alg, i;
     size_t dsize, total_dsize, per_rank_dsize;
 
@@ -1360,11 +1612,26 @@ int ompi_coll_tuned_allgatherv_intra_dec_fixed(const void *sbuf, int scount,
                  "ompi_coll_tuned_allgatherv_intra_dec_fixed"
                  " rank %d com_size %d", ompi_comm_rank(comm), communicator_size));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_allgatherv_intra_do_this (sbuf, scount, sdtype,
                                                      rbuf, rcounts,
                                                      rdispls, rdtype,
                                                      comm, module,
                                                      alg, 0, 0);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "default");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "bruck");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "ring");
+        else if(alg == 4) strcpy(item->usedAlgorithm, "neighbor");
+        else if(alg == 5) strcpy(item->usedAlgorithm, "two_proc");
+    }
+    return ompi_coll_tuned_allgatherv_intra_do_this (sbuf, scount, sdtype,
+                                                     rbuf, rcounts,
+                                                     rdispls, rdtype,
+                                                     comm, module,
+                                                     alg, 0, 0, &item);
+#endif
 }
 
 /*
@@ -1382,8 +1649,22 @@ int ompi_coll_tuned_gather_intra_dec_fixed(const void *sbuf, int scount,
                                            struct ompi_datatype_t *rdtype,
                                            int root,
                                            struct ompi_communicator_t *comm,
-                                           mca_coll_base_module_t *module)
+                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int communicator_size, alg, rank;
     size_t dsize, total_dsize;
 
@@ -1450,10 +1731,22 @@ int ompi_coll_tuned_gather_intra_dec_fixed(const void *sbuf, int scount,
         alg = 2;
     }
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_gather_intra_do_this (sbuf, scount, sdtype,
                                                  rbuf, rcount, rdtype,
                                                  root, comm, module,
                                                  alg, 0, 0);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "basic_linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "binomial");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "linear_sync");
+    }
+    return ompi_coll_tuned_gather_intra_do_this (sbuf, scount, sdtype,
+                                                 rbuf, rcount, rdtype,
+                                                 root, comm, module,
+                                                 alg, 0, 0, &item);
+#endif
 }
 
 /*
@@ -1470,8 +1763,22 @@ int ompi_coll_tuned_scatter_intra_dec_fixed(const void *sbuf, int scount,
                                             void* rbuf, int rcount,
                                             struct ompi_datatype_t *rdtype,
                                             int root, struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int communicator_size, alg, rank;
     size_t dsize, total_dsize;
 
@@ -1555,8 +1862,20 @@ int ompi_coll_tuned_scatter_intra_dec_fixed(const void *sbuf, int scount,
         }
     }
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_tuned_scatter_intra_do_this (sbuf, scount, sdtype,
                                                   rbuf, rcount, rdtype,
                                                   root, comm, module,
                                                   alg, 0, 0);
+#else
+    if(item!=NULL){
+        if(alg == 1) strcpy(item->usedAlgorithm, "basic_linear");
+        else if(alg == 2) strcpy(item->usedAlgorithm, "binomial");
+        else if(alg == 3) strcpy(item->usedAlgorithm, "linear_nb");
+    }
+    return ompi_coll_tuned_scatter_intra_do_this (sbuf, scount, sdtype,
+                                                  rbuf, rcount, rdtype,
+                                                  root, comm, module,
+                                                  alg, 0, 0, &item);
+#endif
 }

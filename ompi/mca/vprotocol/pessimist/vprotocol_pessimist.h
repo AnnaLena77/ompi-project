@@ -23,6 +23,7 @@
 
 #include "vprotocol_pessimist_event.h"
 #include "vprotocol_pessimist_sender_based_types.h"
+#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 
@@ -63,21 +64,21 @@ int mca_vprotocol_pessimist_del_procs(struct ompi_proc_t **procs, size_t nprocs)
 int mca_vprotocol_pessimist_progress(void);
 int mca_vprotocol_pessimist_add_comm(struct ompi_communicator_t* comm);
 int mca_vprotocol_pessimist_del_comm(struct ompi_communicator_t* comm);
-
+#ifndef ENABLE_ANALYSIS
 int mca_vprotocol_pessimist_irecv(void *addr,
                                   size_t count,
                                   ompi_datatype_t * datatype,
                                   int src,
                                   int tag,
                                   struct ompi_communicator_t *comm,
-                                  struct ompi_request_t **request );
+                                  struct ompi_request_t **request);
 int mca_vprotocol_pessimist_recv(void *addr,
                                  size_t count,
                                  ompi_datatype_t * datatype,
                                  int src,
                                  int tag,
                                  struct ompi_communicator_t *comm,
-                                 ompi_status_public_t * status );
+                                 ompi_status_public_t * status);
 
 int mca_vprotocol_pessimist_isend(const void *buf,
                                   size_t count,
@@ -86,14 +87,50 @@ int mca_vprotocol_pessimist_isend(const void *buf,
                                   int tag,
                                   mca_pml_base_send_mode_t sendmode,
                                   ompi_communicator_t* comm,
-                                  ompi_request_t** request );
+                                  ompi_request_t** request);
 int mca_vprotocol_pessimist_send(const void *buf,
                                  size_t count,
                                  ompi_datatype_t* datatype,
                                  int dst,
                                  int tag,
                                  mca_pml_base_send_mode_t sendmode,
-                                 ompi_communicator_t* comm );
+                                 ompi_communicator_t* comm);
+#else
+int mca_vprotocol_pessimist_irecv(void *addr,
+                                  size_t count,
+                                  ompi_datatype_t * datatype,
+                                  int src,
+                                  int tag,
+                                  struct ompi_communicator_t *comm,
+                                  struct ompi_request_t **request,
+                                  struct qentry **q );
+int mca_vprotocol_pessimist_recv(void *addr,
+                                 size_t count,
+                                 ompi_datatype_t * datatype,
+                                 int src,
+                                 int tag,
+                                 struct ompi_communicator_t *comm,
+                                 ompi_status_public_t * status,
+                                 struct qentry **q );
+
+int mca_vprotocol_pessimist_isend(const void *buf,
+                                  size_t count,
+                                  ompi_datatype_t* datatype,
+                                  int dst,
+                                  int tag,
+                                  mca_pml_base_send_mode_t sendmode,
+                                  ompi_communicator_t* comm,
+                                  ompi_request_t** request,
+                                  struct qentry **q );
+int mca_vprotocol_pessimist_send(const void *buf,
+                                 size_t count,
+                                 ompi_datatype_t* datatype,
+                                 int dst,
+                                 int tag,
+                                 mca_pml_base_send_mode_t sendmode,
+                                 ompi_communicator_t* comm,
+                                 struct qentry **q );
+#endif
 
 int mca_vprotocol_pessimist_iprobe(int src, int tag,
                                    struct ompi_communicator_t *comm,

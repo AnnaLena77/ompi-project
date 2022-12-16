@@ -44,8 +44,20 @@ int
 mca_coll_basic_bcast_log_intra(void *buff, int count,
                                struct ompi_datatype_t *datatype, int root,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i;
     int size;
     int rank;
@@ -71,10 +83,15 @@ mca_coll_basic_bcast_log_intra(void *buff, int count,
     if (vrank > 0) {
         assert(hibit >= 0);
         peer = ((vrank & ~(1 << hibit)) + root) % size;
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(buff, count, datatype, peer,
                                 MCA_COLL_BASE_TAG_BCAST,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(buff, count, datatype, peer,
+                                MCA_COLL_BASE_TAG_BCAST,
+                                comm, MPI_STATUS_IGNORE, &item));
+#endif
         if (MPI_SUCCESS != err) {
             return err;
         }
@@ -93,11 +110,17 @@ mca_coll_basic_bcast_log_intra(void *buff, int count,
         if (peer < size) {
             peer = (peer + root) % size;
             ++nreqs;
-
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend(buff, count, datatype, peer,
                                      MCA_COLL_BASE_TAG_BCAST,
                                      MCA_PML_BASE_SEND_STANDARD,
                                      comm, preq++));
+#else
+            err = MCA_PML_CALL(isend(buff, count, datatype, peer,
+                                     MCA_COLL_BASE_TAG_BCAST,
+                                     MCA_PML_BASE_SEND_STANDARD,
+                                     comm, preq++, &item));
+#endif
             if (MPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(reqs, nreqs);
                 return err;
@@ -139,8 +162,23 @@ int
 mca_coll_basic_bcast_lin_inter(void *buff, int count,
                                struct ompi_datatype_t *datatype, int root,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
+printf("coll_basic_bcast\n");
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int i;
     int rsize;
     int err;
@@ -153,19 +191,32 @@ mca_coll_basic_bcast_lin_inter(void *buff, int count,
         err = OMPI_SUCCESS;
     } else if (MPI_ROOT != root) {
         /* Non-root receive the data. */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(buff, count, datatype, root,
                                 MCA_COLL_BASE_TAG_BCAST, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(buff, count, datatype, root,
+                                MCA_COLL_BASE_TAG_BCAST, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
     } else {
         reqs = ompi_coll_base_comm_get_reqs(module->base_data, rsize);
         if( NULL == reqs ) { return OMPI_ERR_OUT_OF_RESOURCE; }
 
         /* root section */
         for (i = 0; i < rsize; i++) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend(buff, count, datatype, i,
                                      MCA_COLL_BASE_TAG_BCAST,
                                      MCA_PML_BASE_SEND_STANDARD,
                                      comm, &(reqs[i])));
+#else
+            err = MCA_PML_CALL(isend(buff, count, datatype, i,
+                                     MCA_COLL_BASE_TAG_BCAST,
+                                     MCA_PML_BASE_SEND_STANDARD,
+                                     comm, &(reqs[i]), &item));
+#endif
             if (OMPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(reqs, i + 1);
                 return err;
@@ -194,7 +245,11 @@ int
 mca_coll_basic_bcast_log_inter(void *buff, int count,
                                struct ompi_datatype_t *datatype, int root,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
     return OMPI_ERR_NOT_IMPLEMENTED;
 }

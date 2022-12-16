@@ -37,8 +37,21 @@ int mca_coll_sm_allreduce_intra(const void *sbuf, void *rbuf, int count,
                                 struct ompi_datatype_t *dtype,
                                 struct ompi_op_t *op,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     int ret;
 
     /* Note that only the root can pass MPI_IN_PLACE to MPI_REDUCE, so
@@ -47,16 +60,36 @@ int mca_coll_sm_allreduce_intra(const void *sbuf, void *rbuf, int count,
     if (MPI_IN_PLACE == sbuf) {
         int rank = ompi_comm_rank(comm);
         if (0 == rank) {
+#ifndef ENABLE_ANALYSIS
             ret = mca_coll_sm_reduce_intra(sbuf, rbuf, count, dtype, op, 0,
                                            comm, module);
+#else
+            ret = mca_coll_sm_reduce_intra(sbuf, rbuf, count, dtype, op, 0,
+                                           comm, module, &item);
+#endif
         } else {
+#ifndef ENABLE_ANALYSIS
             ret = mca_coll_sm_reduce_intra(rbuf, NULL, count, dtype, op, 0,
                                            comm, module);
+#else
+            ret = mca_coll_sm_reduce_intra(rbuf, NULL, count, dtype, op, 0,
+                                           comm, module, &item);
+#endif
         }
     } else {
+#ifndef ENABLE_ANALYSIS
         ret = mca_coll_sm_reduce_intra(sbuf, rbuf, count, dtype, op, 0,
                                        comm, module);
+#else
+        ret = mca_coll_sm_reduce_intra(sbuf, rbuf, count, dtype, op, 0,
+                                       comm, module, &item);
+#endif
     }
+#ifndef ENABLE_ANALYSIS
     return (ret == OMPI_SUCCESS) ?
         mca_coll_sm_bcast_intra(rbuf, count, dtype, 0, comm, module) : ret;
+#else
+    return (ret == OMPI_SUCCESS) ?
+        mca_coll_sm_bcast_intra(rbuf, count, dtype, 0, comm, module, &item) : ret;
+#endif
 }

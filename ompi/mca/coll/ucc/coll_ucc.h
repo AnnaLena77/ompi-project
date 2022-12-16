@@ -110,24 +110,40 @@ mca_coll_base_module_t *mca_coll_ucc_comm_query(struct ompi_communicator_t *comm
 int mca_coll_ucc_allreduce(const void *sbuf, void *rbuf, int count,
                            struct ompi_datatype_t *dtype, struct ompi_op_t *op,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module);
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           );
 
 int mca_coll_ucc_iallreduce(const void *sbuf, void *rbuf, int count,
                             struct ompi_datatype_t *dtype, struct ompi_op_t *op,
                             struct ompi_communicator_t *comm,
                             ompi_request_t** request,
-                            mca_coll_base_module_t *module);
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            );
 
 int mca_coll_ucc_reduce(const void *sbuf, void* rbuf, int count,
                         struct ompi_datatype_t *dtype, struct ompi_op_t *op,
                         int root, struct ompi_communicator_t *comm,
-                        struct mca_coll_base_module_2_4_0_t *module);
+                        struct mca_coll_base_module_2_4_0_t *module
+#ifdef ENABLE_ANALYSIS
+		      , qentry **q
+#endif
+                        );
 
 int mca_coll_ucc_ireduce(const void *sbuf, void* rbuf, int count,
                          struct ompi_datatype_t *dtype, struct ompi_op_t *op,
                          int root, struct ompi_communicator_t *comm,
                          ompi_request_t** request,
-                         struct mca_coll_base_module_2_4_0_t *module);
+                         struct mca_coll_base_module_2_4_0_t *module
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         );
 
 int mca_coll_ucc_barrier(struct ompi_communicator_t *comm,
                          mca_coll_base_module_t *module);
@@ -138,30 +154,50 @@ int mca_coll_ucc_ibarrier(struct ompi_communicator_t *comm,
 
 int mca_coll_ucc_bcast(void *buf, int count, struct ompi_datatype_t *dtype,
                        int root, struct ompi_communicator_t *comm,
-                       mca_coll_base_module_t *module);
+                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		     , qentry **q
+#endif
+                       );
 
 int mca_coll_ucc_ibcast(void *buf, int count, struct ompi_datatype_t *dtype,
                         int root, struct ompi_communicator_t *comm,
                         ompi_request_t** request,
-                        mca_coll_base_module_t *module);
+                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		      , qentry **q
+#endif
+                        );
 
 int mca_coll_ucc_alltoall(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                           void* rbuf, int rcount, struct ompi_datatype_t *rdtype,
                           struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t *module);
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          );
 
 int mca_coll_ucc_ialltoall(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                            void* rbuf, int rcount, struct ompi_datatype_t *rdtype,
                            struct ompi_communicator_t *comm,
                            ompi_request_t** request,
-                           mca_coll_base_module_t *module);
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           );
 
 int mca_coll_ucc_alltoallv(const void *sbuf, const int *scounts, const int *sdips,
                            struct ompi_datatype_t *sdtype,
                            void* rbuf, const int *rcounts, const int *rdisps,
                            struct ompi_datatype_t *rdtype,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module);
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif	
+                           );
 
 int mca_coll_ucc_ialltoallv(const void *sbuf, const int *scounts, const int *sdips,
                             struct ompi_datatype_t *sdtype,
@@ -169,31 +205,51 @@ int mca_coll_ucc_ialltoallv(const void *sbuf, const int *scounts, const int *sdi
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
                             ompi_request_t** request,
-                            mca_coll_base_module_t *module);
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            );
 
 int mca_coll_ucc_allgather(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                            void* rbuf, int rcount, struct ompi_datatype_t *rdtype,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module);
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           );
 
 int mca_coll_ucc_iallgather(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                             void* rbuf, int rcount, struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
                             ompi_request_t** request,
-                            mca_coll_base_module_t *module);
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                            );
 
 int mca_coll_ucc_allgatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                             void* rbuf, const int *rcounts, const int *rdisps,
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module);
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                            );
 
 int mca_coll_ucc_iallgatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                              void* rbuf, const int *rcounts, const int *rdisps,
                              struct ompi_datatype_t *rdtype,
                              struct ompi_communicator_t *comm,
                              ompi_request_t** request,
-                             mca_coll_base_module_t *module);
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                             );
 
 END_C_DECLS
 #endif

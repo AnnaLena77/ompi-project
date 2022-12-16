@@ -34,12 +34,29 @@
  *	Returns:	- MPI_SUCCESS or error code
  */
 int mca_coll_demo_barrier_intra(struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_demo_module_t *demo_module = (mca_coll_demo_module_t*) module;
     opal_output_verbose(10, ompi_coll_base_framework.framework_output, "In demo barrier_intra");
+#ifndef ENABLE_ANALYSIS
     return demo_module->underlying.coll_barrier(comm,
                                                 demo_module->underlying.coll_barrier_module);
+#else
+    return demo_module->underlying.coll_barrier(comm,
+                                                demo_module->underlying.coll_barrier_module, &item);
+#endif
 }
 
 
@@ -51,10 +68,27 @@ int mca_coll_demo_barrier_intra(struct ompi_communicator_t *comm,
  *	Returns:	- MPI_SUCCESS or error code
  */
 int mca_coll_demo_barrier_inter(struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_demo_module_t *demo_module = (mca_coll_demo_module_t*) module;
     opal_output_verbose(10, ompi_coll_base_framework.framework_output, "In demo barrier_inter");
+#ifndef ENABLE_ANALYSIS
     return demo_module->underlying.coll_barrier(comm,
                                                 demo_module->underlying.coll_barrier_module);
+#else
+    return demo_module->underlying.coll_barrier(comm,
+                                                demo_module->underlying.coll_barrier_module, &item);
+#endif
 }

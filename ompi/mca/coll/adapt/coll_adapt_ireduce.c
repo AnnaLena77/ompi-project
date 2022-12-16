@@ -22,8 +22,13 @@
 #include "ompi/mca/pml/pml.h"
 #include "ompi/mca/coll/base/coll_base_topo.h"
 
+#ifndef ENABLE_ANALYSIS
 static int ompi_coll_adapt_ireduce_generic(IREDUCE_ARGS,
                                            ompi_coll_tree_t * tree, size_t seg_size);
+#else
+static int ompi_coll_adapt_ireduce_generic(IREDUCE_ARGS,
+                                           ompi_coll_tree_t * tree, size_t seg_size, qentry **q);
+#endif
 
 /* MPI_Reduce and MPI_Ireduce in the ADAPT module only work for commutative operations */
 
@@ -255,11 +260,19 @@ static int send_cb(ompi_request_t * req)
                              send_context->con->ireduce_tag - send_context->seg_index));
 
         ompi_request_t *send_req;
+#ifndef ENABLE_ANALYSIS 
         err = MCA_PML_CALL(isend
                            (send_context->buff, send_count, send_context->con->datatype,
                             send_context->peer,
                             context->con->ireduce_tag - send_context->seg_index,
                             MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req));
+#else
+	err = MCA_PML_CALL(isend
+                           (send_context->buff, send_count, send_context->con->datatype,
+                            send_context->peer,
+                            context->con->ireduce_tag - send_context->seg_index,
+                            MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req, NULL));
+#endif
         if (MPI_SUCCESS != err) {
             return err;
         }
@@ -338,10 +351,17 @@ static int recv_cb(ompi_request_t * req)
                              (void *) inbuf,
                              recv_context->con->ireduce_tag - recv_context->seg_index));
         ompi_request_t *recv_req;
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(temp_recv_buf, recv_count, recv_context->con->datatype,
                                  recv_context->peer,
                                  recv_context->con->ireduce_tag - recv_context->seg_index,
                                  recv_context->con->comm, &recv_req));
+#else
+	err = MCA_PML_CALL(irecv(temp_recv_buf, recv_count, recv_context->con->datatype,
+                                 recv_context->peer,
+                                 recv_context->con->ireduce_tag - recv_context->seg_index,
+                                 recv_context->con->comm, &recv_req, NULL));
+#endif
         if (MPI_SUCCESS != err) {
             return err;
         }
@@ -432,10 +452,17 @@ static int recv_cb(ompi_request_t * req)
                                  send_context->con->ireduce_tag - send_context->seg_index));
 
             ompi_request_t *send_req;
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend(send_context->buff, send_count, send_context->con->datatype,
                                      send_context->peer,
                                      send_context->con->ireduce_tag - send_context->seg_index,
                                      MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req));
+#else
+	   err = MCA_PML_CALL(isend(send_context->buff, send_count, send_context->con->datatype,
+                                     send_context->peer,
+                                     send_context->con->ireduce_tag - send_context->seg_index,
+                                     MCA_PML_BASE_SEND_STANDARD, send_context->con->comm, &send_req, NULL));
+#endif
             if (MPI_SUCCESS != err) {
                 return err;
             }
@@ -476,17 +503,34 @@ static int recv_cb(ompi_request_t * req)
 
 int ompi_coll_adapt_ireduce(const void *sbuf, void *rbuf, int count, struct ompi_datatype_t *dtype,
                            struct ompi_op_t *op, int root, struct ompi_communicator_t *comm,
-                           ompi_request_t ** request, mca_coll_base_module_t * module)
+                           ompi_request_t ** request, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           )
 {
-
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     /* Fall-back if operation is commutative */
     if (!ompi_op_is_commute(op)){
         mca_coll_adapt_module_t *adapt_module = (mca_coll_adapt_module_t *) module;
         OPAL_OUTPUT_VERBOSE((30, mca_coll_adapt_component.adapt_output,
                     "ADAPT cannot handle reduce with this (non-commutative) operation. It needs to fall back on another component\n"));
+#ifndef ENABLE_ANALYSIS
         return adapt_module->previous_ireduce(sbuf, rbuf, count, dtype, op, root,
                                               comm, request,
                                               adapt_module->previous_reduce_module);
+#else
+        return adapt_module->previous_ireduce(sbuf, rbuf, count, dtype, op, root,
+                                              comm, request,
+                                              adapt_module->previous_reduce_module, &item);
+#endif
     }
 
 
@@ -502,10 +546,15 @@ int ompi_coll_adapt_ireduce(const void *sbuf, void *rbuf, int count, struct ompi
         return OMPI_ERR_NOT_IMPLEMENTED;
     }
 
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_adapt_ireduce_generic(sbuf, rbuf, count, dtype, op, root, comm, request, module,
                                            adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ireduce_algorithm),
                                            mca_coll_adapt_component.adapt_ireduce_segment_size);
+#else
+    return ompi_coll_adapt_ireduce_generic(sbuf, rbuf, count, dtype, op, root, comm, request, module,
+                                           adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ireduce_algorithm),
+                                           mca_coll_adapt_component.adapt_ireduce_segment_size, &item);
+#endif
 
 }
 
@@ -514,8 +563,20 @@ int ompi_coll_adapt_ireduce_generic(const void *sbuf, void *rbuf, int count,
                                     struct ompi_datatype_t *dtype, struct ompi_op_t *op, int root,
                                     struct ompi_communicator_t *comm, ompi_request_t ** request,
                                     mca_coll_base_module_t * module, ompi_coll_tree_t * tree,
-                                    size_t seg_size)
+                                    size_t seg_size
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item_;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item_ = *q;
+        } else item_ = NULL;
+    } else item_ = NULL;
+#endif
 
     ptrdiff_t extent, lower_bound, segment_increment;
     ptrdiff_t true_lower_bound, true_extent, real_seg_size;
@@ -701,9 +762,15 @@ int ompi_coll_adapt_ireduce_generic(const void *sbuf, void *rbuf, int count,
 
                 /* Create a recv request */
                 ompi_request_t *recv_req;
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(irecv
                                     (temp_recv_buf, recv_count, dtype, tree->tree_next[i],
                                     con->ireduce_tag - seg_index, comm, &recv_req));
+#else
+	       err = MCA_PML_CALL(irecv
+                                    (temp_recv_buf, recv_count, dtype, tree->tree_next[i],
+                                    con->ireduce_tag - seg_index, comm, &recv_req, &item_));
+#endif
                 if (MPI_SUCCESS != err) {
                     return err;
                 }
@@ -753,10 +820,17 @@ int ompi_coll_adapt_ireduce_generic(const void *sbuf, void *rbuf, int count,
 
             /* Create send request */
             ompi_request_t *send_req;
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend
                                 (context->buff, send_count, dtype, tree->tree_prev,
                                 con->ireduce_tag - context->seg_index,
                                 sendmode, comm, &send_req));
+#else	
+	   err = MCA_PML_CALL(isend
+                                (context->buff, send_count, dtype, tree->tree_prev,
+                                con->ireduce_tag - context->seg_index,
+                                sendmode, comm, &send_req, &item_));
+#endif
             if (MPI_SUCCESS != err) {
                 return err;
             }

@@ -120,12 +120,26 @@ int ompi_coll_tuned_reduce_scatter_block_intra_do_this(const void *sbuf, void *r
                                                        struct ompi_op_t *op,
                                                        struct ompi_communicator_t *comm,
                                                        mca_coll_base_module_t *module,
-                                                       int algorithm, int faninout, int segsize)
+                                                       int algorithm, int faninout, int segsize
+#ifdef ENABLE_ANALYSIS
+                                                       , qentry **q
+#endif
+                                                       )
 {
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:reduce_scatter_block_intra_do_this selected algorithm %d topo faninout %d segsize %d",
                  algorithm, faninout, segsize));
 
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     switch (algorithm) {
+#ifndef ENABLE_ANALYSIS
     case (0): return ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed(sbuf, rbuf, rcount,
                                                                           dtype, op, comm, module);
     case (1): return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount,
@@ -136,6 +150,18 @@ int ompi_coll_tuned_reduce_scatter_block_intra_do_this(const void *sbuf, void *r
                                                                                 dtype, op, comm, module);
     case (4): return ompi_coll_base_reduce_scatter_block_intra_butterfly(sbuf, rbuf, rcount, dtype, op, comm,
                                                                          module);
+#else
+       case (0): return ompi_coll_tuned_reduce_scatter_block_intra_dec_fixed(sbuf, rbuf, rcount,
+                                                                          dtype, op, comm, module, &item);
+    case (1): return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount,
+                                                                      dtype, op, comm, module, &item);
+    case (2): return ompi_coll_base_reduce_scatter_block_intra_recursivedoubling(sbuf, rbuf, rcount,
+                                                                                 dtype, op, comm, module, &item);
+    case (3): return ompi_coll_base_reduce_scatter_block_intra_recursivehalving(sbuf, rbuf, rcount,
+                                                                                dtype, op, comm, module, &item);
+    case (4): return ompi_coll_base_reduce_scatter_block_intra_butterfly(sbuf, rbuf, rcount, dtype, op, comm,
+                                                                         module, &item); 
+#endif
     } /* switch */
     OPAL_OUTPUT((ompi_coll_tuned_stream, "coll:tuned:reduce_scatter_block_intra_do_this attempt to select algorithm %d when only 0-%d is valid?",
                  algorithm, ompi_coll_tuned_forced_max_algorithms[REDUCESCATTERBLOCK]));

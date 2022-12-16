@@ -234,8 +234,13 @@ bcast_rportlen:
      * side's participants */
 
     /* bcast the list-length to all processes in the local comm */
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_bcast(&rportlen, 1, MPI_INT, root, comm,
                                  comm->c_coll->coll_bcast_module);
+#else
+    rc = comm->c_coll->coll_bcast(&rportlen, 1, MPI_INT, root, comm,
+                                 comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (OMPI_SUCCESS != rc) {
         free(rport);
         goto exit;
@@ -258,8 +263,13 @@ bcast_rportlen:
         }
     }
     /* now share the list of remote participants */
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_bcast(rport, rportlen, MPI_BYTE, root, comm,
                                  comm->c_coll->coll_bcast_module);
+#else
+    rc = comm->c_coll->coll_bcast(rport, rportlen, MPI_BYTE, root, comm,
+                                 comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (OMPI_SUCCESS != rc) {
         free(rport);
         goto exit;
@@ -1803,9 +1813,15 @@ static ompi_dpm_disconnect_obj *disconnect_init(ompi_communicator_t *comm)
     /* initiate all isend_irecvs. We use a dummy buffer stored on
        the object, since we are sending zero size messages anyway. */
     for (i=0; i < obj->size; i++) {
+#ifndef ENABLE_ANALYSIS
         ret = MCA_PML_CALL(irecv(&(obj->buf), 0, MPI_INT, i,
                                  OMPI_COMM_BARRIER_TAG, comm,
                                  &(obj->reqs[2*i])));
+#else
+        ret = MCA_PML_CALL(irecv(&(obj->buf), 0, MPI_INT, i,
+                                 OMPI_COMM_BARRIER_TAG, comm,
+                                 &(obj->reqs[2*i]), NULL));
+#endif
 
         if (OMPI_SUCCESS != ret) {
             opal_output(0, "dpm_disconnect_init: error %d in irecv to process %d", ret, i);
@@ -1813,10 +1829,17 @@ static ompi_dpm_disconnect_obj *disconnect_init(ompi_communicator_t *comm)
             free(obj);
             return NULL;
         }
+#ifndef ENABLE_ANALYSIS
         ret = MCA_PML_CALL(isend(&(obj->buf), 0, MPI_INT, i,
                                  OMPI_COMM_BARRIER_TAG,
                                  MCA_PML_BASE_SEND_SYNCHRONOUS,
                                  comm, &(obj->reqs[2*i+1])));
+#else
+        ret = MCA_PML_CALL(isend(&(obj->buf), 0, MPI_INT, i,
+                                 OMPI_COMM_BARRIER_TAG,
+                                 MCA_PML_BASE_SEND_SYNCHRONOUS,
+                                 comm, &(obj->reqs[2*i+1]), NULL));
+#endif
 
         if (OMPI_SUCCESS != ret) {
             opal_output(0, "dpm_disconnect_init: error %d in isend to process %d", ret, i);

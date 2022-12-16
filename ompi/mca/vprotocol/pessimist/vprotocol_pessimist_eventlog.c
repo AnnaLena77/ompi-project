@@ -51,16 +51,30 @@ int vprotocol_pessimist_event_logger_connect(int el_rank, ompi_communicator_t **
 
     /* Send Rank, receive max buffer size and max_clock back */
     rank = ompi_comm_rank(&ompi_mpi_comm_world.comm);
+#ifndef ENABLE_ANALYSIS
     rc = mca_pml_v.host_pml.pml_send(&rank, 1, MPI_INTEGER, 0,
                                      VPROTOCOL_PESSIMIST_EVENTLOG_NEW_CLIENT_CMD,
                                      MCA_PML_BASE_SEND_STANDARD,
                                      mca_vprotocol_pessimist.el_comm);
+#else
+    rc = mca_pml_v.host_pml.pml_send(&rank, 1, MPI_INTEGER, 0,
+                                     VPROTOCOL_PESSIMIST_EVENTLOG_NEW_CLIENT_CMD,
+                                     MCA_PML_BASE_SEND_STANDARD,
+                                     mca_vprotocol_pessimist.el_comm, NULL);
+#endif
+
     if(OPAL_UNLIKELY(MPI_SUCCESS != rc))
         OMPI_ERRHANDLER_INVOKE(mca_vprotocol_pessimist.el_comm, rc,
                                __FILE__ ": failed sending event logger handshake");
+#ifndef ENABLE_ANALYSIS
     rc = mca_pml_v.host_pml.pml_recv(&connect_info, 2, MPI_UNSIGNED_LONG_LONG,
                                      0, VPROTOCOL_PESSIMIST_EVENTLOG_NEW_CLIENT_CMD,
                                      mca_vprotocol_pessimist.el_comm, MPI_STATUS_IGNORE);
+#else
+    rc = mca_pml_v.host_pml.pml_recv(&connect_info, 2, MPI_UNSIGNED_LONG_LONG,
+                                     0, VPROTOCOL_PESSIMIST_EVENTLOG_NEW_CLIENT_CMD,
+                                     mca_vprotocol_pessimist.el_comm, MPI_STATUS_IGNORE, NULL);
+#endif
     if(OPAL_UNLIKELY(MPI_SUCCESS != rc))                                  \
         OMPI_ERRHANDLER_INVOKE(mca_vprotocol_pessimist.el_comm, rc,       \
                                __FILE__ ": failed receiving event logger handshake");

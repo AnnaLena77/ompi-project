@@ -37,6 +37,9 @@
 #include "opal/mca/rcache/udreg/rcache_udreg.h"
 #include "opal/util/output.h"
 #include "opal_stdint.h"
+#ifdef ENABLE_ANALYSIS
+#   include "ompi/mpi/c/init.h"
+#endif
 
 #include <assert.h>
 #include <errno.h>
@@ -384,7 +387,11 @@ struct mca_btl_base_endpoint_t *mca_btl_ugni_get_ep(struct mca_btl_base_module_t
  * @param tag (IN)         The tag value used to notify the peer.
  */
 int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *btl_peer,
-                      struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag);
+                      struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q
+#endif
+                      );
 
 /**
  * Initiate an immediate blocking send.
@@ -405,7 +412,11 @@ int mca_btl_ugni_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_end
 int mca_btl_ugni_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
                        struct opal_convertor_t *convertor, void *header, size_t header_size,
                        size_t payload_size, uint8_t order, uint32_t flags, mca_btl_base_tag_t tag,
-                       mca_btl_base_descriptor_t **descriptor);
+                       mca_btl_base_descriptor_t **descriptor
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q
+#endif
+                       );
 
 int mca_btl_ugni_get(mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
                      void *local_address, uint64_t remote_address,

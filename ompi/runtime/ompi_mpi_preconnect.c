@@ -59,11 +59,19 @@ ompi_init_preconnect_mpi(void)
         next = (comm_rank + i) % comm_size;
         prev = (comm_rank - i + comm_size) % comm_size;
 
+#ifndef ENABLE_ANALYSIS
         ret = ompi_coll_base_sendrecv_actual(outbuf, 1, MPI_CHAR,
                                              next, 1,
                                              inbuf, 1, MPI_CHAR,
                                              prev, 1,
                                              MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+#else
+        ret = ompi_coll_base_sendrecv_actual(outbuf, 1, MPI_CHAR,
+                                             next, 1,
+                                             inbuf, 1, MPI_CHAR,
+                                             prev, 1,
+                                             MPI_COMM_WORLD, MPI_STATUS_IGNORE, NULL);
+#endif
         if(OMPI_SUCCESS != ret) return ret;
     }
 

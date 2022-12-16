@@ -510,7 +510,8 @@ ompi_coll_portals4_gather_intra_binomial_top(const void *sbuf, int scount, struc
                                              int root,
                                              struct ompi_communicator_t *comm,
                                              ompi_coll_portals4_request_t *request,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+                                             )
 {
     mca_coll_portals4_module_t *portals4_module = (mca_coll_portals4_module_t*) module;
     int ret, line;
@@ -806,7 +807,8 @@ ompi_coll_portals4_gather_intra_linear_top(const void *sbuf, int scount, struct 
                                            int root,
                                            struct ompi_communicator_t *comm,
                                            ompi_coll_portals4_request_t *request,
-                                           mca_coll_base_module_t *module)
+                                           mca_coll_base_module_t *module
+                                           )
 {
     mca_coll_portals4_module_t *portals4_module = (mca_coll_portals4_module_t*) module;
     int ret, line;
@@ -1086,7 +1088,8 @@ err_hdlr:
 
 static int
 ompi_coll_portals4_gather_intra_binomial_bottom(struct ompi_communicator_t *comm,
-                                                ompi_coll_portals4_request_t *request)
+                                                ompi_coll_portals4_request_t *request
+                                                )
 {
     int ret, line;
 
@@ -1153,7 +1156,8 @@ err_hdlr:
 
 static int
 ompi_coll_portals4_gather_intra_linear_bottom(struct ompi_communicator_t *comm,
-                                              ompi_coll_portals4_request_t *request)
+                                              ompi_coll_portals4_request_t *request
+                                              )
 {
     int ret, line;
 
@@ -1216,7 +1220,11 @@ ompi_coll_portals4_gather_intra(const void *sbuf, int scount, struct ompi_dataty
                                 void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
                                 int root,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                )
 {
     int ret, line;
 
@@ -1289,7 +1297,11 @@ ompi_coll_portals4_igather_intra(const void *sbuf, int scount, struct ompi_datat
                                  int root,
                                  struct ompi_communicator_t *comm,
                                  ompi_request_t **ompi_request,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
     int ret, line;
 

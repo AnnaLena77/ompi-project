@@ -240,7 +240,11 @@ int mca_common_ompio_file_close (ompio_file_t *ompio_fh)
         return OMPI_SUCCESS;
     }
 
+#ifndef ENABLE_ANALYSIS
     ret = ompio_fh->f_comm->c_coll->coll_barrier ( ompio_fh->f_comm, ompio_fh->f_comm->c_coll->coll_barrier_module);
+#else
+    ret = ompio_fh->f_comm->c_coll->coll_barrier ( ompio_fh->f_comm, ompio_fh->f_comm->c_coll->coll_barrier_module, NULL);
+#endif
     if ( OMPI_SUCCESS != ret ) {
         /* Not sure what to do */
         opal_output (1,"mca_common_ompio_file_close: error in Barrier \n");

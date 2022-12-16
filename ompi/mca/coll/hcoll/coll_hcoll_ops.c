@@ -70,8 +70,21 @@ int mca_coll_hcoll_allgather(const void *sbuf, int scount,
                             void *rbuf, int rcount,
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
     int rc;
@@ -89,19 +102,37 @@ int mca_coll_hcoll_allgather(const void *sbuf, int scount,
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback allgather;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_allgather(sbuf,scount,sdtype,
                                              rbuf,rcount,rdtype,
                                              comm,
                                              hcoll_module->previous_allgather_module);
+#else
+        rc = hcoll_module->previous_allgather(sbuf,scount,sdtype,
+                                             rbuf,rcount,rdtype,
+                                             comm,
+                                             hcoll_module->previous_allgather_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_allgather((void *)sbuf,scount,stype,rbuf,rcount,rtype,hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_allgather((void *)sbuf,scount,stype,rbuf,rcount,rtype,hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK ALLGATHER");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_allgather(sbuf,scount,sdtype,
                                              rbuf,rcount,rdtype,
                                              comm,
                                              hcoll_module->previous_allgather_module);
+#else
+        rc = hcoll_module->previous_allgather(sbuf,scount,sdtype,
+                                             rbuf,rcount,rdtype,
+                                             comm,
+                                             hcoll_module->previous_allgather_module, &item);
+#endif
     }
     return rc;
 }
@@ -112,8 +143,21 @@ int mca_coll_hcoll_allgatherv(const void *sbuf, int scount,
                             const int *displs,
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
     int rc;
@@ -128,24 +172,47 @@ int mca_coll_hcoll_allgatherv(const void *sbuf, int scount,
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback allgatherv;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_allgatherv(sbuf,scount,sdtype,
                                              rbuf,rcount,
                                              displs, 
                                              rdtype,
                                              comm,
                                              hcoll_module->previous_allgatherv_module);
+#else
+        rc = hcoll_module->previous_allgatherv(sbuf,scount,sdtype,
+                                             rbuf,rcount,
+                                             displs, 
+                                             rdtype,
+                                             comm,
+                                             hcoll_module->previous_allgatherv_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_allgatherv((void *)sbuf,scount,stype,rbuf,(int*)rcount,
                                            (int*)displs,rtype,hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_allgatherv((void *)sbuf,scount,stype,rbuf,(int*)rcount,
+                                           (int*)displs,rtype,hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK ALLGATHERV");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_allgatherv(sbuf,scount,sdtype,
                                              rbuf,rcount,
                                              displs, 
                                              rdtype,
                                              comm,
                                              hcoll_module->previous_allgatherv_module);
+#else
+        rc = hcoll_module->previous_allgatherv(sbuf,scount,sdtype,
+                                             rbuf,rcount,
+                                             displs, 
+                                             rdtype,
+                                             comm,
+                                             hcoll_module->previous_allgatherv_module, &item);
+#endif
     }
     return rc;
 }
@@ -156,8 +223,21 @@ int mca_coll_hcoll_gather(const void *sbuf, int scount,
                           struct ompi_datatype_t *rdtype,
                           int root,
                           struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t *module)
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_hcoll_module_t  *hcoll_module = (mca_coll_hcoll_module_t*)module;
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
@@ -178,19 +258,37 @@ int mca_coll_hcoll_gather(const void *sbuf, int scount,
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback gather;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_gather(sbuf,scount,sdtype,
                                            rbuf,rcount,rdtype,root,
                                            comm,
                                            hcoll_module->previous_allgather_module);
+#else
+        rc = hcoll_module->previous_gather(sbuf,scount,sdtype,
+                                           rbuf,rcount,rdtype,root,
+                                           comm,
+                                           hcoll_module->previous_allgather_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_gather((void *)sbuf,scount,stype,rbuf,rcount,rtype,root,hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_gather((void *)sbuf,scount,stype,rbuf,rcount,rtype,root,hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK GATHER");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_gather((void *)sbuf,scount,sdtype,
                                               rbuf,rcount,rdtype,root,
                                               comm,
                                               hcoll_module->previous_allgather_module);
+#else
+        rc = hcoll_module->previous_gather((void *)sbuf,scount,sdtype,
+                                              rbuf,rcount,rdtype,root,
+                                              comm,
+                                              hcoll_module->previous_allgather_module, &item);
+#endif
     }
     return rc;
 
@@ -200,8 +298,21 @@ int mca_coll_hcoll_allreduce(const void *sbuf, void *rbuf, int count,
                             struct ompi_datatype_t *dtype,
                             struct ompi_op_t *op,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t Dtype;
     hcoll_dte_op_t *Op;
     int rc;
@@ -214,9 +325,15 @@ int mca_coll_hcoll_allreduce(const void *sbuf, void *rbuf, int count,
         /* Now use fallback */
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: dtype = %s; calling fallback allreduce;",
                      dtype->super.name);
+#ifndef ENABLE_ANALYSIS       
         rc = hcoll_module->previous_allreduce(sbuf,rbuf,
                                              count,dtype,op,
                                              comm, hcoll_module->previous_allreduce_module);
+#else
+        rc = hcoll_module->previous_allreduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             comm, hcoll_module->previous_allreduce_module, &item);
+#endif
         return rc;
     }
 
@@ -227,18 +344,34 @@ int mca_coll_hcoll_allreduce(const void *sbuf, void *rbuf, int count,
         /* Now use fallback */
         HCOL_VERBOSE(20,"ompi_op_t is not supported: op = %s; calling fallback allreduce;",
                      op->o_name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_allreduce(sbuf,rbuf,
                                              count,dtype,op,
                                              comm, hcoll_module->previous_allreduce_module);
+#else
+        rc = hcoll_module->previous_allreduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             comm, hcoll_module->previous_allreduce_module, &item);
+#endif
         return rc;
     }
 
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_allreduce((void *)sbuf,rbuf,count,Dtype,Op,hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_allreduce((void *)sbuf,rbuf,count,Dtype,Op,hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK ALLREDUCE");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_allreduce(sbuf,rbuf,
                                              count,dtype,op,
                                              comm, hcoll_module->previous_allreduce_module);
+#else
+        rc = hcoll_module->previous_allreduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             comm, hcoll_module->previous_allreduce_module, &item);
+#endif
     }
     return rc;
 }
@@ -248,8 +381,21 @@ int mca_coll_hcoll_reduce(const void *sbuf, void *rbuf, int count,
                             struct ompi_op_t *op,
                             int root,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t Dtype;
     hcoll_dte_op_t *Op;
     int rc;
@@ -262,10 +408,17 @@ int mca_coll_hcoll_reduce(const void *sbuf, void *rbuf, int count,
         /* Now use fallback */
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: dtype = %s; calling fallback reduce;",
                      dtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_reduce(sbuf,rbuf,
                                              count,dtype,op,
                                              root,
                                              comm, hcoll_module->previous_reduce_module);
+#else
+        rc = hcoll_module->previous_reduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             root,
+                                             comm, hcoll_module->previous_reduce_module, &item);
+#endif
         return rc;
     }
 
@@ -276,20 +429,38 @@ int mca_coll_hcoll_reduce(const void *sbuf, void *rbuf, int count,
         /* Now use fallback */
         HCOL_VERBOSE(20,"ompi_op_t is not supported: op = %s; calling fallback reduce;",
                      op->o_name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_reduce(sbuf,rbuf,
                                              count,dtype,op,
                                              root,
                                              comm, hcoll_module->previous_reduce_module);
+#else
+        rc = hcoll_module->previous_reduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             root,
+                                             comm, hcoll_module->previous_reduce_module, &item);
+#endif
         return rc;
     }
 
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_reduce((void *)sbuf,rbuf,count,Dtype,Op,root,hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_reduce((void *)sbuf,rbuf,count,Dtype,Op,root,hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK REDUCE");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_reduce(sbuf,rbuf,
                                              count,dtype,op,
                                              root,
                                              comm, hcoll_module->previous_reduce_module);
+#else
+        rc = hcoll_module->previous_reduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             root,
+                                             comm, hcoll_module->previous_reduce_module, &item);
+#endif
     }
     return rc;
 }
@@ -299,8 +470,21 @@ int mca_coll_hcoll_alltoall(const void *sbuf, int scount,
                            void* rbuf, int rcount,
                            struct ompi_datatype_t *rdtype,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module)
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
     int rc;
@@ -315,19 +499,37 @@ int mca_coll_hcoll_alltoall(const void *sbuf, int scount,
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback alltoall;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_alltoall(sbuf,scount,sdtype,
                                             rbuf,rcount,rdtype,
                                             comm,
                                             hcoll_module->previous_alltoall_module);
+#else
+        rc = hcoll_module->previous_alltoall(sbuf,scount,sdtype,
+                                            rbuf,rcount,rdtype,
+                                            comm,
+                                            hcoll_module->previous_alltoall_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_alltoall((void *)sbuf,scount,stype,rbuf,rcount,rtype,hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_alltoall((void *)sbuf,scount,stype,rbuf,rcount,rtype,hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK ALLTOALL");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_alltoall(sbuf,scount,sdtype,
                                             rbuf,rcount,rdtype,
                                             comm,
                                             hcoll_module->previous_alltoall_module);
+#else
+        rc = hcoll_module->previous_alltoall(sbuf,scount,sdtype,
+                                            rbuf,rcount,rdtype,
+                                            comm,
+                                            hcoll_module->previous_alltoall_module, &item);
+#endif
     }
     return rc;
 }
@@ -337,8 +539,20 @@ int mca_coll_hcoll_alltoallv(const void *sbuf, const int *scounts, const int *sd
                             void *rbuf, const int *rcounts, const int *rdisps,
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
     int rc;
@@ -350,19 +564,37 @@ int mca_coll_hcoll_alltoallv(const void *sbuf, const int *scounts, const int *sd
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback alltoallv;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_alltoallv(sbuf, scounts, sdisps, sdtype,
                                             rbuf, rcounts, rdisps, rdtype,
                                             comm, hcoll_module->previous_alltoallv_module);
+#else
+        rc = hcoll_module->previous_alltoallv(sbuf, scounts, sdisps, sdtype,
+                                            rbuf, rcounts, rdisps, rdtype,
+                                            comm, hcoll_module->previous_alltoallv_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_alltoallv((void *)sbuf, (int *)scounts, (int *)sdisps, stype,
                                             rbuf, (int *)rcounts, (int *)rdisps, rtype,
                                                 hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_alltoallv((void *)sbuf, (int *)scounts, (int *)sdisps, stype,
+                                            rbuf, (int *)rcounts, (int *)rdisps, rtype,
+                                                hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK ALLTOALLV");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_alltoallv(sbuf, scounts, sdisps, sdtype,
                                             rbuf, rcounts, rdisps, rdtype,
                                             comm, hcoll_module->previous_alltoallv_module);
+#else
+        rc = hcoll_module->previous_alltoallv(sbuf, scounts, sdisps, sdtype,
+                                            rbuf, rcounts, rdisps, rdtype,
+                                            comm, hcoll_module->previous_alltoallv_module, &item);
+#endif
     }
     return rc;
 }
@@ -373,8 +605,21 @@ int mca_coll_hcoll_gatherv(const void* sbuf, int scount,
                             struct ompi_datatype_t *rdtype,
                             int root,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_hcoll_module_t  *hcoll_module = (mca_coll_hcoll_module_t*)module;
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
@@ -395,19 +640,37 @@ int mca_coll_hcoll_gatherv(const void* sbuf, int scount,
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback gatherv;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_gatherv(sbuf,scount,sdtype,
                                            rbuf, rcounts, displs, rdtype,root,
                                            comm, hcoll_module->previous_gatherv_module);
+#else
+        rc = hcoll_module->previous_gatherv(sbuf,scount,sdtype,
+                                           rbuf, rcounts, displs, rdtype,root,
+                                           comm, hcoll_module->previous_gatherv_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_gatherv((void *)sbuf, scount, stype, rbuf,
                                         (int *)rcounts, (int *)displs, rtype,
                                         root, hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_gatherv((void *)sbuf, scount, stype, rbuf,
+                                        (int *)rcounts, (int *)displs, rtype,
+                                        root, hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK GATHERV");
+#ifndef ENABLE_ANALSIS
         rc = hcoll_module->previous_gatherv(sbuf,scount,sdtype,
                                            rbuf, rcounts, displs, rdtype,root,
                                            comm, hcoll_module->previous_igatherv_module);
+#else
+        rc = hcoll_module->previous_gatherv(sbuf,scount,sdtype,
+                                           rbuf, rcounts, displs, rdtype,root,
+                                           comm, hcoll_module->previous_igatherv_module, &item);
+#endif
     }
     return rc;
 
@@ -419,8 +682,21 @@ int mca_coll_hcoll_scatterv(const void* sbuf, const int *scounts, const int *dis
                             struct ompi_datatype_t *rdtype,
                             int root,
                             struct ompi_communicator_t *comm,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_hcoll_module_t  *hcoll_module = (mca_coll_hcoll_module_t*)module;
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
@@ -446,17 +722,33 @@ int mca_coll_hcoll_scatterv(const void* sbuf, const int *scounts, const int *dis
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback scatterv;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_scatterv(sbuf, scounts, displs, sdtype,
                                            rbuf, rcount, rdtype, root,
                                            comm, hcoll_module->previous_scatterv_module);
+#else
+        rc = hcoll_module->previous_scatterv(sbuf, scounts, displs, sdtype,
+                                           rbuf, rcount, rdtype, root,
+                                           comm, hcoll_module->previous_scatterv_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_scatterv((void *)sbuf, (int *)scounts, (int *)displs, stype, rbuf, rcount, rtype, root, hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_scatterv((void *)sbuf, (int *)scounts, (int *)displs, stype, rbuf, rcount, rtype, root, hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK SCATTERV");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_scatterv(sbuf, scounts, displs, sdtype,
                                            rbuf, rcount, rdtype, root,
                                            comm, hcoll_module->previous_scatterv_module);
+#else
+        rc = hcoll_module->previous_scatterv(sbuf, scounts, displs, sdtype,
+                                           rbuf, rcount, rdtype, root,
+                                           comm, hcoll_module->previous_scatterv_module, &item);
+#endif
     }
     return rc;
 }
@@ -482,8 +774,21 @@ int mca_coll_hcoll_ibcast(void *buff, int count,
                         struct ompi_datatype_t *datatype, int root,
                         struct ompi_communicator_t *comm,
                         ompi_request_t ** request,
-                        mca_coll_base_module_t *module)
+                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		      , qentry **q
+#endif
+                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t dtype;
     int rc;
     void** rt_handle;
@@ -496,15 +801,29 @@ int mca_coll_hcoll_ibcast(void *buff, int count,
         /*In future we need to add more complex mapping to the dte_data_representation_t */
         /* Now use fallback */
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: %s; calling fallback non-blocking bcast;",datatype->super.name);
+#ifndef ENABLE_ANALSYIS
         rc = hcoll_module->previous_ibcast(buff,count,datatype,root,
                                          comm, request, hcoll_module->previous_ibcast_module);
+#else
+        rc = hcoll_module->previous_ibcast(buff,count,datatype,root,
+                                         comm, request, hcoll_module->previous_ibcast_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_ibcast(buff, count, dtype, root, rt_handle, hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_ibcast(buff, count, dtype, root, rt_handle, hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK NON-BLOCKING BCAST");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_ibcast(buff,count,datatype,root,
                                          comm, request, hcoll_module->previous_ibcast_module);
+#else
+        rc = hcoll_module->previous_ibcast(buff,count,datatype,root,
+                                         comm, request, hcoll_module->previous_ibcast_module, &item);
+#endif
     }
     return rc;
 }
@@ -515,8 +834,21 @@ int mca_coll_hcoll_iallgather(const void *sbuf, int scount,
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
                             ompi_request_t ** request,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
     int rc;
@@ -533,21 +865,41 @@ int mca_coll_hcoll_iallgather(const void *sbuf, int scount,
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback non-blocking allgather;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_iallgather(sbuf,scount,sdtype,
                                              rbuf,rcount,rdtype,
                                              comm,
                                              request,
                                              hcoll_module->previous_iallgather_module);
+#else
+        rc = hcoll_module->previous_iallgather(sbuf,scount,sdtype,
+                                             rbuf,rcount,rdtype,
+                                             comm,
+                                             request,
+                                             hcoll_module->previous_iallgather_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_iallgather((void *)sbuf, scount, stype, rbuf, rcount, rtype, hcoll_module->hcoll_context, rt_handle);
+#else
+    rc = hcoll_collectives.coll_iallgather((void *)sbuf, scount, stype, rbuf, rcount, rtype, hcoll_module->hcoll_context, rt_handle, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK NON-BLOCKING ALLGATHER");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_iallgather(sbuf,scount,sdtype,
                                              rbuf,rcount,rdtype,
                                              comm,
                                              request,
                                              hcoll_module->previous_iallgather_module);
+#else
+        rc = hcoll_module->previous_iallgather(sbuf,scount,sdtype,
+                                             rbuf,rcount,rdtype,
+                                             comm,
+                                             request,
+                                             hcoll_module->previous_iallgather_module, &item);
+#endif
     }
     return rc;
 }
@@ -559,8 +911,21 @@ int mca_coll_hcoll_iallgatherv(const void *sbuf, int scount,
                             struct ompi_datatype_t *rdtype,
                             struct ompi_communicator_t *comm,
                             ompi_request_t ** request,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
     int rc;
@@ -576,6 +941,7 @@ int mca_coll_hcoll_iallgatherv(const void *sbuf, int scount,
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback non-blocking allgatherv;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_iallgatherv(sbuf,scount,sdtype,
                                              rbuf,rcount,
                                              displs, 
@@ -583,6 +949,15 @@ int mca_coll_hcoll_iallgatherv(const void *sbuf, int scount,
                                              comm,
                                              request,
                                              hcoll_module->previous_iallgatherv_module);
+#else
+        rc = hcoll_module->previous_iallgatherv(sbuf,scount,sdtype,
+                                             rbuf,rcount,
+                                             displs, 
+                                             rdtype,
+                                             comm,
+                                             request,
+                                             hcoll_module->previous_iallgatherv_module, &item);
+#endif
         return rc;
     }
     rc = hcoll_collectives.coll_iallgatherv((void *)sbuf,scount,stype,rbuf,(int*)rcount,(int*)displs,rtype,
@@ -605,8 +980,21 @@ int mca_coll_hcoll_iallreduce(const void *sbuf, void *rbuf, int count,
                             struct ompi_op_t *op,
                             struct ompi_communicator_t *comm,
                             ompi_request_t ** request,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t Dtype;
     hcoll_dte_op_t *Op;
     int rc;
@@ -621,9 +1009,15 @@ int mca_coll_hcoll_iallreduce(const void *sbuf, void *rbuf, int count,
         /* Now use fallback */
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: dtype = %s; calling fallback non-blocking allreduce;",
                      dtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_iallreduce(sbuf,rbuf,
                                              count,dtype,op,
                                              comm, request, hcoll_module->previous_iallreduce_module);
+#else
+        rc = hcoll_module->previous_iallreduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             comm, request, hcoll_module->previous_iallreduce_module, &item);
+#endif
         return rc;
     }
 
@@ -634,18 +1028,33 @@ int mca_coll_hcoll_iallreduce(const void *sbuf, void *rbuf, int count,
         /* Now use fallback */
         HCOL_VERBOSE(20,"ompi_op_t is not supported: op = %s; calling fallback non-blocking allreduce;",
                      op->o_name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_iallreduce(sbuf,rbuf,
                                              count,dtype,op,
                                              comm, request, hcoll_module->previous_iallreduce_module);
+#else
+        rc = hcoll_module->previous_iallreduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             comm, request, hcoll_module->previous_iallreduce_module, &item);
+#endif
         return rc;
     }
-
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_iallreduce((void *)sbuf, rbuf, count, Dtype, Op, hcoll_module->hcoll_context, rt_handle);
+#else
+    rc = hcoll_collectives.coll_iallreduce((void *)sbuf, rbuf, count, Dtype, Op, hcoll_module->hcoll_context, rt_handle, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK NON-BLOCKING ALLREDUCE");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_iallreduce(sbuf,rbuf,
                                              count,dtype,op,
                                              comm, request, hcoll_module->previous_iallreduce_module);
+#else
+        rc = hcoll_module->previous_iallreduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             comm, request, hcoll_module->previous_iallreduce_module, &item);
+#endif
     }
     return rc;
 }
@@ -656,8 +1065,21 @@ int mca_coll_hcoll_ireduce(const void *sbuf, void *rbuf, int count,
                             int root,
                             struct ompi_communicator_t *comm,
                             ompi_request_t ** request,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t Dtype;
     hcoll_dte_op_t *Op;
     int rc;
@@ -671,10 +1093,17 @@ int mca_coll_hcoll_ireduce(const void *sbuf, void *rbuf, int count,
         /* Now use fallback */
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: dtype = %s; calling fallback non-blocking reduce;",
                      dtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_ireduce(sbuf,rbuf,count,dtype,op,
                                              root,
                                              comm, request, 
                                              hcoll_module->previous_ireduce_module);
+#else
+        rc = hcoll_module->previous_ireduce(sbuf,rbuf,count,dtype,op,
+                                             root,
+                                             comm, request, 
+                                             hcoll_module->previous_ireduce_module, &item);
+#endif
         return rc;
     }
 
@@ -685,23 +1114,43 @@ int mca_coll_hcoll_ireduce(const void *sbuf, void *rbuf, int count,
         /* Now use fallback */
         HCOL_VERBOSE(20,"ompi_op_t is not supported: op = %s; calling fallback non-blocking reduce;",
                      op->o_name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_ireduce(sbuf,rbuf,
                                              count,dtype,op,
                                              root,
                                              comm, request,
                                              hcoll_module->previous_ireduce_module);
+#else
+        rc = hcoll_module->previous_ireduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             root,
+                                             comm, request,
+                                             hcoll_module->previous_ireduce_module, &item);
+#endif
         return rc;
     }
-
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_ireduce((void *)sbuf,rbuf,count,Dtype,Op,root,hcoll_module->hcoll_context,rt_handle);
+#else
+    rc = hcoll_collectives.coll_ireduce((void *)sbuf,rbuf,count,Dtype,Op,root,hcoll_module->hcoll_context,rt_handle, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK NON-BLOCKING REDUCE");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_ireduce(sbuf,rbuf,
                                              count,dtype,op,
                                              root,
                                              comm, 
                                              request,
                                              hcoll_module->previous_ireduce_module);
+#else
+        rc = hcoll_module->previous_ireduce(sbuf,rbuf,
+                                             count,dtype,op,
+                                             root,
+                                             comm, 
+                                             request,
+                                             hcoll_module->previous_ireduce_module, &item);
+#endif
     }
     return rc;
 }
@@ -713,8 +1162,21 @@ int mca_coll_hcoll_igatherv(const void* sbuf, int scount,
                             int root,
                             struct ompi_communicator_t *comm,
                             ompi_request_t ** request,
-                            mca_coll_base_module_t *module)
+                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			 , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_hcoll_module_t  *hcoll_module = (mca_coll_hcoll_module_t*)module;
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
@@ -738,19 +1200,37 @@ int mca_coll_hcoll_igatherv(const void* sbuf, int scount,
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback igatherv;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_igatherv(sbuf,scount,sdtype,
                                            rbuf, rcounts, displs, rdtype,root,
                                            comm, request,
                                            hcoll_module->previous_igatherv_module);
+#else
+        rc = hcoll_module->previous_igatherv(sbuf,scount,sdtype,
+                                           rbuf, rcounts, displs, rdtype,root,
+                                           comm, request,
+                                           hcoll_module->previous_igatherv_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_igatherv((void *)sbuf, scount, stype, rbuf, (int *)rcounts, (int *)displs, rtype, root, hcoll_module->hcoll_context, rt_handle);
+#else
+    rc = hcoll_collectives.coll_igatherv((void *)sbuf, scount, stype, rbuf, (int *)rcounts, (int *)displs, rtype, root, hcoll_module->hcoll_context, rt_handle, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK IGATHERV");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_igatherv(sbuf,scount,sdtype,
                                            rbuf, rcounts, displs, rdtype,root,
                                            comm, request,
                                            hcoll_module->previous_igatherv_module);
+#else
+        rc = hcoll_module->previous_igatherv(sbuf,scount,sdtype,
+                                           rbuf, rcounts, displs, rdtype,root,
+                                           comm, request,
+                                           hcoll_module->previous_igatherv_module, &item);
+#endif
     }
     return rc;
 
@@ -764,8 +1244,20 @@ int mca_coll_hcoll_ialltoallv(const void *sbuf, const int *scounts, const int *s
                               struct ompi_datatype_t *rdtype,
                               struct ompi_communicator_t *comm,
                               ompi_request_t ** request,
-                              mca_coll_base_module_t *module)
+                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			   , qentry **q
+#endif
+                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     dte_data_representation_t stype;
     dte_data_representation_t rtype;
     int rc;
@@ -777,19 +1269,37 @@ int mca_coll_hcoll_ialltoallv(const void *sbuf, const int *scounts, const int *s
         HCOL_VERBOSE(20,"Ompi_datatype is not supported: sdtype = %s, rdtype = %s; calling fallback ialltoallv;",
                      sdtype->super.name,
                      rdtype->super.name);
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_ialltoallv(sbuf, scounts, sdisps, sdtype,
                                                rbuf, rcounts, rdisps, rdtype,
                                                comm, request, hcoll_module->previous_alltoallv_module);
+#else
+        rc = hcoll_module->previous_ialltoallv(sbuf, scounts, sdisps, sdtype,
+                                               rbuf, rcounts, rdisps, rdtype,
+                                               comm, request, hcoll_module->previous_alltoallv_module, &item);
+#endif
         return rc;
     }
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_ialltoallv((void *)sbuf, (int *)scounts, (int *)sdisps, stype,
                                            rbuf, (int *)rcounts, (int *)rdisps, rtype,
                                            hcoll_module->hcoll_context, (void**)request);
+#else
+    rc = hcoll_collectives.coll_ialltoallv((void *)sbuf, (int *)scounts, (int *)sdisps, stype,
+                                           rbuf, (int *)rcounts, (int *)rdisps, rtype,
+                                           hcoll_module->hcoll_context, (void**)request, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
         HCOL_VERBOSE(20,"RUNNING FALLBACK IALLTOALLV");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_ialltoallv(sbuf, scounts, sdisps, sdtype,
                                                rbuf, rcounts, rdisps, rdtype,
                                                comm, request, hcoll_module->previous_alltoallv_module);
+#else
+        rc = hcoll_module->previous_ialltoallv(sbuf, scounts, sdisps, sdtype,
+                                               rbuf, rcounts, rdisps, rdtype,
+                                               comm, request, hcoll_module->previous_alltoallv_module, &item);
+#endif
     }
     return rc;
 }
@@ -800,7 +1310,11 @@ int mca_coll_hcoll_reduce_scatter_block(const void *sbuf, void *rbuf, int rcount
                                         struct ompi_datatype_t *dtype,
                                         struct ompi_op_t *op,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module) {
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				    , qentry **q
+#endif
+                                        ) {
     dte_data_representation_t Dtype;
     hcoll_dte_op_t *Op;
     int rc;
@@ -841,7 +1355,16 @@ int mca_coll_hcoll_reduce_scatter(const void *sbuf, void *rbuf, const int* rcoun
                                   struct ompi_datatype_t *dtype,
                                   struct ompi_op_t *op,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module) {
+                                  mca_coll_base_module_t *module) {       
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     dte_data_representation_t Dtype;
     hcoll_dte_op_t *Op;
     int rc;
@@ -866,15 +1389,25 @@ int mca_coll_hcoll_reduce_scatter(const void *sbuf, void *rbuf, const int* rcoun
                      op->o_name);
         goto fallback;
     }
-
+#ifndef ENABLE_ANALYSIS
     rc = hcoll_collectives.coll_reduce_scatter((void*)sbuf, rbuf, (int*)rcounts,
                                                Dtype, Op, hcoll_module->hcoll_context);
+#else
+    rc = hcoll_collectives.coll_reduce_scatter((void*)sbuf, rbuf, (int*)rcounts,
+                                               Dtype, Op, hcoll_module->hcoll_context, &item);
+#endif
     if (HCOLL_SUCCESS != rc){
     fallback:        
         HCOL_VERBOSE(20,"RUNNING FALLBACK ALLREDUCE");
+#ifndef ENABLE_ANALYSIS
         rc = hcoll_module->previous_reduce_scatter(sbuf,rbuf,
                                              rcounts,dtype,op,
                                              comm, hcoll_module->previous_allreduce_module);
+#else
+        rc = hcoll_module->previous_reduce_scatter(sbuf,rbuf,
+                                             rcounts,dtype,op,
+                                             comm, hcoll_module->previous_allreduce_module, &item);
+#endif
     }
     return rc;
 }

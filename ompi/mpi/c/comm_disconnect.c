@@ -67,7 +67,11 @@ int MPI_Comm_disconnect(MPI_Comm *comm)
         }
     }
     else {
+#ifndef ENABLE_ANALYSIS
         (*comm)->c_coll->coll_barrier(*comm, (*comm)->c_coll->coll_barrier_module);
+#else
+        (*comm)->c_coll->coll_barrier(*comm, (*comm)->c_coll->coll_barrier_module, NULL);
+#endif
     }
 
     ompi_comm_free(comm);

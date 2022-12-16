@@ -31,8 +31,21 @@ mca_coll_cuda_reduce(const void *sbuf, void *rbuf, int count,
                      struct ompi_datatype_t *dtype,
                      struct ompi_op_t *op,
                      int root, struct ompi_communicator_t *comm,
-                     mca_coll_base_module_t *module)
+                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		   , qentry **q
+#endif
+                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_cuda_module_t *s = (mca_coll_cuda_module_t*) module;
     ptrdiff_t gap;
     char *rbuf1 = NULL, *sbuf1 = NULL, *rbuf2 = NULL;
@@ -63,9 +76,15 @@ mca_coll_cuda_reduce(const void *sbuf, void *rbuf, int count,
         rbuf2 = rbuf; /* save away original buffer */
         rbuf = rbuf1 - gap;
     }
+#ifndef ENABLE_ANALYSIS
     rc = s->c_coll.coll_reduce((void *) sbuf, rbuf, count,
                                dtype, op, root, comm,
                                s->c_coll.coll_reduce_module);
+#else
+    rc = s->c_coll.coll_reduce((void *) sbuf, rbuf, count,
+                               dtype, op, root, comm,
+                               s->c_coll.coll_reduce_module, &item);
+#endif
 
     if (NULL != sbuf1) {
         free(sbuf1);

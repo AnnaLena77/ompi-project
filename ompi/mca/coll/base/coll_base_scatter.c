@@ -64,8 +64,20 @@ ompi_coll_base_scatter_intra_binomial(
     const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
     void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
     int root, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_base_module_t *base_module = (mca_coll_base_module_t*)module;
     mca_coll_base_comm_t *data = base_module->base_data;
     int line = -1, rank, vrank, size, err, packed_size, curr_count;
@@ -93,8 +105,13 @@ ompi_coll_base_scatter_intra_binomial(
 
     if ( vrank % 2 ) {  /* leaves */
         /* recv from parent on leaf nodes */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, rcount, rdtype, bmtree->tree_prev,
                                 MCA_COLL_BASE_TAG_SCATTER, comm, &status));
+#else 
+        err = MCA_PML_CALL(recv(rbuf, rcount, rdtype, bmtree->tree_prev,
+                                MCA_COLL_BASE_TAG_SCATTER, comm, &status, &item));
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
         return MPI_SUCCESS;
 
@@ -152,8 +169,13 @@ ompi_coll_base_scatter_intra_binomial(
         }
 
         /* recv from parent on non-root */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(ptmp, (ptrdiff_t)packed_size, MPI_PACKED, bmtree->tree_prev,
                                 MCA_COLL_BASE_TAG_SCATTER, comm, &status));
+#else
+        err = MCA_PML_CALL(recv(ptmp, (ptrdiff_t)packed_size, MPI_PACKED, bmtree->tree_prev,
+                                MCA_COLL_BASE_TAG_SCATTER, comm, &status, &item));
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
 
         /* Get received count */
@@ -176,10 +198,17 @@ ompi_coll_base_scatter_intra_binomial(
             send_count = size - vchild;
         send_count *= scount;
 
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(ptmp + (ptrdiff_t)(curr_count - send_count) * sextent,
                                 send_count, sdtype, bmtree->tree_next[i],
                                 MCA_COLL_BASE_TAG_SCATTER,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else 
+        err = MCA_PML_CALL(send(ptmp + (ptrdiff_t)(curr_count - send_count) * sextent,
+                                send_count, sdtype, bmtree->tree_next[i],
+                                MCA_COLL_BASE_TAG_SCATTER,
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
         if (MPI_SUCCESS != err) { line = __LINE__; goto err_hndl; }
         curr_count -= send_count;
     }
@@ -225,8 +254,20 @@ ompi_coll_base_scatter_intra_basic_linear(const void *sbuf, int scount,
                                           struct ompi_datatype_t *rdtype,
                                           int root,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, rank, size, err;
     ptrdiff_t incr;
     char *ptmp;
@@ -239,9 +280,15 @@ ompi_coll_base_scatter_intra_basic_linear(const void *sbuf, int scount,
     /* If not root, receive data. */
 
     if (rank != root) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, rcount, rdtype, root,
                                 MCA_COLL_BASE_TAG_SCATTER,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(rbuf, rcount, rdtype, root,
+                                MCA_COLL_BASE_TAG_SCATTER,
+                                comm, MPI_STATUS_IGNORE, &item));
+#endif
         return err;
     }
 
@@ -264,9 +311,15 @@ ompi_coll_base_scatter_intra_basic_linear(const void *sbuf, int scount,
                                          rdtype);
             }
         } else {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(ptmp, scount, sdtype, i,
                                     MCA_COLL_BASE_TAG_SCATTER,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+            err = MCA_PML_CALL(send(ptmp, scount, sdtype, i,
+                                    MCA_COLL_BASE_TAG_SCATTER,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
         }
         if (MPI_SUCCESS != err) {
             return err;
@@ -293,8 +346,20 @@ ompi_coll_base_scatter_intra_linear_nb(const void *sbuf, int scount,
                                        int root,
                                        struct ompi_communicator_t *comm,
                                        mca_coll_base_module_t *module,
-                                       int max_reqs)
+                                       int max_reqs
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, rank, size, err, line, nreqs;
     ptrdiff_t incr;
     char *ptmp;
@@ -305,9 +370,15 @@ ompi_coll_base_scatter_intra_linear_nb(const void *sbuf, int scount,
 
     /* If not root, receive data. */
     if (rank != root) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, rcount, rdtype, root,
                                 MCA_COLL_BASE_TAG_SCATTER,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(rbuf, rcount, rdtype, root,
+                                MCA_COLL_BASE_TAG_SCATTER,
+                                comm, MPI_STATUS_IGNORE, &item));
+#endif
         if (MPI_SUCCESS != err) {
             line = __LINE__; goto err_hndl;
         }
@@ -347,15 +418,29 @@ ompi_coll_base_scatter_intra_linear_nb(const void *sbuf, int scount,
             }
         } else {
             if (!max_reqs || (i % max_reqs)) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(isend(ptmp, scount, sdtype, i,
                                          MCA_COLL_BASE_TAG_SCATTER,
                                          MCA_PML_BASE_SEND_STANDARD,
                                          comm, preq++));
+#else
+                err = MCA_PML_CALL(isend(ptmp, scount, sdtype, i,
+                                         MCA_COLL_BASE_TAG_SCATTER,
+                                         MCA_PML_BASE_SEND_STANDARD,
+                                         comm, preq++, &item));
+#endif
             } else {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(send(ptmp, scount, sdtype, i,
                                         MCA_COLL_BASE_TAG_SCATTER,
                                         MCA_PML_BASE_SEND_STANDARD,
                                         comm));
+#else
+                err = MCA_PML_CALL(send(ptmp, scount, sdtype, i,
+                                        MCA_COLL_BASE_TAG_SCATTER,
+                                        MCA_PML_BASE_SEND_STANDARD,
+                                        comm, &item));
+#endif
             }
         }
         if (MPI_SUCCESS != err) {

@@ -47,6 +47,59 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                  void *recvbuf, const int recvcounts[], const int displs[],
                  MPI_Datatype recvtype, int root, MPI_Comm comm, MPI_Request *request)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    gettimeofday(&item->start, NULL);
+    strcpy(item->function, "MPI_Igatherv");
+    strcpy(item->communicationType, "collective");
+    int processrank;
+    MPI_Comm_rank(comm, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    if(processrank==root){
+    	item->partnerrank = -1;
+    	//item->datatype
+         char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+         int type_name_length;
+         MPI_Type_get_name(recvtype, type_name, &type_name_length);
+         strcpy(item->datatype, type_name);
+         free(type_name);
+         //item->sendcount
+         //item->count = recvcount;
+         //item->datasize
+         //item->datasize = recvcount * sizeof(recvtype);
+    }
+    else{
+    	item->partnerrank = root;
+    	//item->datatype
+         char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+         int type_name_length;
+         MPI_Type_get_name(sendtype, type_name, &type_name_length);
+         strcpy(item->datatype, type_name);
+         free(type_name);
+         //item->count
+         //item->count = sendcount;
+         //item->datasize
+         //item->datasize = sendcount * sizeof(sendtype);
+    }
+    
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    item->blocking = 0;
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
+    
+#endif 
     int i, size, err;
 
     SPC_RECORD(OMPI_SPC_IGATHERV, 1);
@@ -192,9 +245,15 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     }
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_igatherv(sendbuf, sendcount, sendtype, recvbuf,
                                      recvcounts, displs, recvtype,
                                      root, comm, request, comm->c_coll->coll_igatherv_module);
+#else
+    err = comm->c_coll->coll_igatherv(sendbuf, sendcount, sendtype, recvbuf,
+                                     recvcounts, displs, recvtype,
+                                     root, comm, request, comm->c_coll->coll_igatherv_module, &item);
+#endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         if (OMPI_COMM_IS_INTRA(comm)) {
             if (MPI_IN_PLACE == sendbuf) {
@@ -214,5 +273,8 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         }
         ompi_coll_base_retain_datatypes(*request, sendtype, recvtype);
     }
+#ifdef ENABLE_ANALYSIS
+    qentryIntoQueue(&item);
+#endif  
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

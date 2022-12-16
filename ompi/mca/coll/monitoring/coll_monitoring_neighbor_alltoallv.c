@@ -21,8 +21,20 @@ int mca_coll_monitoring_neighbor_alltoallv(const void *sbuf, const int *scounts,
                                            void *rbuf, const int *rcounts, const int *rdisps,
                                            struct ompi_datatype_t *rdtype,
                                            struct ompi_communicator_t *comm,
-                                           mca_coll_base_module_t *module)
+                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				       , qentry **q
+#endif
+                                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size, data_size_aggreg = 0;
     const mca_topo_base_comm_cart_t *cart = comm->c_topo->mtc.cart;
@@ -69,7 +81,11 @@ int mca_coll_monitoring_neighbor_alltoallv(const void *sbuf, const int *scounts,
 
     mca_common_monitoring_coll_a2a(data_size_aggreg, monitoring_module->data);
 
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_neighbor_alltoallv(sbuf, scounts, sdisps, sdtype, rbuf, rcounts, rdisps, rdtype, comm, monitoring_module->real.coll_neighbor_alltoallv_module);
+#else
+    return monitoring_module->real.coll_neighbor_alltoallv(sbuf, scounts, sdisps, sdtype, rbuf, rcounts, rdisps, rdtype, comm, monitoring_module->real.coll_neighbor_alltoallv_module);
+#endif
 }
 
 int mca_coll_monitoring_ineighbor_alltoallv(const void *sbuf, const int *scounts,
@@ -80,8 +96,20 @@ int mca_coll_monitoring_ineighbor_alltoallv(const void *sbuf, const int *scounts
                                             struct ompi_datatype_t *rdtype,
                                             struct ompi_communicator_t *comm,
                                             ompi_request_t ** request,
-                                            mca_coll_base_module_t *module)
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				        , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size, data_size_aggreg = 0;
     const mca_topo_base_comm_cart_t *cart = comm->c_topo->mtc.cart;
@@ -127,6 +155,9 @@ int mca_coll_monitoring_ineighbor_alltoallv(const void *sbuf, const int *scounts
     }
 
     mca_common_monitoring_coll_a2a(data_size_aggreg, monitoring_module->data);
-
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_ineighbor_alltoallv(sbuf, scounts, sdisps, sdtype, rbuf, rcounts, rdisps, rdtype, comm, request, monitoring_module->real.coll_ineighbor_alltoallv_module);
+#else
+    return monitoring_module->real.coll_ineighbor_alltoallv(sbuf, scounts, sdisps, sdtype, rbuf, rcounts, rdisps, rdtype, comm, request, monitoring_module->real.coll_ineighbor_alltoallv_module, &item);
+#endif
 }

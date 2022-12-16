@@ -36,8 +36,20 @@ ompi_coll_base_scan_intra_linear(const void *sbuf, void *rbuf, int count,
                                 struct ompi_datatype_t *dtype,
                                 struct ompi_op_t *op,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module)
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+                                )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int size, rank, err;
     ptrdiff_t dsize, gap;
     char *free_buffer = NULL;
@@ -86,10 +98,15 @@ ompi_coll_base_scan_intra_linear(const void *sbuf, void *rbuf, int count,
         }
 
         /* Receive the prior answer */
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(pml_buffer, count, dtype,
                                 rank - 1, MCA_COLL_BASE_TAG_SCAN, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(pml_buffer, count, dtype,
+                                rank - 1, MCA_COLL_BASE_TAG_SCAN, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (MPI_SUCCESS != err) {
             if (NULL != free_buffer) {
                 free(free_buffer);
@@ -111,9 +128,15 @@ ompi_coll_base_scan_intra_linear(const void *sbuf, void *rbuf, int count,
     /* Send result to next process. */
 
     if (rank < (size - 1)) {
+#ifndef ENABLE_ANALYSIS
         return MCA_PML_CALL(send(rbuf, count, dtype, rank + 1,
                                  MCA_COLL_BASE_TAG_SCAN,
                                  MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        return MCA_PML_CALL(send(rbuf, count, dtype, rank + 1,
+                                 MCA_COLL_BASE_TAG_SCAN,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
     }
 
     /* All done */
@@ -157,8 +180,20 @@ ompi_coll_base_scan_intra_linear(const void *sbuf, void *rbuf, int count,
 int ompi_coll_base_scan_intra_recursivedoubling(
     const void *sendbuf, void *recvbuf, int count, struct ompi_datatype_t *datatype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int err = MPI_SUCCESS;
     char *tmpsend_raw = NULL, *tmprecv_raw = NULL;
     int comm_size = ompi_comm_size(comm);
@@ -194,11 +229,19 @@ int ompi_coll_base_scan_intra_recursivedoubling(
     for (int mask = 1; mask < comm_size; mask <<= 1) {
         int remote = rank ^ mask;
         if (remote < comm_size) {
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv(psend, count, datatype, remote,
                                           MCA_COLL_BASE_TAG_SCAN,
                                           precv, count, datatype, remote,
                                           MCA_COLL_BASE_TAG_SCAN, comm,
                                           MPI_STATUS_IGNORE, rank);
+#else
+            err = ompi_coll_base_sendrecv(psend, count, datatype, remote,
+                                          MCA_COLL_BASE_TAG_SCAN,
+                                          precv, count, datatype, remote,
+                                          MCA_COLL_BASE_TAG_SCAN, comm,
+                                          MPI_STATUS_IGNORE, rank, &item);
+#endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
 
             if (rank > remote) {

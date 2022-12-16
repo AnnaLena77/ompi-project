@@ -44,11 +44,62 @@
 
 static const char FUNC_NAME[] = "MPI_Allgatherv";
 
-
+/*sammelt Daten von allen beteiligten Prozessen eines gegebenene Kommunikators und übergibt sie an alle 
+diese Prouesse (es dürfen unterschiedlich viele Daten von den einzelnen Prozessen gesammelt werden (siehe
+Array)*/
 int MPI_Allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                    void *recvbuf, const int recvcounts[],
                    const int displs[], MPI_Datatype recvtype, MPI_Comm comm)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    gettimeofday(&item->start, NULL);
+    strcpy(item->function, "MPI_Allgatherv");
+    strcpy(item->communicationType, "collective");
+    //item->datatype
+    char *sendtype_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int sendtype_name_length;
+    MPI_Type_get_name(sendtype, sendtype_name, &sendtype_name_length);
+    char *recvtype_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int recvtype_name_length;
+    MPI_Type_get_name(recvtype, recvtype_name, &recvtype_name_length);
+    if(strcmp(sendtype_name, recvtype_name)==0){
+        strcpy(item->datatype, sendtype_name);
+        free(sendtype_name);
+        free(recvtype_name);
+    }
+    else {
+        strcat(sendtype_name, ", ");
+        strcat(sendtype_name, recvtype_name);
+        strcpy(item->datatype, sendtype_name);
+        free(sendtype_name);
+        free(recvtype_name);
+    }
+
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(comm, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = -1;
+
+
+    item->blocking = 1;
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
+#endif 
     int i, size, err;
 
     SPC_RECORD(OMPI_SPC_ALLGATHERV, 1);
@@ -152,10 +203,18 @@ int MPI_Allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
        something */
 
     /* Invoke the coll component to perform the back-end operation */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_allgatherv(sendbuf, sendcount, sendtype,
                                        recvbuf, (int *) recvcounts,
                                        (int *) displs, recvtype, comm,
                                        comm->c_coll->coll_allgatherv_module);
+#else
+    err = comm->c_coll->coll_allgatherv(sendbuf, sendcount, sendtype,
+                                       recvbuf, (int *) recvcounts,
+                                       (int *) displs, recvtype, comm,
+                                       comm->c_coll->coll_allgatherv_module, &item);
+    qentryIntoQueue(&item);
+#endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }
 

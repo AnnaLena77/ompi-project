@@ -28,6 +28,7 @@
 #include "ompi/datatype/ompi_datatype.h"
 #include "ompi/memchecker.h"
 #include "ompi/runtime/ompi_spc.h"
+#include <time.h>
 
 #if OMPI_BUILD_MPI_PROFILING
 #if OPAL_HAVE_WEAK_SYMBOLS
@@ -42,6 +43,46 @@ static const char FUNC_NAME[] = "MPI_Bcast";
 int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
               int root, MPI_Comm comm)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    gettimeofday(&item->start, NULL);
+    strcpy(item->function, "MPI_Bcast");
+    strcpy(item->communicationType, "collective");
+    
+    //item->datatype
+    char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int type_name_length;
+    MPI_Type_get_name(datatype, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    //item->processrank
+    //item->processrank
+    int processrank;
+    MPI_Comm_rank(comm, &processrank);
+    item->processrank = processrank;
+    
+    //printf("Root: %d\n", root);
+    //printf("Processrank: %d\n", processrank);
+    //item->partnerrank
+    if(processrank==root){
+    	item->partnerrank = -1;
+    }
+    else{
+    	item->partnerrank = root;
+    }
+   
+    item->blocking = 1;
+#endif 
+    //Integer for the partnerrank-value= -1
+    //-> Function Bcast sends the message to all other processes. All other processes are partnerranks
     int err;
 
     SPC_RECORD(OMPI_SPC_BCAST, 1);
@@ -121,8 +162,14 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     }
 
     /* Invoke the coll component to perform the back-end operation */
-
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
                                   comm->c_coll->coll_bcast_module);
+#else
+    //printf("%s, %d\n", item->operation, strcmp(item->operation, "MPI_Bcast"));
+    err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
+                                  comm->c_coll->coll_bcast_module, &item);
+    qentryIntoQueue(&item);
+#endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

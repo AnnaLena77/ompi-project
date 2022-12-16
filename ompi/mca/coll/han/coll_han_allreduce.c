@@ -25,6 +25,7 @@
 #include "ompi/mca/pml/pml.h"
 #include "coll_han_trigger.h"
 
+
 static int mca_coll_han_allreduce_t0_task(void *task_args);
 static int mca_coll_han_allreduce_t1_task(void *task_args);
 static int mca_coll_han_allreduce_t2_task(void *task_args);
@@ -92,8 +93,22 @@ mca_coll_han_allreduce_intra(const void *sbuf,
                              int count,
                              struct ompi_datatype_t *dtype,
                              struct ompi_op_t *op,
-                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module)
+                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
 
     /* No support for non-commutative operations */
@@ -109,8 +124,13 @@ mca_coll_han_allreduce_intra(const void *sbuf,
                              "han cannot handle allreduce with this communicator. Drop HAN support in this communicator and fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_allreduce(sbuf, rbuf, count, dtype, op,
                                             comm, comm->c_coll->coll_reduce_module);
+#else
+        return comm->c_coll->coll_allreduce(sbuf, rbuf, count, dtype, op,
+                                            comm, comm->c_coll->coll_reduce_module, &item);
+#endif
     }
 
     ptrdiff_t extent, lb;
@@ -139,6 +159,7 @@ mca_coll_han_allreduce_intra(const void *sbuf,
     int root_up_rank = 0;
     int root_low_rank = 0;
     /* Create t0 task for the first segment */
+    
     mca_coll_task_t *t0 = OBJ_NEW(mca_coll_task_t);
     /* Setup up t0 task arguments */
     int *completed = (int *) malloc(sizeof(int));
@@ -197,8 +218,13 @@ mca_coll_han_allreduce_intra(const void *sbuf,
     return OMPI_SUCCESS;
 
  prev_allreduce_intra:
+#ifndef ENABLE_ANALYSIS
     return han_module->previous_allreduce(sbuf, rbuf, count, dtype, op,
                                           comm, han_module->previous_allreduce_module);
+#else
+    return han_module->previous_allreduce(sbuf, rbuf, count, dtype, op,
+                                          comm, han_module->previous_allreduce_module, &item);
+#endif
 }
 
 /* t0 task that performs a local reduction */
@@ -213,20 +239,38 @@ int mca_coll_han_allreduce_t0_task(void *task_args)
     ompi_datatype_get_extent(t->dtype, &lb, &extent);
     if (MPI_IN_PLACE == t->sbuf) {
         if (!t->noop) {
+#ifndef ENABLE_ANALYSIS
             t->low_comm->c_coll->coll_reduce(MPI_IN_PLACE, (char *) t->rbuf, t->seg_count, t->dtype,
                                              t->op, t->root_low_rank, t->low_comm,
                                              t->low_comm->c_coll->coll_reduce_module);
+#else
+            t->low_comm->c_coll->coll_reduce(MPI_IN_PLACE, (char *) t->rbuf, t->seg_count, t->dtype,
+                                             t->op, t->root_low_rank, t->low_comm,
+                                             t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
         }
         else {
+#ifndef ENABLE_ANALYSIS
             t->low_comm->c_coll->coll_reduce((char *) t->rbuf, NULL, t->seg_count, t->dtype,
                                              t->op, t->root_low_rank, t->low_comm,
                                              t->low_comm->c_coll->coll_reduce_module);
+#else
+            t->low_comm->c_coll->coll_reduce((char *) t->rbuf, NULL, t->seg_count, t->dtype,
+                                             t->op, t->root_low_rank, t->low_comm,
+                                             t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
         }
     }
     else {
+#ifndef ENABLE_ANALYSIS
         t->low_comm->c_coll->coll_reduce((char *) t->sbuf, (char *) t->rbuf, t->seg_count, t->dtype,
                                          t->op, t->root_low_rank, t->low_comm,
                                          t->low_comm->c_coll->coll_reduce_module);
+#else
+        t->low_comm->c_coll->coll_reduce((char *) t->sbuf, (char *) t->rbuf, t->seg_count, t->dtype,
+                                         t->op, t->root_low_rank, t->low_comm,
+                                         t->low_comm->c_coll->coll_reduce_module, NULL);	
+#endif
     }
     return OMPI_SUCCESS;
 }
@@ -247,13 +291,25 @@ int mca_coll_han_allreduce_t1_task(void *task_args)
         int up_rank = ompi_comm_rank(t->up_comm);
         /* ur of cur_seg */
         if (up_rank == t->root_up_rank) {
+#ifndef ENABLE_ANALYSIS
             t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE, (char *) t->rbuf, t->seg_count, t->dtype,
                                              t->op, t->root_up_rank, t->up_comm, &ireduce_req,
                                              t->up_comm->c_coll->coll_ireduce_module);
+#else
+            t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE, (char *) t->rbuf, t->seg_count, t->dtype,
+                                             t->op, t->root_up_rank, t->up_comm, &ireduce_req,
+                                             t->up_comm->c_coll->coll_ireduce_module, NULL);
+#endif
         } else {
+#ifndef ENABLE_ANALYSIS
             t->up_comm->c_coll->coll_ireduce((char *) t->rbuf, (char *) t->rbuf, t->seg_count,
                                              t->dtype, t->op, t->root_up_rank, t->up_comm,
                                              &ireduce_req, t->up_comm->c_coll->coll_ireduce_module);
+#else
+            t->up_comm->c_coll->coll_ireduce((char *) t->rbuf, (char *) t->rbuf, t->seg_count,
+                                             t->dtype, t->op, t->root_up_rank, t->up_comm,
+                                             &ireduce_req, t->up_comm->c_coll->coll_ireduce_module, NULL);
+#endif
         }
     }
     /* lr of cur_seg+1 */
@@ -261,10 +317,17 @@ int mca_coll_han_allreduce_t1_task(void *task_args)
         if (t->cur_seg == t->num_segments - 2 && t->last_seg_count != t->seg_count) {
             tmp_count = t->last_seg_count;
         }
+#ifndef ENABLE_ANALYSIS
         t->low_comm->c_coll->coll_reduce((char *) t->sbuf + extent * t->seg_count,
                                          (char *) t->rbuf + extent * t->seg_count, tmp_count,
                                          t->dtype, t->op, t->root_low_rank, t->low_comm,
                                          t->low_comm->c_coll->coll_reduce_module);
+#else
+        t->low_comm->c_coll->coll_reduce((char *) t->sbuf + extent * t->seg_count,
+                                         (char *) t->rbuf + extent * t->seg_count, tmp_count,
+                                         t->dtype, t->op, t->root_low_rank, t->low_comm,
+                                         t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
 
     }
     if (!t->noop) {
@@ -290,9 +353,15 @@ int mca_coll_han_allreduce_t2_task(void *task_args)
     if (!t->noop) {
         int up_rank = ompi_comm_rank(t->up_comm);
         /* ub of cur_seg */
+#ifndef ENABLE_ANALYSIS
         t->up_comm->c_coll->coll_ibcast((char *) t->rbuf, t->seg_count, t->dtype, t->root_up_rank,
                                         t->up_comm, &(reqs[0]),
                                         t->up_comm->c_coll->coll_ibcast_module);
+#else
+        t->up_comm->c_coll->coll_ibcast((char *) t->rbuf, t->seg_count, t->dtype, t->root_up_rank,
+                                        t->up_comm, &(reqs[0]),
+                                        t->up_comm->c_coll->coll_ibcast_module, NULL);
+#endif
         req_count++;
         /* ur of cur_seg+1 */
         if (t->cur_seg <= t->num_segments - 2) {
@@ -300,17 +369,33 @@ int mca_coll_han_allreduce_t2_task(void *task_args)
                 tmp_count = t->last_seg_count;
             }
             if (up_rank == t->root_up_rank) {
+#ifndef ENABLE_ANALYSIS
                 t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE,
                                                  (char *) t->rbuf + extent * t->seg_count,
                                                  tmp_count, t->dtype, t->op, t->root_up_rank,
                                                  t->up_comm, &(reqs[1]),
                                                  t->up_comm->c_coll->coll_ireduce_module);
+#else
+                t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE,
+                                                 (char *) t->rbuf + extent * t->seg_count,
+                                                 tmp_count, t->dtype, t->op, t->root_up_rank,
+                                                 t->up_comm, &(reqs[1]),
+                                                 t->up_comm->c_coll->coll_ireduce_module, NULL);
+#endif
             } else {
+#ifndef ENABLE_ANALYSIS
                 t->up_comm->c_coll->coll_ireduce((char *) t->rbuf + extent * t->seg_count,
                                                  (char *) t->rbuf + extent * t->seg_count,
                                                  tmp_count, t->dtype, t->op, t->root_up_rank,
                                                  t->up_comm, &(reqs[1]),
                                                  t->up_comm->c_coll->coll_ireduce_module);
+#else
+                t->up_comm->c_coll->coll_ireduce((char *) t->rbuf + extent * t->seg_count,
+                                                 (char *) t->rbuf + extent * t->seg_count,
+                                                 tmp_count, t->dtype, t->op, t->root_up_rank,
+                                                 t->up_comm, &(reqs[1]),
+                                                 t->up_comm->c_coll->coll_ireduce_module, NULL);
+#endif
             }
             req_count++;
         }
@@ -320,10 +405,17 @@ int mca_coll_han_allreduce_t2_task(void *task_args)
         if (t->cur_seg == t->num_segments - 3 && t->last_seg_count != t->seg_count) {
             tmp_count = t->last_seg_count;
         }
+#ifndef ENABLE_ANALYSIS
         t->low_comm->c_coll->coll_reduce((char *) t->sbuf + 2 * extent * t->seg_count,
                                          (char *) t->rbuf + 2 * extent * t->seg_count, tmp_count,
                                          t->dtype, t->op, t->root_low_rank, t->low_comm,
                                          t->low_comm->c_coll->coll_reduce_module);
+#else
+        t->low_comm->c_coll->coll_reduce((char *) t->sbuf + 2 * extent * t->seg_count,
+                                         (char *) t->rbuf + 2 * extent * t->seg_count, tmp_count,
+                                         t->dtype, t->op, t->root_low_rank, t->low_comm,
+                                         t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
     }
     if (!t->noop && req_count > 0) {
         ompi_request_wait_all(req_count, reqs, MPI_STATUSES_IGNORE);
@@ -353,9 +445,15 @@ int mca_coll_han_allreduce_t3_task(void *task_args)
             if (t->cur_seg == t->num_segments - 2 && t->last_seg_count != t->seg_count) {
                 tmp_count = t->last_seg_count;
             }
+#ifndef ENABLE_ANALYSIS
             t->up_comm->c_coll->coll_ibcast((char *) t->rbuf + extent * t->seg_count, t->seg_count,
                                             t->dtype, t->root_up_rank, t->up_comm, &(reqs[0]),
                                             t->up_comm->c_coll->coll_ibcast_module);
+#else
+	   t->up_comm->c_coll->coll_ibcast((char *) t->rbuf + extent * t->seg_count, t->seg_count,
+                                            t->dtype, t->root_up_rank, t->up_comm, &(reqs[0]),
+                                            t->up_comm->c_coll->coll_ibcast_module, NULL);
+#endif
             req_count++;
         }
         /* ur of cur_seg+2 */
@@ -364,17 +462,33 @@ int mca_coll_han_allreduce_t3_task(void *task_args)
                 tmp_count = t->last_seg_count;
             }
             if (up_rank == t->root_up_rank) {
+#ifndef ENABLE_ANALYSIS
                 t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE,
                                                  (char *) t->rbuf + 2 * extent * t->seg_count,
                                                  tmp_count, t->dtype, t->op, t->root_up_rank,
                                                  t->up_comm, &(reqs[1]),
                                                  t->up_comm->c_coll->coll_ireduce_module);
+#else
+                t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE,
+                                                 (char *) t->rbuf + 2 * extent * t->seg_count,
+                                                 tmp_count, t->dtype, t->op, t->root_up_rank,
+                                                 t->up_comm, &(reqs[1]),
+                                                 t->up_comm->c_coll->coll_ireduce_module, NULL);
+#endif
             } else {
+#ifndef ENABLE_ANALYSIS
                 t->up_comm->c_coll->coll_ireduce((char *) t->rbuf + 2 * extent * t->seg_count,
                                                  (char *) t->rbuf + 2 * extent * t->seg_count,
                                                  tmp_count, t->dtype, t->op, t->root_up_rank,
                                                  t->up_comm, &(reqs[1]),
                                                  t->up_comm->c_coll->coll_ireduce_module);
+#else
+                t->up_comm->c_coll->coll_ireduce((char *) t->rbuf + 2 * extent * t->seg_count,
+                                                 (char *) t->rbuf + 2 * extent * t->seg_count,
+                                                 tmp_count, t->dtype, t->op, t->root_up_rank,
+                                                 t->up_comm, &(reqs[1]),
+                                                 t->up_comm->c_coll->coll_ireduce_module, NULL);
+#endif
             }
             req_count++;
         }
@@ -384,14 +498,26 @@ int mca_coll_han_allreduce_t3_task(void *task_args)
         if (t->cur_seg == t->num_segments - 4 && t->last_seg_count != t->seg_count) {
             tmp_count = t->last_seg_count;
         }
+#ifndef ENABLE_ANALYSIS
         t->low_comm->c_coll->coll_reduce((char *) t->sbuf + 3 * extent * t->seg_count,
                                          (char *) t->rbuf + 3 * extent * t->seg_count, tmp_count,
                                          t->dtype, t->op, t->root_low_rank, t->low_comm,
                                          t->low_comm->c_coll->coll_reduce_module);
+#else
+        t->low_comm->c_coll->coll_reduce((char *) t->sbuf + 3 * extent * t->seg_count,
+                                         (char *) t->rbuf + 3 * extent * t->seg_count, tmp_count,
+                                         t->dtype, t->op, t->root_low_rank, t->low_comm,
+                                         t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
     }
     /* lb of cur_seg */
+#ifndef ENABLE_ANALYSIS
     t->low_comm->c_coll->coll_bcast((char *) t->rbuf, t->seg_count, t->dtype, t->root_low_rank,
                                     t->low_comm, t->low_comm->c_coll->coll_bcast_module);
+#else
+    t->low_comm->c_coll->coll_bcast((char *) t->rbuf, t->seg_count, t->dtype, t->root_low_rank,
+                                    t->low_comm, t->low_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (!t->noop && req_count > 0) {
         ompi_request_wait_all(req_count, reqs, MPI_STATUSES_IGNORE);
     }
@@ -415,8 +541,20 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module)
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				, qentry **q
+#endif
+                                    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     ompi_communicator_t *low_comm;
     ompi_communicator_t *up_comm;
     int root_low_rank = 0;
@@ -443,8 +581,13 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
                              "han cannot handle allreduce with this communicator. Drop HAN support in this communicator and fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+#ifndef ENABLE_ANALYSIS
         return comm->c_coll->coll_allreduce(sbuf, rbuf, count, dtype, op,
                                             comm, comm->c_coll->coll_reduce_module);
+#else
+        return comm->c_coll->coll_allreduce(sbuf, rbuf, count, dtype, op,
+                                            comm, comm->c_coll->coll_reduce_module, &item);
+#endif
     }
 
     low_comm = han_module->sub_comm[INTRA_NODE];
@@ -454,20 +597,38 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
     /* Low_comm reduce */
     if (MPI_IN_PLACE == sbuf) {
         if (low_rank == root_low_rank) {
+#ifndef ENABLE_ANALYSIS
             ret = low_comm->c_coll->coll_reduce(MPI_IN_PLACE, (char *)rbuf,
                 count, dtype, op, root_low_rank,
                 low_comm, low_comm->c_coll->coll_reduce_module);
+#else
+            ret = low_comm->c_coll->coll_reduce(MPI_IN_PLACE, (char *)rbuf,
+                count, dtype, op, root_low_rank,
+                low_comm, low_comm->c_coll->coll_reduce_module, &item);
+#endif
         }
         else {
+#ifndef ENABLE_ANALYSIS
             ret = low_comm->c_coll->coll_reduce((char *)rbuf, NULL,
                 count, dtype, op, root_low_rank,
                 low_comm, low_comm->c_coll->coll_reduce_module);
+#else
+            ret = low_comm->c_coll->coll_reduce((char *)rbuf, NULL,
+                count, dtype, op, root_low_rank,
+                low_comm, low_comm->c_coll->coll_reduce_module, &item);
+#endif
         }
     }
     else {
+#ifndef ENABLE_ANALYSIS
         ret = low_comm->c_coll->coll_reduce((char *)sbuf, (char *)rbuf,
                 count, dtype, op, root_low_rank,
                 low_comm, low_comm->c_coll->coll_reduce_module);
+#else
+        ret = low_comm->c_coll->coll_reduce((char *)sbuf, (char *)rbuf,
+                count, dtype, op, root_low_rank,
+                low_comm, low_comm->c_coll->coll_reduce_module, &item);
+#endif
     }
     if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
         OPAL_OUTPUT_VERBOSE((30, cs->han_output,
@@ -478,8 +639,13 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
 
     /* Local roots perform a allreduce on the upper comm */
     if (low_rank == root_low_rank) {
+#ifndef ENABLE_ANALYSIS
         ret = up_comm->c_coll->coll_allreduce(MPI_IN_PLACE, rbuf, count, dtype, op,
                     up_comm, up_comm->c_coll->coll_allreduce_module);
+#else
+        ret = up_comm->c_coll->coll_allreduce(MPI_IN_PLACE, rbuf, count, dtype, op,
+                    up_comm, up_comm->c_coll->coll_allreduce_module, &item);
+#endif
         if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
             OPAL_OUTPUT_VERBOSE((30, cs->han_output,
                              "HAN/ALLREDUCE: up comm allreduce failed. \n"));
@@ -494,8 +660,13 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
     }
 
     /* Low_comm bcast */
+#ifndef ENABLE_ANALYSIS
     ret = low_comm->c_coll->coll_bcast(rbuf, count, dtype,
                 root_low_rank, low_comm, low_comm->c_coll->coll_bcast_module);
+#else
+    ret = low_comm->c_coll->coll_bcast(rbuf, count, dtype,
+                root_low_rank, low_comm, low_comm->c_coll->coll_bcast_module, &item);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
         OPAL_OUTPUT_VERBOSE((30, cs->han_output,
                              "HAN/ALLREDUCE: low comm bcast failed. "
@@ -506,8 +677,13 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
     return OMPI_SUCCESS;
 
  prev_allreduce:
+#ifndef ENABLE_ANALYSIS
     return han_module->previous_allreduce(sbuf, rbuf, count, dtype, op,
                                           comm, han_module->previous_allreduce_module);
+#else
+    return han_module->previous_allreduce(sbuf, rbuf, count, dtype, op,
+                                          comm, han_module->previous_allreduce_module, &item);
+#endif
 }
 
 /* Find a fallback on reproducible algorithm
@@ -515,7 +691,11 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
  */
 int
 mca_coll_han_allreduce_reproducible_decision(struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module)
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+					, qentry **q
+#endif
+                                             )
 {
     int w_rank = ompi_comm_rank(comm);
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
@@ -562,11 +742,32 @@ mca_coll_han_allreduce_reproducible(const void *sbuf,
                                      struct ompi_datatype_t *dtype,
                                      struct ompi_op_t *op,
                                      struct ompi_communicator_t *comm,
-                                     mca_coll_base_module_t *module)
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				 , qentry **q
+#endif
+                                     )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
+#ifndef ENABLE_ANALYSIS
     return han_module->reproducible_allreduce(sbuf, rbuf, count, dtype,
                                               op, comm,
                                               han_module
                                               ->reproducible_allreduce_module);
+#else
+    return han_module->reproducible_allreduce(sbuf, rbuf, count, dtype,
+                                              op, comm,
+                                              han_module
+                                              ->reproducible_allreduce_module, &item);
+#endif
 }

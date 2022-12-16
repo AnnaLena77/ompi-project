@@ -42,8 +42,23 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
                                      struct ompi_communicator_t* comm,
                                      mca_coll_base_module_t *module,
                                      uint32_t count_by_segment,
-                                     ompi_coll_tree_t* tree )
+                                     ompi_coll_tree_t* tree 
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int err = 0, line, i, rank, segindex, req_index;
     int num_segments; /* Number of segments */
     int sendcount;    /* number of elements sent in this segment */
@@ -86,11 +101,19 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
                 sendcount = original_count - segindex * count_by_segment;
             }
             for( i = 0; i < tree->tree_nextsize; i++ ) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(isend(tmpbuf, sendcount, datatype,
                                          tree->tree_next[i],
                                          MCA_COLL_BASE_TAG_BCAST,
                                          MCA_PML_BASE_SEND_STANDARD, comm,
                                          &send_reqs[i]));
+#else
+                err = MCA_PML_CALL(isend(tmpbuf, sendcount, datatype,
+                                         tree->tree_next[i],
+                                         MCA_COLL_BASE_TAG_BCAST,
+                                         MCA_PML_BASE_SEND_STANDARD, comm,
+                                         &send_reqs[i], &item));
+#endif
                 if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
             }
 
@@ -119,9 +142,15 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
            5) Send the last segment to children
         */
         req_index = 0;
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(tmpbuf, count_by_segment, datatype,
                                  tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
                                  comm, &recv_reqs[req_index]));
+#else
+        err = MCA_PML_CALL(irecv(tmpbuf, count_by_segment, datatype,
+                                 tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
+                                 comm, &recv_reqs[req_index], &item));
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
         for( segindex = 1; segindex < num_segments; segindex++ ) {
@@ -129,10 +158,17 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
             req_index = req_index ^ 0x1;
 
             /* post new irecv */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv( tmpbuf + realsegsize, count_by_segment,
                                       datatype, tree->tree_prev,
                                       MCA_COLL_BASE_TAG_BCAST,
                                       comm, &recv_reqs[req_index]));
+#else
+            err = MCA_PML_CALL(irecv( tmpbuf + realsegsize, count_by_segment,
+                                      datatype, tree->tree_prev,
+                                      MCA_COLL_BASE_TAG_BCAST,
+                                      comm, &recv_reqs[req_index], &item));
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
             /* wait for and forward the previous segment to children */
@@ -141,11 +177,19 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
             for( i = 0; i < tree->tree_nextsize; i++ ) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(isend(tmpbuf, count_by_segment, datatype,
                                          tree->tree_next[i],
                                          MCA_COLL_BASE_TAG_BCAST,
                                          MCA_PML_BASE_SEND_STANDARD, comm,
                                          &send_reqs[i]));
+#else
+                err = MCA_PML_CALL(isend(tmpbuf, count_by_segment, datatype,
+                                         tree->tree_next[i],
+                                         MCA_COLL_BASE_TAG_BCAST,
+                                         MCA_PML_BASE_SEND_STANDARD, comm,
+                                         &send_reqs[i], &item));
+#endif
                 if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
             }
 
@@ -164,11 +208,19 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
         if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
         sendcount = original_count - (ptrdiff_t)(num_segments - 1) * count_by_segment;
         for( i = 0; i < tree->tree_nextsize; i++ ) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend(tmpbuf, sendcount, datatype,
                                      tree->tree_next[i],
                                      MCA_COLL_BASE_TAG_BCAST,
                                      MCA_PML_BASE_SEND_STANDARD, comm,
                                      &send_reqs[i]));
+#else
+            err = MCA_PML_CALL(isend(tmpbuf, sendcount, datatype,
+                                     tree->tree_next[i],
+                                     MCA_COLL_BASE_TAG_BCAST,
+                                     MCA_PML_BASE_SEND_STANDARD, comm,
+                                     &send_reqs[i], &item));
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
         }
 
@@ -188,29 +240,46 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
            3) wait for the last segment
         */
         req_index = 0;
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(tmpbuf, count_by_segment, datatype,
                                  tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
                                  comm, &recv_reqs[req_index]));
+#else
+        err = MCA_PML_CALL(irecv(tmpbuf, count_by_segment, datatype,
+                                 tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
+                                 comm, &recv_reqs[req_index], &item));
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
         for( segindex = 1; segindex < num_segments; segindex++ ) {
             req_index = req_index ^ 0x1;
             tmpbuf += realsegsize;
             /* post receive for the next segment */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv(tmpbuf, count_by_segment, datatype,
                                      tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
                                      comm, &recv_reqs[req_index]));
+#else
+            err = MCA_PML_CALL(irecv(tmpbuf, count_by_segment, datatype,
+                                     tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
+                                     comm, &recv_reqs[req_index], &item));
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
             /* wait on the previous segment */
             err = ompi_request_wait( &recv_reqs[req_index ^ 0x1],
                                      MPI_STATUS_IGNORE );
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
         }
+        
 
+        //FEHLER! Hier bleibt einer stehen
         err = ompi_request_wait( &recv_reqs[req_index], MPI_STATUS_IGNORE );
+        
+        
         if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
     }
-
+    
+    //root bekommt den Success!!!
     return (MPI_SUCCESS);
 
  error_hndl:
@@ -252,8 +321,22 @@ ompi_coll_base_bcast_intra_bintree ( void* buffer,
                                       int root,
                                       struct ompi_communicator_t* comm,
                                       mca_coll_base_module_t *module,
-                                      uint32_t segsize )
+                                      uint32_t segsize 
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int segcount = count;
     size_t typelng;
     mca_coll_base_comm_t *data = module->base_data;
@@ -269,8 +352,13 @@ ompi_coll_base_bcast_intra_bintree ( void* buffer,
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,"coll:base:bcast_intra_binary rank %d ss %5d typelng %lu segcount %d",
                  ompi_comm_rank(comm), segsize, (unsigned long)typelng, segcount));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
                                                 segcount, data->cached_bintree );
+#else
+    return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
+                                                segcount, data->cached_bintree, &item);
+#endif
 }
 
 int
@@ -280,8 +368,22 @@ ompi_coll_base_bcast_intra_pipeline( void* buffer,
                                       int root,
                                       struct ompi_communicator_t* comm,
                                       mca_coll_base_module_t *module,
-                                      uint32_t segsize )
+                                      uint32_t segsize
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                       )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int segcount = count;
     size_t typelng;
     mca_coll_base_comm_t *data = module->base_data;
@@ -297,8 +399,13 @@ ompi_coll_base_bcast_intra_pipeline( void* buffer,
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,"coll:base:bcast_intra_pipeline rank %d ss %5d typelng %lu segcount %d",
                  ompi_comm_rank(comm), segsize, (unsigned long)typelng, segcount));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
                                                 segcount, data->cached_pipeline );
+#else
+    return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
+                                                segcount, data->cached_pipeline, &item);
+#endif
 }
 
 int
@@ -308,8 +415,23 @@ ompi_coll_base_bcast_intra_chain( void* buffer,
                                    int root,
                                    struct ompi_communicator_t* comm,
                                    mca_coll_base_module_t *module,
-                                   uint32_t segsize, int32_t chains )
+                                   uint32_t segsize, int32_t chains 
+#ifdef ENABLE_ANALYSIS
+                                   , qentry **q
+#endif
+                                   )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
+
     int segcount = count;
     size_t typelng;
     mca_coll_base_comm_t *data = module->base_data;
@@ -325,8 +447,13 @@ ompi_coll_base_bcast_intra_chain( void* buffer,
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,"coll:base:bcast_intra_chain rank %d fo %d ss %5d typelng %lu segcount %d",
                  ompi_comm_rank(comm), chains, segsize, (unsigned long)typelng, segcount));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
                                                 segcount, data->cached_chain );
+#else
+    return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
+                                                segcount, data->cached_chain, &item);
+#endif
 }
 
 int
@@ -336,8 +463,22 @@ ompi_coll_base_bcast_intra_binomial( void* buffer,
                                       int root,
                                       struct ompi_communicator_t* comm,
                                       mca_coll_base_module_t *module,
-                                      uint32_t segsize )
+                                      uint32_t segsize 
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int segcount = count;
     size_t typelng;
     mca_coll_base_comm_t *data = module->base_data;
@@ -353,8 +494,13 @@ ompi_coll_base_bcast_intra_binomial( void* buffer,
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,"coll:base:bcast_intra_binomial rank %d ss %5d typelng %lu segcount %d",
                  ompi_comm_rank(comm), segsize, (unsigned long)typelng, segcount));
 
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
                                                 segcount, data->cached_bmtree );
+#else
+    return ompi_coll_base_bcast_intra_generic( buffer, count, datatype, root, comm, module,
+                                                segcount, data->cached_bmtree, &item);
+#endif
 }
 
 int
@@ -364,8 +510,22 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
                                             int root,
                                             struct ompi_communicator_t* comm,
                                             mca_coll_base_module_t *module,
-                                            uint32_t segsize )
+                                            uint32_t segsize 
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int err=0, line, rank, size, segindex, i, lr, pair;
     uint32_t counts[2];
     int segcount[2];       /* Number of elements sent with each segment */
@@ -419,9 +579,15 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
         (segsize > ((ptrdiff_t)counts[0] * type_size)) ||
         (segsize > ((ptrdiff_t)counts[1] * type_size)) ) {
         /* call linear version here ! */
+#ifndef ENABLE_ANALYSIS
         return (ompi_coll_base_bcast_intra_chain ( buffer, count, datatype,
                                                     root, comm, module,
                                                     segsize, 1 ));
+#else
+        return (ompi_coll_base_bcast_intra_chain ( buffer, count, datatype,
+                                                    root, comm, module,
+                                                    segsize, 1, &item ));
+#endif
     }
 
     err = ompi_datatype_get_extent (datatype, &lb, &type_extent);
@@ -459,9 +625,15 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
                 if(segindex == (num_segments[i] - 1))
                     sendcount[i] = counts[i] - segindex*segcount[i];
                 /* send data */
+#ifndef ENABLE_ANALYSIS
                 MCA_PML_CALL(send(tmpbuf[i], sendcount[i], datatype,
                                   tree->tree_next[i], MCA_COLL_BASE_TAG_BCAST,
                                   MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+                MCA_PML_CALL(send(tmpbuf[i], sendcount[i], datatype,
+                                  tree->tree_next[i], MCA_COLL_BASE_TAG_BCAST,
+                                  MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
                 if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
                 /* update tmp buffer */
                 tmpbuf[i] += realsegsize[i];
@@ -483,9 +655,15 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
          * and we disseminating the data to all children.
          */
         sendcount[lr] = segcount[lr];
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(tmpbuf[lr], sendcount[lr], datatype,
                                  tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
                                  comm, &base_req));
+#else
+        err = MCA_PML_CALL(irecv(tmpbuf[lr], sendcount[lr], datatype,
+                                 tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
+                                 comm, &base_req, &item));
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
         for( segindex = 1; segindex < num_segments[lr]; segindex++ ) {
@@ -493,17 +671,29 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
             if( segindex == (num_segments[lr] - 1))
                 sendcount[lr] = counts[lr] - (ptrdiff_t)segindex * (ptrdiff_t)segcount[lr];
             /* post new irecv */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv( tmpbuf[lr] + realsegsize[lr], sendcount[lr],
                                       datatype, tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
                                       comm, &new_req));
+#else
+            err = MCA_PML_CALL(irecv( tmpbuf[lr] + realsegsize[lr], sendcount[lr],
+                                      datatype, tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
+                                      comm, &new_req, &item));
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
             /* wait for and forward the previous segment */
             err = ompi_request_wait( &base_req, MPI_STATUS_IGNORE );
             for( i = 0; i < tree->tree_nextsize; i++ ) {  /* send data to children (segcount[lr]) */
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(send( tmpbuf[lr], segcount[lr], datatype,
                                          tree->tree_next[i], MCA_COLL_BASE_TAG_BCAST,
                                          MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+                err = MCA_PML_CALL(send( tmpbuf[lr], segcount[lr], datatype,
+                                         tree->tree_next[i], MCA_COLL_BASE_TAG_BCAST,
+                                         MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
                 if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
             } /* end of for each child */
 
@@ -516,9 +706,15 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
         /* wait for the last segment and forward current segment */
         err = ompi_request_wait( &base_req, MPI_STATUS_IGNORE );
         for( i = 0; i < tree->tree_nextsize; i++ ) {  /* send data to children */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(tmpbuf[lr], sendcount[lr], datatype,
                                     tree->tree_next[i], MCA_COLL_BASE_TAG_BCAST,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+            err = MCA_PML_CALL(send(tmpbuf[lr], sendcount[lr], datatype,
+                                    tree->tree_next[i], MCA_COLL_BASE_TAG_BCAST,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
         } /* end of for each child */
     }
@@ -532,9 +728,15 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
             if (segindex == (num_segments[lr] - 1))
                 sendcount[lr] = counts[lr] - (ptrdiff_t)segindex * (ptrdiff_t)segcount[lr];
             /* receive segments */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(tmpbuf[lr], sendcount[lr], datatype,
                                     tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
                                     comm, MPI_STATUS_IGNORE));
+#else
+            err = MCA_PML_CALL(recv(tmpbuf[lr], sendcount[lr], datatype,
+                                    tree->tree_prev, MCA_COLL_BASE_TAG_BCAST,
+                                    comm, MPI_STATUS_IGNORE, &item));
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
             /* update the initial pointer to the buffer */
             tmpbuf[lr] += realsegsize[lr];
@@ -561,36 +763,63 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
     }
 
     if ( (size%2) != 0 && rank != root) {
-
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv( tmpbuf[lr], counts[lr], datatype,
                                         pair, MCA_COLL_BASE_TAG_BCAST,
                                         tmpbuf[(lr+1)%2], counts[(lr+1)%2], datatype,
                                         pair, MCA_COLL_BASE_TAG_BCAST,
                                         comm, MPI_STATUS_IGNORE, rank);
+#else
+        err = ompi_coll_base_sendrecv( tmpbuf[lr], counts[lr], datatype,
+                                        pair, MCA_COLL_BASE_TAG_BCAST,
+                                        tmpbuf[(lr+1)%2], counts[(lr+1)%2], datatype,
+                                        pair, MCA_COLL_BASE_TAG_BCAST,
+                                        comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
         if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
     } else if ( (size%2) == 0 ) {
         /* root sends right buffer to the last node */
         if( rank == root ) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(tmpbuf[1], counts[1], datatype,
                                     (root+size-1)%size, MCA_COLL_BASE_TAG_BCAST,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+            err = MCA_PML_CALL(send(tmpbuf[1], counts[1], datatype,
+                                    (root+size-1)%size, MCA_COLL_BASE_TAG_BCAST,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
 
         }
         /* last node receives right buffer from the root */
         else if (rank == (root+size-1)%size) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(tmpbuf[1], counts[1], datatype,
                                     root, MCA_COLL_BASE_TAG_BCAST,
                                     comm, MPI_STATUS_IGNORE));
+#else
+            err = MCA_PML_CALL(recv(tmpbuf[1], counts[1], datatype,
+                                    root, MCA_COLL_BASE_TAG_BCAST,
+                                    comm, MPI_STATUS_IGNORE, &item));
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
         }
         /* everyone else exchanges buffers */
         else {
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv( tmpbuf[lr], counts[lr], datatype,
                                             pair, MCA_COLL_BASE_TAG_BCAST,
                                             tmpbuf[(lr+1)%2], counts[(lr+1)%2], datatype,
                                             pair, MCA_COLL_BASE_TAG_BCAST,
                                             comm, MPI_STATUS_IGNORE, rank);
+#else
+            err = ompi_coll_base_sendrecv( tmpbuf[lr], counts[lr], datatype,
+                                            pair, MCA_COLL_BASE_TAG_BCAST,
+                                            tmpbuf[(lr+1)%2], counts[(lr+1)%2], datatype,
+                                            pair, MCA_COLL_BASE_TAG_BCAST,
+                                            comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
         }
     }
@@ -628,8 +857,22 @@ int
 ompi_coll_base_bcast_intra_basic_linear(void *buff, int count,
                                         struct ompi_datatype_t *datatype, int root,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module)
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int i, size, rank, err;
     ompi_request_t **preq, **reqs;
 
@@ -643,9 +886,15 @@ ompi_coll_base_bcast_intra_basic_linear(void *buff, int count,
     /* Non-root receive the data. */
 
     if (rank != root) {
+#ifndef ENABLE_ANALYSIS
         return MCA_PML_CALL(recv(buff, count, datatype, root,
                                  MCA_COLL_BASE_TAG_BCAST, comm,
                                  MPI_STATUS_IGNORE));
+#else
+        return MCA_PML_CALL(recv(buff, count, datatype, root,
+                                 MCA_COLL_BASE_TAG_BCAST, comm,
+                                 MPI_STATUS_IGNORE, &item));
+#endif
     }
 
     /* Root sends data to all others. */
@@ -658,11 +907,17 @@ ompi_coll_base_bcast_intra_basic_linear(void *buff, int count,
         if (i == rank) {
             continue;
         }
-
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(isend(buff, count, datatype, i,
                                  MCA_COLL_BASE_TAG_BCAST,
                                  MCA_PML_BASE_SEND_STANDARD,
                                  comm, preq++));
+#else
+        err = MCA_PML_CALL(isend(buff, count, datatype, i,
+                                 MCA_COLL_BASE_TAG_BCAST,
+                                 MCA_PML_BASE_SEND_STANDARD,
+                                 comm, preq++, &item));
+#endif
         if (MPI_SUCCESS != err) { goto err_hndl; }
     }
     --i;
@@ -720,8 +975,22 @@ ompi_coll_base_bcast_intra_basic_linear(void *buff, int count,
 int ompi_coll_base_bcast_intra_knomial(
     void *buf, int count, struct ompi_datatype_t *datatype, int root,
     struct ompi_communicator_t *comm, mca_coll_base_module_t *module,
-    uint32_t segsize, int radix)
+    uint32_t segsize, int radix
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int segcount = count;
     size_t typesize;
     mca_coll_base_comm_t *data = module->base_data;
@@ -729,8 +998,13 @@ int ompi_coll_base_bcast_intra_knomial(
     COLL_BASE_UPDATE_KMTREE(comm, module, root, radix);
     if (NULL == data->cached_kmtree) {
         /* Failed to build k-nomial tree for given radix */
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_binomial(buf, count, datatype, root, comm, module,
                                                    segcount);
+#else
+        return ompi_coll_base_bcast_intra_binomial(buf, count, datatype, root, comm, module,
+                                                   segcount, &item);
+#endif
     }
 
     /**
@@ -742,9 +1016,13 @@ int ompi_coll_base_bcast_intra_knomial(
     OPAL_OUTPUT((ompi_coll_base_framework.framework_output,
                  "coll:base:bcast_intra_knomial rank %d segsize %5d typesize %lu segcount %d",
                  ompi_comm_rank(comm), segsize, (unsigned long)typesize, segcount));
-
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_bcast_intra_generic(buf, count, datatype, root, comm, module,
                                               segcount, data->cached_kmtree);
+#else
+    return ompi_coll_base_bcast_intra_generic(buf, count, datatype, root, comm, module,
+                                              segcount, data->cached_kmtree, &item);
+#endif
 }
 
 /*
@@ -774,8 +1052,22 @@ int ompi_coll_base_bcast_intra_knomial(
 int ompi_coll_base_bcast_intra_scatter_allgather(
     void *buf, int count, struct ompi_datatype_t *datatype, int root,
     struct ompi_communicator_t *comm, mca_coll_base_module_t *module,
-    uint32_t segsize)
+    uint32_t segsize
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int err = MPI_SUCCESS;
     ptrdiff_t lb, extent;
     size_t datatype_size;
@@ -796,8 +1088,13 @@ int ompi_coll_base_bcast_intra_scatter_allgather(
                      "coll:base:bcast_intra_scatter_allgather: rank %d/%d "
                      "count %d switching to basic linear bcast",
                      rank, comm_size, count));
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_basic_linear(buf, count, datatype,
                                                        root, comm, module);
+#else
+        return ompi_coll_base_bcast_intra_basic_linear(buf, count, datatype,
+                                                       root, comm, module, &item);
+#endif
     }
 
     int vrank = (rank - root + comm_size) % comm_size;
@@ -816,9 +1113,15 @@ int ompi_coll_base_bcast_intra_scatter_allgather(
                 curr_count = 0;
             } else {
                 /* Recv data from parent */
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(recv((char *)buf + (ptrdiff_t)vrank * scatter_count * extent,
                                         recv_count, datatype, parent,
                                         MCA_COLL_BASE_TAG_BCAST, comm, &status));
+#else
+                err = MCA_PML_CALL(recv((char *)buf + (ptrdiff_t)vrank * scatter_count * extent,
+                                        recv_count, datatype, parent,
+                                        MCA_COLL_BASE_TAG_BCAST, comm, &status, &item));
+#endif
                 if (MPI_SUCCESS != err) { goto cleanup_and_return; }
                 /* Get received count */
                 curr_count = (int)(status._ucount / datatype_size);
@@ -835,10 +1138,17 @@ int ompi_coll_base_bcast_intra_scatter_allgather(
             send_count = curr_count - scatter_count * mask;
             if (send_count > 0) {
                 int child = (rank + mask) % comm_size;
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(send((char *)buf + (ptrdiff_t)scatter_count * (vrank + mask) * extent,
                                         send_count, datatype, child,
                                         MCA_COLL_BASE_TAG_BCAST,
                                         MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+                err = MCA_PML_CALL(send((char *)buf + (ptrdiff_t)scatter_count * (vrank + mask) * extent,
+                                        send_count, datatype, child,
+                                        MCA_COLL_BASE_TAG_BCAST,
+                                        MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
                 if (MPI_SUCCESS != err) { goto cleanup_and_return; }
                 curr_count -= send_count;
             }
@@ -869,6 +1179,7 @@ int ompi_coll_base_bcast_intra_scatter_allgather(
             recv_count = count - vremote_tree_root * scatter_count;
             if (recv_count < 0)
                 recv_count = 0;
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv((char *)buf + send_offset,
                                           curr_count, datatype, remote,
                                           MCA_COLL_BASE_TAG_BCAST,
@@ -876,6 +1187,15 @@ int ompi_coll_base_bcast_intra_scatter_allgather(
                                           recv_count, datatype, remote,
                                           MCA_COLL_BASE_TAG_BCAST,
                                           comm, &status, rank);
+#else
+                err = ompi_coll_base_sendrecv((char *)buf + send_offset,
+                                          curr_count, datatype, remote,
+                                          MCA_COLL_BASE_TAG_BCAST,
+                                          (char *)buf + recv_offset,
+                                          recv_count, datatype, remote,
+                                          MCA_COLL_BASE_TAG_BCAST,
+                                          comm, &status, rank, &item);        
+#endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
             recv_count = (int)(status._ucount / datatype_size);
             curr_count += recv_count;
@@ -900,18 +1220,32 @@ int ompi_coll_base_bcast_intra_scatter_allgather(
                  */
                 if ((vremote > vrank) && (vrank < tree_root + nprocs_alldata)
                     && (vremote >= tree_root + nprocs_alldata)) {
+#ifndef ENABLE_ANALYSIS
                     err = MCA_PML_CALL(send((char *)buf + (ptrdiff_t)offset * extent,
                                             recv_count, datatype, remote,
                                             MCA_COLL_BASE_TAG_BCAST,
                                             MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+                    err = MCA_PML_CALL(send((char *)buf + (ptrdiff_t)offset * extent,
+                                            recv_count, datatype, remote,
+                                            MCA_COLL_BASE_TAG_BCAST,
+                                            MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
                     if (MPI_SUCCESS != err) { goto cleanup_and_return; }
 
                 } else if ((vremote < vrank) && (vremote < tree_root + nprocs_alldata)
                            && (vrank >= tree_root + nprocs_alldata)) {
+#ifndef ENABLE_ANALYSIS
                     err = MCA_PML_CALL(recv((char *)buf + (ptrdiff_t)offset * extent,
                                             count, datatype, remote,
                                             MCA_COLL_BASE_TAG_BCAST,
                                             comm, &status));
+#else
+                    err = MCA_PML_CALL(recv((char *)buf + (ptrdiff_t)offset * extent,
+                                            count, datatype, remote,
+                                            MCA_COLL_BASE_TAG_BCAST,
+                                            comm, &status, &item));
+#endif
                     if (MPI_SUCCESS != err) { goto cleanup_and_return; }
                     recv_count = (int)(status._ucount / datatype_size);
                     curr_count += recv_count;
@@ -951,8 +1285,22 @@ cleanup_and_return:
 int ompi_coll_base_bcast_intra_scatter_allgather_ring(
     void *buf, int count, struct ompi_datatype_t *datatype, int root,
     struct ompi_communicator_t *comm, mca_coll_base_module_t *module,
-    uint32_t segsize)
+    uint32_t segsize
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int err = MPI_SUCCESS;
     ptrdiff_t lb, extent;
     size_t datatype_size;
@@ -973,8 +1321,13 @@ int ompi_coll_base_bcast_intra_scatter_allgather_ring(
                      "coll:base:bcast_intra_scatter_allgather_ring: rank %d/%d "
                      "count %d switching to basic linear bcast",
                      rank, comm_size, count));
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_bcast_intra_basic_linear(buf, count, datatype,
                                                        root, comm, module);
+#else
+        return ompi_coll_base_bcast_intra_basic_linear(buf, count, datatype,
+                                                       root, comm, module, &item);
+#endif
     }
 
     int vrank = (rank - root + comm_size) % comm_size;
@@ -993,9 +1346,15 @@ int ompi_coll_base_bcast_intra_scatter_allgather_ring(
                 curr_count = 0;
             } else {
                 /* Recv data from parent */
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(recv((char *)buf + (ptrdiff_t)vrank * scatter_count * extent,
                                         recv_count, datatype, parent,
                                         MCA_COLL_BASE_TAG_BCAST, comm, &status));
+#else
+                err = MCA_PML_CALL(recv((char *)buf + (ptrdiff_t)vrank * scatter_count * extent,
+                                        recv_count, datatype, parent,
+                                        MCA_COLL_BASE_TAG_BCAST, comm, &status, &item));
+#endif
                 if (MPI_SUCCESS != err) { goto cleanup_and_return; }
                 /* Get received count */
                 curr_count = (int)(status._ucount / datatype_size);
@@ -1012,10 +1371,17 @@ int ompi_coll_base_bcast_intra_scatter_allgather_ring(
             send_count = curr_count - scatter_count * mask;
             if (send_count > 0) {
                 int child = (rank + mask) % comm_size;
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(send((char *)buf + (ptrdiff_t)scatter_count * (vrank + mask) * extent,
                                         send_count, datatype, child,
                                         MCA_COLL_BASE_TAG_BCAST,
                                         MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+                err = MCA_PML_CALL(send((char *)buf + (ptrdiff_t)scatter_count * (vrank + mask) * extent,
+                                        send_count, datatype, child,
+                                        MCA_COLL_BASE_TAG_BCAST,
+                                        MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
                 if (MPI_SUCCESS != err) { goto cleanup_and_return; }
                 curr_count -= send_count;
             }
@@ -1042,11 +1408,19 @@ int ompi_coll_base_bcast_intra_scatter_allgather_ring(
             send_count = 0;
         ptrdiff_t send_offset = send_block * scatter_count * extent;
 
+#ifndef ENABLE_ANALYSIS
         err = ompi_coll_base_sendrecv((char *)buf + send_offset, send_count,
                                       datatype, right, MCA_COLL_BASE_TAG_BCAST,
                                       (char *)buf + recv_offset, recv_count,
                                       datatype, left, MCA_COLL_BASE_TAG_BCAST,
                                       comm, MPI_STATUS_IGNORE, rank);
+#else
+        err = ompi_coll_base_sendrecv((char *)buf + send_offset, send_count,
+                                      datatype, right, MCA_COLL_BASE_TAG_BCAST,
+                                      (char *)buf + recv_offset, recv_count,
+                                      datatype, left, MCA_COLL_BASE_TAG_BCAST,
+                                      comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
         if (MPI_SUCCESS != err) { goto cleanup_and_return; }
         send_block = recv_block;
         recv_block = (recv_block - 1 + comm_size) % comm_size;

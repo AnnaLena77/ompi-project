@@ -145,7 +145,10 @@ mca_sharedfp_lockedfile_seek (ompio_file_t *fh,
 			"sharedfp_lockedfile_seek: released lock.for fd: %d\n",fd_lockedfilehandle);
         }
     }
-
+#ifndef ENABLE_ANALYSIS
     fh->f_comm->c_coll->coll_barrier ( fh->f_comm , fh->f_comm->c_coll->coll_barrier_module );
+#else
+    fh->f_comm->c_coll->coll_barrier ( fh->f_comm , fh->f_comm->c_coll->coll_barrier_module, NULL);
+#endif
     return OMPI_SUCCESS;
 }

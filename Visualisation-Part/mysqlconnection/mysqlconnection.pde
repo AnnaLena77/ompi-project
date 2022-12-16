@@ -49,7 +49,7 @@ void draw(){
 }
 
 int getSendValue(){
-  msql.query("SELECT SUM(value) FROM MPI_Data WHERE type='send'");
+  msql.query("SELECT SUM(datasize) FROM MPI_Data WHERE operation='send'");
   msql.next();
   int value = msql.getInt(1);
   System.out.println("send" + value);
@@ -57,7 +57,7 @@ int getSendValue(){
 }
 
 int getReceiveValue(){
-  msql.query("SELECT SUM(value) FROM MPI_Data WHERE type='receive'");
+  msql.query("SELECT SUM(datasize) FROM MPI_Data WHERE operation='receive'");
   msql.next();
   int value = msql.getInt(1);
   System.out.println("receive" + value);
