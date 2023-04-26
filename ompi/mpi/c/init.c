@@ -294,6 +294,7 @@ static bson_t * generateBson(qentry **q){
     
     bson_t *document = bson_new();
     
+    bson_append_int32 (document, "ident", -1, item->id);
     bson_append_utf8 (document, "function", -1, item->function, -1);
     bson_append_utf8 (document, "communicationType", -1, item->communicationType, -1);
     bson_append_bool (document, "blocking", -1, item->blocking);
