@@ -77,6 +77,7 @@ static char *database = "DataFromMPI";
 static char *port = "3306";
 
 static const char *uri_string = "mongodb://10.35.8.10:27017";
+//static const char *uri_string = "mongodb://localhost:27017";
 static mongoc_uri_t *uri;
 static mongoc_client_t *client;
 static mongoc_database_t *db;
@@ -295,6 +296,7 @@ static bson_t * generateBson(qentry **q){
     bson_t *document = bson_new();
     
     bson_append_utf8 (document, "function", -1, item->function, -1);
+    bson_append_int32 (document, "ident", -1, item->id);
     bson_append_utf8 (document, "communicationType", -1, item->communicationType, -1);
     bson_append_bool (document, "blocking", -1, item->blocking);
     bson_append_utf8 (document, "datatype", -1, item->datatype, -1);
@@ -577,6 +579,7 @@ void initializeMongoDB()
     }
     
     TAILQ_INIT(&head);
+    printf("Connected to MongoDB\n");
     pthread_create(&MONITOR_THREAD, NULL, MongoMonitorFunc, NULL);
 }
 
