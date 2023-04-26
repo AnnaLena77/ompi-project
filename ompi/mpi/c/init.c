@@ -331,20 +331,30 @@ static bson_t * generateBson(qentry **q){
 static void* MongoMonitorFunc(void* _arg){
     bson_oid_t oid;
     mongoc_bulk_operation_t *bulk;
+    struct timeval start_timestamp;
+    struct timeval now;
+    gettimeofday(&start_timestamp, NULL);
 
     while(TAILQ_EMPTY(&head)){
+        gettimeofday(&now, NULL);
     	sleep(0.1);
+    	if(timeDifference(now, start_timestamp)>2.0){
+    		return;
+    	}
     }
     while ((TAILQ_LAST(&head, tailhead))->id < 5){
+    	gettimeofday(&now, NULL);
     	sleep(0.1);
+    	if(timeDifference(now, start_timestamp)>2.0){
+    		break;
+    	}
     }
     
     qentry *queueiteration = TAILQ_FIRST(&head);
     qentry *prev;
-    
 
-    
     while(queueiteration != NULL){
+    	printf("Trigger 1\n");
     	//if(queueiteration->id == 6) break;
         bson_error_t error;
     	qentry *first = queueiteration;
@@ -360,6 +370,7 @@ static void* MongoMonitorFunc(void* _arg){
                 }
             }
         }
+        printf("Trigger 2\n");
     	
     	bson_t *doc;
     	bson_t reply;
@@ -371,6 +382,7 @@ static void* MongoMonitorFunc(void* _arg){
     	int index = 0;
        	
     	while(index<length){
+    	printf("Trigger 3\n");
     	    documents[index] = generateBson(&first);
     	    //doc = generateBson(&first);
     	    //printf("Size: %d", sizeof(doc));
