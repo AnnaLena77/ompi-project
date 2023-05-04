@@ -33,7 +33,6 @@
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
 #include "ompi/mca/hook/base/base.h"
-#include "ompi/mpi/c/init.h"
 
 #if OMPI_BUILD_MPI_PROFILING
 #if OPAL_HAVE_WEAK_SYMBOLS
@@ -49,7 +48,7 @@ int MPI_Init_thread(int *argc, char ***argv, int required,
                     int *provided)
 {
     #ifdef ENABLE_ANALYSIS
-    initialize();
+    //initialize();
     #endif
     int err, safe_required = MPI_THREAD_SERIALIZED;
     char *env;

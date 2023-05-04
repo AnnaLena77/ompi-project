@@ -704,7 +704,11 @@ int mca_pml_ob1_send_fin( ompi_proc_t* proc,
     ob1_hdr_hton((mca_pml_ob1_hdr_t *) fin->des_segments->seg_addr.pval, MCA_PML_OB1_HDR_TYPE_FIN, proc);
 
     /* queue request */
+#ifndef ENABLE_ANALYSIS
     rc = mca_bml_base_send( bml_btl, fin, MCA_PML_OB1_HDR_TYPE_FIN );
+#else
+    rc = mca_bml_base_send( bml_btl, fin, MCA_PML_OB1_HDR_TYPE_FIN, NULL);
+#endif
     if( OPAL_LIKELY( rc >= 0 ) ) {
         if( OPAL_LIKELY( 1 == rc ) ) {
             MCA_PML_OB1_PROGRESS_PENDING(bml_btl);

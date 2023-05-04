@@ -21,8 +21,20 @@ int mca_coll_monitoring_reduce_scatter(const void *sbuf, void *rbuf,
                                        struct ompi_datatype_t *dtype,
                                        struct ompi_op_t *op,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module)
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				   , qentry **q
+#endif
+                                       )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size, data_size_aggreg = 0;
     const int comm_size = ompi_comm_size(comm);
@@ -42,7 +54,11 @@ int mca_coll_monitoring_reduce_scatter(const void *sbuf, void *rbuf,
         data_size_aggreg += data_size;
     }
     mca_common_monitoring_coll_a2a(data_size_aggreg, monitoring_module->data);
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_reduce_scatter(sbuf, rbuf, rcounts, dtype, op, comm, monitoring_module->real.coll_reduce_scatter_module);
+#else
+    return monitoring_module->real.coll_reduce_scatter(sbuf, rbuf, rcounts, dtype, op, comm, monitoring_module->real.coll_reduce_scatter_module, &item);
+#endif
 }
 
 int mca_coll_monitoring_ireduce_scatter(const void *sbuf, void *rbuf,
@@ -51,8 +67,20 @@ int mca_coll_monitoring_ireduce_scatter(const void *sbuf, void *rbuf,
                                         struct ompi_op_t *op,
                                         struct ompi_communicator_t *comm,
                                         ompi_request_t ** request,
-                                        mca_coll_base_module_t *module)
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				    , qentry **q
+#endif
+                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     mca_coll_monitoring_module_t*monitoring_module = (mca_coll_monitoring_module_t*) module;
     size_t type_size, data_size, data_size_aggreg = 0;
     const int comm_size = ompi_comm_size(comm);
@@ -72,5 +100,9 @@ int mca_coll_monitoring_ireduce_scatter(const void *sbuf, void *rbuf,
         data_size_aggreg += data_size;
     }
     mca_common_monitoring_coll_a2a(data_size_aggreg, monitoring_module->data);
+#ifndef ENABLE_ANALYSIS
     return monitoring_module->real.coll_ireduce_scatter(sbuf, rbuf, rcounts, dtype, op, comm, request, monitoring_module->real.coll_ireduce_scatter_module);
+#else
+    return monitoring_module->real.coll_ireduce_scatter(sbuf, rbuf, rcounts, dtype, op, comm, request, monitoring_module->real.coll_ireduce_scatter_module, &item);
+#endif
 }

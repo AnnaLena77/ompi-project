@@ -40,8 +40,22 @@ int
 mca_coll_inter_bcast_inter(void *buff, int count,
                            struct ompi_datatype_t *datatype, int root,
                            struct ompi_communicator_t *comm,
-                           mca_coll_base_module_t *module)
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     int rank;
     int err;
 
@@ -53,22 +67,41 @@ mca_coll_inter_bcast_inter(void *buff, int count,
     } else if (MPI_ROOT != root) {
         /* Non-root, first process recieves the data and bcast to others */
 	if ( 0 == rank ) {
+#ifndef ENABLE_ANALYSIS
 	    err = MCA_PML_CALL(recv(buff, count, datatype, root,
 				    MCA_COLL_BASE_TAG_BCAST, comm,
 				    MPI_STATUS_IGNORE));
+#else
+	    err = MCA_PML_CALL(recv(buff, count, datatype, root,
+				    MCA_COLL_BASE_TAG_BCAST, comm,
+				    MPI_STATUS_IGNORE, &item));
+#endif
 	    if (OMPI_SUCCESS != err) {
                 return err;
             }
 	}
+#ifndef ENABLE_ANALYSIS
 	err = comm->c_local_comm->c_coll->coll_bcast(buff, count, datatype, 0,
                                                     comm->c_local_comm,
                                                     comm->c_local_comm->c_coll->coll_bcast_module);
+#else
+	err = comm->c_local_comm->c_coll->coll_bcast(buff, count, datatype, 0,
+                                                    comm->c_local_comm,
+                                                    comm->c_local_comm->c_coll->coll_bcast_module, &item);
+#endif
     } else {
         /* root section, send to the first process of the remote group */
+#ifndef ENABLE_ANALYSIS
 	err = MCA_PML_CALL(send(buff, count, datatype, 0,
 				MCA_COLL_BASE_TAG_BCAST,
 				MCA_PML_BASE_SEND_STANDARD,
 				comm));
+#else
+	err = MCA_PML_CALL(send(buff, count, datatype, 0,
+				MCA_COLL_BASE_TAG_BCAST,
+				MCA_PML_BASE_SEND_STANDARD,
+				comm, &item));
+#endif
 	if (OMPI_SUCCESS != err) {
 	    return err;
 	}

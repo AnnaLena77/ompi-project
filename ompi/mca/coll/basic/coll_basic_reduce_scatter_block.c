@@ -55,9 +55,26 @@ mca_coll_basic_reduce_scatter_block_intra(const void *sbuf, void *rbuf, int rcou
                                           struct ompi_datatype_t *dtype,
                                           struct ompi_op_t *op,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				      , qentry **q
+#endif
+                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
+#ifndef ENABLE_ANALYSIS
     return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount, dtype, op, comm, module);
+#else
+    return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount, dtype, op, comm, module, &item);
+#endif
 }
 
 /*
@@ -72,8 +89,20 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
                                           struct ompi_datatype_t *dtype,
                                           struct ompi_op_t *op,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				      , qentry **q
+#endif
+                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int err, i, rank, root = 0, rsize, lsize;
     int totalcounts;
     ptrdiff_t gap, span;
@@ -113,16 +142,28 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
         buf = tmpbuf2 - gap;
 
         /* Do a send-recv between the two root procs. to avoid deadlock */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(isend(sbuf, totalcounts, dtype, 0,
                                  MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                  MCA_PML_BASE_SEND_STANDARD, comm, &req));
+#else
+        err = MCA_PML_CALL(isend(sbuf, totalcounts, dtype, 0,
+                                 MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, &req, &item));
+#endif
         if (OMPI_SUCCESS != err) {
             goto exit;
         }
 
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(lbuf, totalcounts, dtype, 0,
                                 MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(lbuf, totalcounts, dtype, 0,
+                                MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (OMPI_SUCCESS != err) {
             goto exit;
         }
@@ -139,9 +180,15 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
          */
         for (i = 1; i < rsize; i++) {
             char *tbuf;
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(buf, totalcounts, dtype, i,
                                     MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
                                     MPI_STATUS_IGNORE));
+#else
+	   err = MCA_PML_CALL(recv(buf, totalcounts, dtype, i,
+                                    MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
+                                    MPI_STATUS_IGNORE, &item));
+#endif
             if (MPI_SUCCESS != err) {
                 goto exit;
             }
@@ -153,19 +200,32 @@ mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf, int rcou
         }
     } else {
         /* If not root, send data to the root. */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(send(sbuf, totalcounts, dtype, root,
                                 MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        err = MCA_PML_CALL(send(sbuf, totalcounts, dtype, root,
+                                MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
         if (OMPI_SUCCESS != err) {
             goto exit;
         }
     }
 
     /* Now do a scatterv on the local communicator */
+#ifndef ENABLE_ANALYSIS
     err = comm->c_local_comm->c_coll->coll_scatter(lbuf, rcount, dtype,
 				   rbuf, rcount, dtype, 0,
 				   comm->c_local_comm,
 				   comm->c_local_comm->c_coll->coll_scatter_module);
+#else
+    err = comm->c_local_comm->c_coll->coll_scatter(lbuf, rcount, dtype,
+				   rbuf, rcount, dtype, 0,
+				   comm->c_local_comm,
+				   comm->c_local_comm->c_coll->coll_scatter_module, &item);
+#endif
 
   exit:
     if (NULL != tmpbuf) {

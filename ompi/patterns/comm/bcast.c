@@ -65,8 +65,13 @@ OMPI_DECLSPEC int ompi_comm_bcast_pml(void *buffer, int root, int count,
         peer_rank=node_data.parent_rank;
         peer_rank=(peer_rank+root)%n_peers;
         /* translate back to actual rank */
+#ifndef ENABLE_ANALYSIS
         rc=MCA_PML_CALL(recv(buffer, count,dtype,peer_rank,
                     -OMPI_COMMON_TAG_BCAST, comm, MPI_STATUSES_IGNORE));
+#else
+        rc=MCA_PML_CALL(recv(buffer, count,dtype,peer_rank,
+                    -OMPI_COMMON_TAG_BCAST, comm, MPI_STATUSES_IGNORE, NULL));
+#endif
         if( 0 > rc ) {
             goto Error;
         }
@@ -77,10 +82,17 @@ OMPI_DECLSPEC int ompi_comm_bcast_pml(void *buffer, int root, int count,
     for(i=0 ; i < node_data.n_children ; i++ ) {
         peer_rank=node_data.children_ranks[i];
         peer_rank=(peer_rank+root)%n_peers;
+#ifndef ENABLE_ANALYSIS
         rc=MCA_PML_CALL(isend(buffer,
                     count,dtype,peer_rank,
                     -OMPI_COMMON_TAG_BCAST,MCA_PML_BASE_SEND_STANDARD,
                     comm,&(requests[msg_cnt])));
+#else
+        rc=MCA_PML_CALL(isend(buffer,
+                    count,dtype,peer_rank,
+                    -OMPI_COMMON_TAG_BCAST,MCA_PML_BASE_SEND_STANDARD,
+                    comm,&(requests[msg_cnt]), NULL));
+#endif
         if( 0 > rc ) {
             goto Error;
         }

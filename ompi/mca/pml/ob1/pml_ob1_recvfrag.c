@@ -688,7 +688,11 @@ void mca_pml_ob1_recv_frag_callback_ack (mca_btl_base_module_t *btl,
             MCA_PML_OB1_RDMA_FRAG_RETURN(sendreq->rdma_frag);
             sendreq->rdma_frag = NULL;
         }
+#ifndef ENABLE_ANALYSIS
         send_request_pml_complete( sendreq );
+#else
+        send_request_pml_complete( sendreq, NULL );
+#endif
         return;
     }
 #endif /*OPAL_ENABLE_FT_MPI*/
@@ -735,9 +739,13 @@ void mca_pml_ob1_recv_frag_callback_ack (mca_btl_base_module_t *btl,
         opal_cuda_set_copy_function_async(&sendreq->req_send.req_base.req_convertor, strm);
     }
 #endif /* OPAL_CUDA_SUPPORT */
-
+#ifndef ENABLE_ANALYSIS
     if (send_request_pml_complete_check(sendreq) == false)
         mca_pml_ob1_send_request_schedule(sendreq);
+#else
+    if (send_request_pml_complete_check(sendreq, NULL) == false)
+        mca_pml_ob1_send_request_schedule(sendreq);
+#endif
 }
 
 void mca_pml_ob1_recv_frag_callback_frag (mca_btl_base_module_t *btl,

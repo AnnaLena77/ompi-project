@@ -40,6 +40,14 @@ static const char FUNC_NAME[] = "MPI_Barrier";
 
 int MPI_Barrier(MPI_Comm comm)
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    gettimeofday(&item->start, NULL);
+    strcpy(item->function, "MPI_Barrier");
+    strcpy(item->communicationType, "collective");
+#endif 
+
   int err = MPI_SUCCESS;
 
   SPC_RECORD(OMPI_SPC_BARRIER, 1);
@@ -73,7 +81,12 @@ int MPI_Barrier(MPI_Comm comm)
 
   if (OMPI_COMM_IS_INTRA(comm)) {
     if (ompi_comm_size(comm) > 1) {
+#ifndef ENABLE_ANALYSIS
       err = comm->c_coll->coll_barrier(comm, comm->c_coll->coll_barrier_module);
+#else
+      err = comm->c_coll->coll_barrier(comm, comm->c_coll->coll_barrier_module, &item);
+      //qentryIntoQueue(&item);
+#endif
     }
   }
 
@@ -81,7 +94,12 @@ int MPI_Barrier(MPI_Comm comm)
      there's always at least 2 processes in an intercommunicator. */
 
   else {
+#ifndef ENABLE_ANALYSIS
       err = comm->c_coll->coll_barrier(comm, comm->c_coll->coll_barrier_module);
+#else
+      err = comm->c_coll->coll_barrier(comm, comm->c_coll->coll_barrier_module, &item);
+      //qentryIntoQueue(&item);
+#endif
   }
 
   /* All done */

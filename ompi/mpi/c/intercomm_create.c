@@ -118,8 +118,13 @@ int MPI_Intercomm_create(MPI_Comm local_comm, int local_leader,
         MPI_Request req;
 
         /* local leader exchange group sizes lists */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(&rsize, 1, MPI_INT, rleader, tag, bridge_comm,
                                 &req));
+#else
+        rc = MCA_PML_CALL(irecv(&rsize, 1, MPI_INT, rleader, tag, bridge_comm,
+                                &req, NULL));
+#endif
         if ( rc != MPI_SUCCESS ) {
 #if OPAL_ENABLE_FT_MPI
             if( MPI_ERR_PROC_FAILED == rc ) {
@@ -129,8 +134,13 @@ int MPI_Intercomm_create(MPI_Comm local_comm, int local_leader,
 #endif  /* OPAL_ENABLE_FT_MPI */
             goto err_exit;
         }
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(send (&local_size, 1, MPI_INT, rleader, tag,
                                 MCA_PML_BASE_SEND_STANDARD, bridge_comm));
+#else
+        rc = MCA_PML_CALL(send (&local_size, 1, MPI_INT, rleader, tag,
+                                MCA_PML_BASE_SEND_STANDARD, bridge_comm, NULL));
+#endif
         if ( rc != MPI_SUCCESS ) {
 #if OPAL_ENABLE_FT_MPI
             if( MPI_ERR_PROC_FAILED == rc ) {
@@ -150,9 +160,15 @@ int MPI_Intercomm_create(MPI_Comm local_comm, int local_leader,
     }
 
     /* bcast size and list of remote processes to all processes in local_comm */
+#ifndef ENABLE_ANALYSIS
     rc = local_comm->c_coll->coll_bcast ( &rsize, 1, MPI_INT, lleader,
                                          local_comm,
                                          local_comm->c_coll->coll_bcast_module);
+#else
+    rc = local_comm->c_coll->coll_bcast ( &rsize, 1, MPI_INT, lleader,
+                                         local_comm,
+                                         local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( rc != MPI_SUCCESS ) {
 #if OPAL_ENABLE_FT_MPI
         if ( local_rank != local_leader ) {

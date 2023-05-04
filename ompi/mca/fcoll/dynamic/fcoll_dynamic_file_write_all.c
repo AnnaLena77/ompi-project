@@ -781,6 +781,7 @@ mca_fcoll_dynamic_file_write_all (ompio_file_t *fh,
                     opal_datatype_type_size(&recvtype[i]->super, &datatype_size);
 
                     if (datatype_size){
+#ifndef ENABLE_ANALYSIS
                         ret = MCA_PML_CALL(irecv(global_buf,
                                                  1,
                                                  recvtype[i],
@@ -788,6 +789,15 @@ mca_fcoll_dynamic_file_write_all (ompio_file_t *fh,
                                                  123,
                                                  fh->f_comm,
                                                  &recv_req[i]));
+#else
+		      ret = MCA_PML_CALL(irecv(global_buf,
+                                                 1,
+                                                 recvtype[i],
+                                                 fh->f_procs_in_group[i],
+                                                 123,
+                                                 fh->f_comm,
+                                                 &recv_req[i], NULL));
+#endif
                         if (OMPI_SUCCESS != ret){
                             goto exit;
                         }
@@ -848,6 +858,7 @@ mca_fcoll_dynamic_file_write_all (ompio_file_t *fh,
            aggregators*/
 
 	if (bytes_sent){
+#ifndef ENABLE_ANALYSIS
             ret = MCA_PML_CALL(isend(send_buf,
                                      bytes_sent,
                                      MPI_BYTE,
@@ -856,7 +867,16 @@ mca_fcoll_dynamic_file_write_all (ompio_file_t *fh,
                                      MCA_PML_BASE_SEND_STANDARD,
                                      fh->f_comm,
                                      &send_req));
-
+#else
+	  ret = MCA_PML_CALL(isend(send_buf,
+                                     bytes_sent,
+                                     MPI_BYTE,
+                                     my_aggregator,
+                                     123,
+                                     MCA_PML_BASE_SEND_STANDARD,
+                                     fh->f_comm,
+                                     &send_req, NULL));
+#endif
 
 	    if ( OMPI_SUCCESS != ret ){
 		goto exit;

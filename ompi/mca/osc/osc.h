@@ -211,7 +211,11 @@ typedef int (*ompi_osc_base_module_put_fn_t)(const void *origin_addr,
                                             ptrdiff_t target_disp,
                                             int target_count,
                                             struct ompi_datatype_t *target_dt,
-                                            struct ompi_win_t *win);
+                                            struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            );
 
 
 typedef int (*ompi_osc_base_module_get_fn_t)(void *origin_addr,
@@ -221,7 +225,11 @@ typedef int (*ompi_osc_base_module_get_fn_t)(void *origin_addr,
                                             ptrdiff_t target_disp,
                                             int target_count,
                                             struct ompi_datatype_t *target_dt,
-                                            struct ompi_win_t *win);
+                                            struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            );
 
 
 typedef int (*ompi_osc_base_module_accumulate_fn_t)(const void *origin_addr,
@@ -232,7 +240,11 @@ typedef int (*ompi_osc_base_module_accumulate_fn_t)(const void *origin_addr,
                                                    int target_count,
                                                    struct ompi_datatype_t *target_dt,
                                                    struct ompi_op_t *op,
-                                                   struct ompi_win_t *win);
+                                                   struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                                   , qentry **q
+#endif
+                                                   );
 
 typedef int (*ompi_osc_base_module_compare_and_swap_fn_t)(const void *origin_addr,
                                                           const void *compare_addr,
@@ -240,7 +252,11 @@ typedef int (*ompi_osc_base_module_compare_and_swap_fn_t)(const void *origin_add
                                                           struct ompi_datatype_t *dt,
                                                           int target,
                                                           ptrdiff_t target_disp,
-                                                          struct ompi_win_t *win);
+                                                          struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                                          , qentry **q
+#endif
+                                                          );
 
 typedef int (*ompi_osc_base_module_fetch_and_op_fn_t)(const void *origin_addr,
                                                       void *result_addr,
@@ -248,7 +264,11 @@ typedef int (*ompi_osc_base_module_fetch_and_op_fn_t)(const void *origin_addr,
                                                       int target,
                                                       ptrdiff_t target_disp,
                                                       struct ompi_op_t *op,
-                                                      struct ompi_win_t *win);
+                                                      struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                                      , qentry **q
+#endif
+                                                      );
 
 typedef int (*ompi_osc_base_module_get_accumulate_fn_t)(const void *origin_addr,
                                                         int origin_count,
@@ -261,7 +281,11 @@ typedef int (*ompi_osc_base_module_get_accumulate_fn_t)(const void *origin_addr,
                                                         int target_count,
                                                         struct ompi_datatype_t *target_datatype,
                                                         struct ompi_op_t *op,
-                                                        struct ompi_win_t *win);
+                                                        struct ompi_win_t *win
+#ifdef ENABLE_ANALYSIS
+                                                        , qentry **q
+#endif
+                                                        );
 
 typedef int (*ompi_osc_base_module_rput_fn_t)(const void *origin_addr,
                                               int origin_count,
@@ -271,7 +295,11 @@ typedef int (*ompi_osc_base_module_rput_fn_t)(const void *origin_addr,
                                               int target_count,
                                               struct ompi_datatype_t *target_dt,
                                               struct ompi_win_t *win,
-                                              struct ompi_request_t **request);
+                                              struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              );
 
 typedef int (*ompi_osc_base_module_rget_fn_t)(void *origin_addr,
                                               int origin_count,
@@ -281,7 +309,11 @@ typedef int (*ompi_osc_base_module_rget_fn_t)(void *origin_addr,
                                               int target_count,
                                               struct ompi_datatype_t *target_dt,
                                               struct ompi_win_t *win,
-                                              struct ompi_request_t **request);
+                                              struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              );
 
 
 typedef int (*ompi_osc_base_module_raccumulate_fn_t)(const void *origin_addr,
@@ -293,7 +325,11 @@ typedef int (*ompi_osc_base_module_raccumulate_fn_t)(const void *origin_addr,
                                                      struct ompi_datatype_t *target_dt,
                                                      struct ompi_op_t *op,
                                                      struct ompi_win_t *win,
-                                                     struct ompi_request_t **request);
+                                                     struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                                     , qentry **q
+#endif
+                                                     );
 
 typedef int (*ompi_osc_base_module_rget_accumulate_fn_t)(const void *origin_addr,
                                                          int origin_count,
@@ -307,7 +343,11 @@ typedef int (*ompi_osc_base_module_rget_accumulate_fn_t)(const void *origin_addr
                                                          struct ompi_datatype_t *target_datatype,
                                                          struct ompi_op_t *op,
                                                          struct ompi_win_t *win,
-                                                         struct ompi_request_t **request);
+                                                         struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                                         , qentry **q
+#endif
+                                                         );
 
 typedef int (*ompi_osc_base_module_fence_fn_t)(int mpi_assert, struct ompi_win_t *win);
 

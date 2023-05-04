@@ -135,7 +135,11 @@ mca_sharedfp_sm_seek (ompio_file_t *fh,
     /* since we are only letting process 0, update the current pointer
      * all of the other processes need to wait before proceeding.
      */
+#ifndef ENABLE_ANALYSIS
     fh->f_comm->c_coll->coll_barrier ( fh->f_comm, fh->f_comm->c_coll->coll_barrier_module );
+#else
+    fh->f_comm->c_coll->coll_barrier ( fh->f_comm, fh->f_comm->c_coll->coll_barrier_module, NULL);
+#endif
 
     return ret;
 }

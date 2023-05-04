@@ -58,87 +58,147 @@ int mca_coll_self_allgather_intra(const void *sbuf, int scount,
                                   void *rbuf, int rcount,
                                   struct ompi_datatype_t *rdtype,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module);
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			       , qentry **q
+#endif
+                                  );
 int mca_coll_self_allgatherv_intra(const void *sbuf, int scount,
                                    struct ompi_datatype_t *sdtype,
                                    void * rbuf, const int *rcounts, const int *disps,
                                    struct ompi_datatype_t *rdtype,
                                    struct ompi_communicator_t *comm,
-                                   mca_coll_base_module_t *module);
+                                   mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			        , qentry **q
+#endif
+                                   );
 int mca_coll_self_allreduce_intra(const void *sbuf, void *rbuf, int count,
                                   struct ompi_datatype_t *dtype,
                                   struct ompi_op_t *op,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module);
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			       , qentry **q
+#endif
+                                  );
 int mca_coll_self_alltoall_intra(const void *sbuf, int scount,
                                  struct ompi_datatype_t *sdtype,
                                  void* rbuf, int rcount,
                                  struct ompi_datatype_t *rdtype,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 );
 int mca_coll_self_alltoallv_intra(const void *sbuf, const int *scounts, const int *sdisps,
                                   struct ompi_datatype_t *sdtype,
                                   void *rbuf, const int *rcounts, const int *rdisps,
                                   struct ompi_datatype_t *rdtype,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module);
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			       , qentry **q
+#endif
+                                  );
 int mca_coll_self_alltoallw_intra(const void *sbuf, const int *scounts, const int *sdisps,
                                   struct ompi_datatype_t * const *sdtypes,
                                   void *rbuf, const int *rcounts, const int *rdisps,
                                   struct ompi_datatype_t * const *rdtypes,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module);
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			       , qentry **q
+#endif
+                                  );
 int mca_coll_self_barrier_intra(struct ompi_communicator_t *comm,
                                 mca_coll_base_module_t *module);
 int mca_coll_self_bcast_intra(void *buff, int count,
                               struct ompi_datatype_t *datatype,
                               int root,
                               struct ompi_communicator_t *comm,
-                              mca_coll_base_module_t *module);
+                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			   , qentry **q
+#endif
+                              );
 int mca_coll_self_exscan_intra(const void *sbuf, void *rbuf, int count,
                                struct ompi_datatype_t *dtype,
                                struct ompi_op_t *op,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module);
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               );
 int mca_coll_self_gather_intra(const void *sbuf, int scount,
                                struct ompi_datatype_t *sdtype, void *rbuf,
                                int rcount, struct ompi_datatype_t *rdtype,
                                int root, struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module);
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               );
 int mca_coll_self_gatherv_intra(const void *sbuf, int scount,
                                 struct ompi_datatype_t *sdtype, void *rbuf,
                                 const int *rcounts, const int *disps,
                                 struct ompi_datatype_t *rdtype, int root,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module);
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                );
 int mca_coll_self_reduce_intra(const void *sbuf, void* rbuf, int count,
                                struct ompi_datatype_t *dtype,
                                struct ompi_op_t *op,
                                int root,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module);
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               );
 int mca_coll_self_reduce_scatter_intra(const void *sbuf, void *rbuf,
                                        const int *rcounts,
                                        struct ompi_datatype_t *dtype,
                                        struct ompi_op_t *op,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+				   , qentry **q
+#endif
+                                       );
 int mca_coll_self_scan_intra(const void *sbuf, void *rbuf, int count,
                              struct ompi_datatype_t *dtype,
                              struct ompi_op_t *op,
                              struct ompi_communicator_t *comm,
-                             mca_coll_base_module_t *module);
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             );
 int mca_coll_self_scatter_intra(const void *sbuf, int scount,
                                 struct ompi_datatype_t *sdtype, void *rbuf,
                                 int rcount, struct ompi_datatype_t *rdtype,
                                 int root, struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module);
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			     , qentry **q
+#endif
+                                );
 int mca_coll_self_scatterv_intra(const void *sbuf, const int *scounts, const int *disps,
                                  struct ompi_datatype_t *sdtype,
                                  void* rbuf, int rcount,
                                  struct ompi_datatype_t *rdtype, int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 );
 
 
 struct mca_coll_self_module_t {

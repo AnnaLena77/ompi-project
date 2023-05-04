@@ -104,7 +104,11 @@ int mca_pml_ob1_start(size_t count, ompi_request_t** requests)
             case MCA_PML_REQUEST_RECV:
             {
                 mca_pml_ob1_recv_request_t* recvreq = (mca_pml_ob1_recv_request_t*)pml_request;
+#ifndef ENABLE_ANALYSIS
                 MCA_PML_OB1_RECV_REQUEST_START(recvreq);
+#else
+                MCA_PML_OB1_RECV_REQUEST_START(recvreq, NULL);
+#endif
                 break;
             }
             default:

@@ -44,8 +44,20 @@ mca_coll_basic_scatter_inter(const void *sbuf, int scount,
                              void *rbuf, int rcount,
                              struct ompi_datatype_t *rdtype,
                              int root, struct ompi_communicator_t *comm,
-                             mca_coll_base_module_t *module)
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			  , qentry **q
+#endif
+                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, size, err;
     char *ptmp;
     ptrdiff_t lb, incr;
@@ -59,9 +71,15 @@ mca_coll_basic_scatter_inter(const void *sbuf, int scount,
         err = OMPI_SUCCESS;
     } else if (MPI_ROOT != root) {
         /* If not root, receive data. */
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, rcount, rdtype, root,
                                 MCA_COLL_BASE_TAG_SCATTER,
                                 comm, MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(rbuf, rcount, rdtype, root,
+                                MCA_COLL_BASE_TAG_SCATTER,
+                                comm, MPI_STATUS_IGNORE, &item));
+#endif
     } else {
         /* I am the root, loop sending data. */
         err = ompi_datatype_get_extent(sdtype, &lb, &incr);
@@ -74,10 +92,17 @@ mca_coll_basic_scatter_inter(const void *sbuf, int scount,
 
         incr *= scount;
         for (i = 0, ptmp = (char *) sbuf; i < size; ++i, ptmp += incr) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(isend(ptmp, scount, sdtype, i,
                                      MCA_COLL_BASE_TAG_SCATTER,
                                      MCA_PML_BASE_SEND_STANDARD, comm,
                                      reqs++));
+#else
+	   err = MCA_PML_CALL(isend(ptmp, scount, sdtype, i,
+                                     MCA_COLL_BASE_TAG_SCATTER,
+                                     MCA_PML_BASE_SEND_STANDARD, comm,
+                                     reqs++, &item));
+#endif
             if (OMPI_SUCCESS != err) {
                 ompi_coll_base_free_reqs(reqs, i + 1);
                 return err;

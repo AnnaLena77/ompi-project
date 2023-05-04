@@ -157,6 +157,7 @@ int mca_common_ompio_print_time_info( struct mca_common_ompio_print_queue *q,
 	}
     }
 
+#ifndef ENABLE_ANALYSIS
     ret = fh->f_comm->c_coll->coll_gather(time_details,
                                          4,
                                          MPI_DOUBLE,
@@ -166,6 +167,17 @@ int mca_common_ompio_print_time_info( struct mca_common_ompio_print_queue *q,
                                          0,
                                          fh->f_comm,
                                          fh->f_comm->c_coll->coll_gather_module);
+#else
+    ret = fh->f_comm->c_coll->coll_gather(time_details,
+                                         4,
+                                         MPI_DOUBLE,
+                                         final_time_details,
+                                         4,
+                                         MPI_DOUBLE,
+                                         0,
+                                         fh->f_comm,
+                                         fh->f_comm->c_coll->coll_gather_module, NULL);
+#endif
     
     if ( OMPI_SUCCESS != ret ) {
     }

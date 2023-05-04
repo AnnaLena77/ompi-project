@@ -46,8 +46,20 @@ mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
                               void *rbuf, int rcount,
                               struct ompi_datatype_t *rdtype,
                               struct ompi_communicator_t *comm,
-                              mca_coll_base_module_t *module)
+                              mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                              , qentry **q
+#endif
+                              )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i;
     int size;
     int err;
@@ -87,8 +99,13 @@ mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
 
     /* Post all receives first */
     for (i = 0; i < size; i++, ++rreq) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(irecv(prcv + (i * rcvinc), rcount, rdtype, i,
                                  MCA_COLL_BASE_TAG_ALLTOALL, comm, rreq));
+#else
+        err = MCA_PML_CALL(irecv(prcv + (i * rcvinc), rcount, rdtype, i,
+                                 MCA_COLL_BASE_TAG_ALLTOALL, comm, rreq, &item));
+#endif
         if (OMPI_SUCCESS != err) {
             ompi_coll_base_free_reqs(req, i + 1);
             return err;
@@ -97,9 +114,15 @@ mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
 
     /* Now post all sends */
     for (i = 0; i < size; i++, ++sreq) {
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(isend(psnd + (i * sndinc), scount, sdtype, i,
                                  MCA_COLL_BASE_TAG_ALLTOALL,
                                  MCA_PML_BASE_SEND_STANDARD, comm, sreq));
+#else
+        err = MCA_PML_CALL(isend(psnd + (i * sndinc), scount, sdtype, i,
+                                 MCA_COLL_BASE_TAG_ALLTOALL,
+                                 MCA_PML_BASE_SEND_STANDARD, comm, sreq, &item));
+#endif
         if (OMPI_SUCCESS != err) {
             ompi_coll_base_free_reqs(req, i + size + 1);
             return err;

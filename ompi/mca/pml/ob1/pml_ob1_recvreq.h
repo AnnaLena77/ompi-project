@@ -36,6 +36,9 @@
 #include "ompi/mca/pml/ob1/pml_ob1_comm.h"
 #include "opal/mca/mpool/base/base.h"
 #include "ompi/mca/pml/base/pml_base_recvreq.h"
+#ifdef ENABLE_ANALYSIS
+#   include "ompi/mpi/c/init.h"
+#endif
 
 BEGIN_C_DECLS
 
@@ -221,8 +224,16 @@ recv_request_pml_complete_check(mca_pml_ob1_recv_request_t *recvreq)
     return false;
 }
 
-extern void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req);
+extern void mca_pml_ob1_recv_req_start(mca_pml_ob1_recv_request_t *req
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+);
+#ifndef ENABLE_ANALYSIS
 #define MCA_PML_OB1_RECV_REQUEST_START(r) mca_pml_ob1_recv_req_start(r)
+#else
+#define MCA_PML_OB1_RECV_REQUEST_START(r, q) mca_pml_ob1_recv_req_start(r, q)
+#endif
 
 static inline void prepare_recv_req_converter(mca_pml_ob1_recv_request_t *req)
 {

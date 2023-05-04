@@ -49,8 +49,20 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
                                                         struct ompi_datatype_t *dtype,
                                                         struct ompi_op_t *op,
                                                         struct ompi_communicator_t *comm,
-                                                        mca_coll_base_module_t *module)
+                                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                        , qentry **q
+#endif
+                                                        )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int err, i, rank, size, total_count, *displs = NULL;
     const int root = 0;
     char *tmprbuf = NULL, *tmprbuf_free = NULL;
@@ -67,11 +79,21 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
     if (MPI_IN_PLACE == sbuf) {
         /* rbuf on root (0) is big enough to hold whole data */
         if (root == rank) {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce (MPI_IN_PLACE, tmprbuf, total_count,
                                             dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce (MPI_IN_PLACE, tmprbuf, total_count,
+                                            dtype, op, root, comm, comm->c_coll->coll_reduce_module, &item);
+#endif
         } else {
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce(tmprbuf, NULL, total_count,
                                            dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce(tmprbuf, NULL, total_count,
+                                           dtype, op, root, comm, comm->c_coll->coll_reduce_module, &item);
+#endif
         }
     } else {
         if (root == rank) {
@@ -83,8 +105,13 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
             tmprbuf_free = (char*) malloc(dsize);
             tmprbuf = tmprbuf_free - gap;
         }
+#ifndef ENABLE_ANALYSIS
         err = comm->c_coll->coll_reduce (sbuf, tmprbuf, total_count,
                                         dtype, op, root, comm, comm->c_coll->coll_reduce_module);
+#else
+        err = comm->c_coll->coll_reduce (sbuf, tmprbuf, total_count,
+                                        dtype, op, root, comm, comm->c_coll->coll_reduce_module, &item);
+#endif
     }
     if (MPI_SUCCESS != err) {
         if (NULL != tmprbuf_free) free(tmprbuf_free);
@@ -97,13 +124,25 @@ int ompi_coll_base_reduce_scatter_intra_nonoverlapping(const void *sbuf, void *r
         displs[i] = displs[i-1] + rcounts[i-1];
     }
     if (MPI_IN_PLACE == sbuf && root == rank) {
+#ifndef ENABLE_ANALYSIS
         err =  comm->c_coll->coll_scatterv (tmprbuf, rcounts, displs, dtype,
                                            MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
                                            root, comm, comm->c_coll->coll_scatterv_module);
+#else
+        err =  comm->c_coll->coll_scatterv (tmprbuf, rcounts, displs, dtype,
+                                           MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+                                           root, comm, comm->c_coll->coll_scatterv_module, &item);
+#endif
     } else {
+#ifndef ENABLE_ANALYSIS
         err =  comm->c_coll->coll_scatterv (tmprbuf, rcounts, displs, dtype,
                                            rbuf, rcounts[rank], dtype,
                                            root, comm, comm->c_coll->coll_scatterv_module);
+#else
+        err =  comm->c_coll->coll_scatterv (tmprbuf, rcounts, displs, dtype,
+                                           rbuf, rcounts[rank], dtype,
+                                           root, comm, comm->c_coll->coll_scatterv_module, &item);
+#endif
     }
     free(displs);
     if (NULL != tmprbuf_free) free(tmprbuf_free);
@@ -135,8 +174,20 @@ ompi_coll_base_reduce_scatter_intra_basic_recursivehalving( const void *sbuf,
                                                             struct ompi_datatype_t *dtype,
                                                             struct ompi_op_t *op,
                                                             struct ompi_communicator_t *comm,
-                                                            mca_coll_base_module_t *module)
+                                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                            , qentry **q
+#endif
+                                                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int i, rank, size, count, err = OMPI_SUCCESS;
     int tmp_size, remain = 0, tmp_rank, *disps = NULL;
     ptrdiff_t extent, buf_size, gap = 0;
@@ -202,18 +253,31 @@ ompi_coll_base_reduce_scatter_intra_basic_recursivehalving( const void *sbuf,
        two procs to do the rest of the algorithm */
     if (rank < 2 * remain) {
         if ((rank & 1) == 0) {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(result_buf, count, dtype, rank + 1,
                                     MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                     MCA_PML_BASE_SEND_STANDARD,
                                     comm));
+#else   
+            err = MCA_PML_CALL(send(result_buf, count, dtype, rank + 1,
+                                    MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                    MCA_PML_BASE_SEND_STANDARD,
+                                    comm, &item));
+#endif
             if (OMPI_SUCCESS != err) goto cleanup;
 
             /* we don't participate from here on out */
             tmp_rank = -1;
         } else {
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(recv_buf, count, dtype, rank - 1,
                                     MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                     comm, MPI_STATUS_IGNORE));
+#else
+            err = MCA_PML_CALL(recv(recv_buf, count, dtype, rank - 1,
+                                    MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                    comm, MPI_STATUS_IGNORE, &item));
+#endif
 
             /* integrate their results into our temp results */
             ompi_op_reduce(op, recv_buf, result_buf, count, dtype);
@@ -299,10 +363,17 @@ ompi_coll_base_reduce_scatter_intra_basic_recursivehalving( const void *sbuf,
             /* actual data transfer.  Send from result_buf,
                receive into recv_buf */
             if (recv_count > 0) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(irecv(recv_buf + (ptrdiff_t)tmp_disps[recv_index] * extent,
                                          recv_count, dtype, peer,
                                          MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                          comm, &request));
+#else
+                err = MCA_PML_CALL(irecv(recv_buf + (ptrdiff_t)tmp_disps[recv_index] * extent,
+                                         recv_count, dtype, peer,
+                                         MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                         comm, &request, &item));
+#endif
                 if (OMPI_SUCCESS != err) {
                     free(tmp_rcounts);
                     free(tmp_disps);
@@ -310,11 +381,19 @@ ompi_coll_base_reduce_scatter_intra_basic_recursivehalving( const void *sbuf,
                 }
             }
             if (send_count > 0) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(send(result_buf + (ptrdiff_t)tmp_disps[send_index] * extent,
                                         send_count, dtype, peer,
                                         MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                         MCA_PML_BASE_SEND_STANDARD,
                                         comm));
+#else
+                err = MCA_PML_CALL(send(result_buf + (ptrdiff_t)tmp_disps[send_index] * extent,
+                                        send_count, dtype, peer,
+                                        MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                        MCA_PML_BASE_SEND_STANDARD,
+                                        comm, &item));
+#endif
                 if (OMPI_SUCCESS != err) {
                     free(tmp_rcounts);
                     free(tmp_disps);
@@ -365,18 +444,32 @@ ompi_coll_base_reduce_scatter_intra_basic_recursivehalving( const void *sbuf,
     if (rank < (2 * remain)) {
         if ((rank & 1) == 0) {
             if (rcounts[rank]) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(recv(rbuf, rcounts[rank], dtype, rank + 1,
                                         MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                         comm, MPI_STATUS_IGNORE));
+#else
+                err = MCA_PML_CALL(recv(rbuf, rcounts[rank], dtype, rank + 1,
+                                        MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                        comm, MPI_STATUS_IGNORE, &item));
+#endif
                 if (OMPI_SUCCESS != err) goto cleanup;
             }
         } else {
             if (rcounts[rank - 1]) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(send(result_buf + disps[rank - 1] * extent,
                                         rcounts[rank - 1], dtype, rank - 1,
                                         MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                         MCA_PML_BASE_SEND_STANDARD,
                                         comm));
+#else
+                err = MCA_PML_CALL(send(result_buf + disps[rank - 1] * extent,
+                                        rcounts[rank - 1], dtype, rank - 1,
+                                        MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                        MCA_PML_BASE_SEND_STANDARD,
+                                        comm, &item));
+#endif
                 if (OMPI_SUCCESS != err) goto cleanup;
             }
         }
@@ -457,8 +550,20 @@ ompi_coll_base_reduce_scatter_intra_ring( const void *sbuf, void *rbuf, const in
                                           struct ompi_datatype_t *dtype,
                                           struct ompi_op_t *op,
                                           struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module)
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int ret, line, rank, size, i, k, recv_from, send_to, total_count, max_block_count;
     int inbi, *displs = NULL;
     char *tmpsend = NULL, *tmprecv = NULL, *accumbuf = NULL, *accumbuf_free = NULL;
@@ -553,14 +658,26 @@ ompi_coll_base_reduce_scatter_intra_ring( const void *sbuf, void *rbuf, const in
 
     inbi = 0;
     /* Initialize first receive from the neighbor on the left */
+#ifndef ENABLE_ANALYSIS
     ret = MCA_PML_CALL(irecv(inbuf[inbi], max_block_count, dtype, recv_from,
                              MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
                              &reqs[inbi]));
+#else
+    ret = MCA_PML_CALL(irecv(inbuf[inbi], max_block_count, dtype, recv_from,
+                             MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
+                             &reqs[inbi], &item));
+#endif
     if (MPI_SUCCESS != ret) { line = __LINE__; goto error_hndl; }
     tmpsend = accumbuf + (ptrdiff_t)displs[recv_from] * extent;
+#ifndef ENABLE_ANALYSIS
     ret = MCA_PML_CALL(send(tmpsend, rcounts[recv_from], dtype, send_to,
                             MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                             MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+    ret = MCA_PML_CALL(send(tmpsend, rcounts[recv_from], dtype, send_to,
+                            MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                            MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
     if (MPI_SUCCESS != ret) { line = __LINE__; goto error_hndl; }
 
     for (k = 2; k < size; k++) {
@@ -569,9 +686,15 @@ ompi_coll_base_reduce_scatter_intra_ring( const void *sbuf, void *rbuf, const in
         inbi = inbi ^ 0x1;
 
         /* Post irecv for the current block */
+#ifndef ENABLE_ANALYSIS
         ret = MCA_PML_CALL(irecv(inbuf[inbi], max_block_count, dtype, recv_from,
                                  MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
                                  &reqs[inbi]));
+#else
+        ret = MCA_PML_CALL(irecv(inbuf[inbi], max_block_count, dtype, recv_from,
+                                 MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
+                                 &reqs[inbi], &item));
+#endif
         if (MPI_SUCCESS != ret) { line = __LINE__; goto error_hndl; }
 
         /* Wait on previous block to arrive */
@@ -585,9 +708,15 @@ ompi_coll_base_reduce_scatter_intra_ring( const void *sbuf, void *rbuf, const in
         ompi_op_reduce(op, inbuf[inbi ^ 0x1], tmprecv, rcounts[prevblock], dtype);
 
         /* send previous block to send_to */
+#ifndef ENABLE_ANALYSIS
         ret = MCA_PML_CALL(send(tmprecv, rcounts[prevblock], dtype, send_to,
                                 MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                 MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+        ret = MCA_PML_CALL(send(tmprecv, rcounts[prevblock], dtype, send_to,
+                                MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
         if (MPI_SUCCESS != ret) { line = __LINE__; goto error_hndl; }
     }
 
@@ -691,8 +820,20 @@ int
 ompi_coll_base_reduce_scatter_intra_butterfly(
     const void *sbuf, void *rbuf, const int *rcounts, struct ompi_datatype_t *dtype,
     struct ompi_op_t *op, struct ompi_communicator_t *comm,
-    mca_coll_base_module_t *module)
+    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+    , qentry **q
+#endif
+    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     char *tmpbuf[2] = {NULL, NULL}, *psend, *precv;
     int *displs = NULL, index;
     ptrdiff_t span, gap, totalcount, extent;
@@ -759,17 +900,29 @@ ompi_coll_base_reduce_scatter_intra_butterfly(
     if (rank < 2 * nprocs_rem) {
         if ((rank % 2) == 0) {
             /* Even process */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(psend, totalcount, dtype, rank + 1,
                                     MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+            err = MCA_PML_CALL(send(psend, totalcount, dtype, rank + 1,
+                                    MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
             if (OMPI_SUCCESS != err) { goto cleanup_and_return; }
             /* This process does not participate in the rest of the algorithm */
             vrank = -1;
         } else {
             /* Odd process */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(recv(precv, totalcount, dtype, rank - 1,
                                     MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                     comm, MPI_STATUS_IGNORE));
+#else
+            err = MCA_PML_CALL(recv(precv, totalcount, dtype, rank - 1,
+                                    MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                    comm, MPI_STATUS_IGNORE, &item));
+#endif
             if (OMPI_SUCCESS != err) { goto cleanup_and_return; }
             ompi_op_reduce(op, precv, psend, totalcount, dtype);
             /* Adjust rank to be the bottom "remain" ranks */
@@ -818,11 +971,19 @@ ompi_coll_base_reduce_scatter_intra_butterfly(
             index = (recv_index < nprocs_rem) ? 2 * recv_index : nprocs_rem + recv_index;
             ptrdiff_t rdispl = displs[index];
 
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv(psend + (ptrdiff_t)sdispl * extent, send_count,
                                           dtype, peer, MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                           precv + (ptrdiff_t)rdispl * extent, recv_count,
                                           dtype, peer, MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                           comm, MPI_STATUS_IGNORE, rank);
+#else
+            err = ompi_coll_base_sendrecv(psend + (ptrdiff_t)sdispl * extent, send_count,
+                                          dtype, peer, MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                          precv + (ptrdiff_t)rdispl * extent, recv_count,
+                                          dtype, peer, MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                          comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
 
             if (vrank < vpeer) {
@@ -852,10 +1013,17 @@ ompi_coll_base_reduce_scatter_intra_butterfly(
              * Process has two blocks: for excluded process and own.
              * Send the first block to excluded process.
              */
+#ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(send(psend + (ptrdiff_t)displs[index] * extent,
                                     rcounts[index], dtype, peer - 1,
                                     MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                     MCA_PML_BASE_SEND_STANDARD, comm));
+#else   
+            err = MCA_PML_CALL(send(psend + (ptrdiff_t)displs[index] * extent,
+                                    rcounts[index], dtype, peer - 1,
+                                    MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                    MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
         }
 
@@ -863,12 +1031,21 @@ ompi_coll_base_reduce_scatter_intra_butterfly(
         if (vpeer < nprocs_rem)
             index++;
         if (vpeer != vrank) {
+#ifndef ENABLE_ANALYSIS
             err = ompi_coll_base_sendrecv(psend + (ptrdiff_t)displs[index] * extent,
                                           rcounts[index], dtype, peer,
                                           MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                           rbuf, rcounts[rank], dtype, peer,
                                           MCA_COLL_BASE_TAG_REDUCE_SCATTER,
                                           comm, MPI_STATUS_IGNORE, rank);
+#else
+            err = ompi_coll_base_sendrecv(psend + (ptrdiff_t)displs[index] * extent,
+                                          rcounts[index], dtype, peer,
+                                          MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                          rbuf, rcounts[rank], dtype, peer,
+                                          MCA_COLL_BASE_TAG_REDUCE_SCATTER,
+                                          comm, MPI_STATUS_IGNORE, rank, &item);
+#endif
             if (MPI_SUCCESS != err) { goto cleanup_and_return; }
         } else {
             err = ompi_datatype_copy_content_same_ddt(dtype, rcounts[rank], rbuf,
@@ -880,9 +1057,15 @@ ompi_coll_base_reduce_scatter_intra_butterfly(
         /* Excluded process: receive result */
         int vpeer = ompi_mirror_perm((rank + 1) / 2, log2_size);
         int peer = (vpeer < nprocs_rem) ? vpeer * 2 + 1 : vpeer + nprocs_rem;
+#ifndef ENABLE_ANALYSIS
         err = MCA_PML_CALL(recv(rbuf, rcounts[rank], dtype, peer,
                                 MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
                                 MPI_STATUS_IGNORE));
+#else
+        err = MCA_PML_CALL(recv(rbuf, rcounts[rank], dtype, peer,
+                                MCA_COLL_BASE_TAG_REDUCE_SCATTER, comm,
+                                MPI_STATUS_IGNORE, &item));
+#endif
         if (OMPI_SUCCESS != err) { goto cleanup_and_return; }
     }
 

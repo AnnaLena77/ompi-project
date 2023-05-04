@@ -428,11 +428,19 @@ ompi_report_comm_methods(int called_from_location) // 1 = from init, 2 = from fi
             int rpeer = (myleaderrank - 1 + nleaderranks) % nleaderranks;
 
             sbuf = rbuf = 0;
+#ifndef ENABLE_ANALYSIS
             MCA_PML_CALL(isend(&sbuf, 1, MPI_INT, speer, 99,
                     MCA_PML_BASE_SEND_STANDARD,
                     leader_comm, &sreq));
             MCA_PML_CALL(irecv(&rbuf, 1, MPI_INT, rpeer, 99,
                     leader_comm, &rreq));
+#else
+	   MCA_PML_CALL(isend(&sbuf, 1, MPI_INT, speer, 99,
+                    MCA_PML_BASE_SEND_STANDARD,
+                    leader_comm, &sreq, NULL));
+            MCA_PML_CALL(irecv(&rbuf, 1, MPI_INT, rpeer, 99,
+                    leader_comm, &rreq, NULL));
+#endif
             ompi_request_wait(&sreq, &status);
             ompi_request_wait(&rreq, &status);
         }
@@ -458,9 +466,15 @@ ompi_report_comm_methods(int called_from_location) // 1 = from init, 2 = from fi
     MPI_Type_contiguous(sizeof(comm_method_string_conversion_t), MPI_BYTE, &mydt);
     MPI_Type_commit(&mydt);
     MPI_Op_create(myfn, 1, &myop);
+#ifndef ENABLE_ANALYSIS
     leader_comm->c_coll->coll_allreduce(
         MPI_IN_PLACE, (void*)&comm_method_string_conversion, 1, mydt, myop, leader_comm,
             leader_comm->c_coll->coll_allreduce_module);
+#else
+    leader_comm->c_coll->coll_allreduce(
+        MPI_IN_PLACE, (void*)&comm_method_string_conversion, 1, mydt, myop, leader_comm,
+            leader_comm->c_coll->coll_allreduce_module, NULL);
+#endif
     MPI_Op_free(&myop);
     MPI_Type_free(&mydt);
 
@@ -493,10 +507,17 @@ ompi_report_comm_methods(int called_from_location) // 1 = from init, 2 = from fi
         } else {
             lens = disps = NULL;
         }
+#ifndef ENABLE_ANALYSIS
         leader_comm->c_coll->coll_gather(
             &len, 1, MPI_INT,
             lens, 1, MPI_INT,
             0, leader_comm, leader_comm->c_coll->coll_gather_module);
+#else
+        leader_comm->c_coll->coll_gather(
+            &len, 1, MPI_INT,
+            lens, 1, MPI_INT,
+            0, leader_comm, leader_comm->c_coll->coll_gather_module, NULL);
+#endif
         if (myleaderrank == 0) {
             int tlen = 0;
             char *p;
@@ -510,27 +531,48 @@ ompi_report_comm_methods(int called_from_location) // 1 = from init, 2 = from fi
                 allhoststrings[i] = p;
                 p += lens[i];
             }
+#ifndef ENABLE_ANALYSIS
             leader_comm->c_coll->coll_gatherv(
                 hoststring, strlen(hoststring) + 1, MPI_CHAR,
                 &allhoststrings[0][0], lens, disps, MPI_CHAR,
                 0, leader_comm, leader_comm->c_coll->coll_gatherv_module);
+#else
+            leader_comm->c_coll->coll_gatherv(
+                hoststring, strlen(hoststring) + 1, MPI_CHAR,
+                &allhoststrings[0][0], lens, disps, MPI_CHAR,
+                0, leader_comm, leader_comm->c_coll->coll_gatherv_module, NULL);
+#endif
         } else {
             // matching above call from rank 0, just &allhoststrings[0][0]
             // isn't legal here, and those args aren't used at non-root anyway
+#ifndef ENABLE_ANALYSIS
             leader_comm->c_coll->coll_gatherv(
                 hoststring, strlen(hoststring) + 1, MPI_CHAR,
                 NULL, NULL, NULL, MPI_CHAR,
                 0, leader_comm, leader_comm->c_coll->coll_gatherv_module);
+#else
+            leader_comm->c_coll->coll_gatherv(
+                hoststring, strlen(hoststring) + 1, MPI_CHAR,
+                NULL, NULL, NULL, MPI_CHAR,
+                0, leader_comm, leader_comm->c_coll->coll_gatherv_module, NULL);
+#endif
         }
         if (myleaderrank == 0) {
             free(lens);
             free(disps);
         }
 // and a simpler gather for the methods
+#ifndef ENABLE_ANALYSIS
         leader_comm->c_coll->coll_gather(
             method, nleaderranks, MPI_INT,
             method, nleaderranks, MPI_INT,
             0, leader_comm, leader_comm->c_coll->coll_gather_module);
+#else
+        leader_comm->c_coll->coll_gather(
+            method, nleaderranks, MPI_INT,
+            method, nleaderranks, MPI_INT,
+            0, leader_comm, leader_comm->c_coll->coll_gather_module, NULL);
+#endif
     }
     ompi_comm_free(&local_comm);
     ompi_comm_free(&leader_comm);

@@ -314,7 +314,11 @@ static inline int scan_sched_recursivedoubling(
 
 int ompi_coll_libnbc_iscan(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
                            struct ompi_communicator_t *comm, ompi_request_t ** request,
-                           mca_coll_base_module_t *module) {
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                           , qentry **q
+#endif
+                           ) {
     int res = nbc_scan_init(sendbuf, recvbuf, count, datatype, op,
                             comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {

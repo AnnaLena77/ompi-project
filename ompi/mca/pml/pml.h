@@ -244,6 +244,7 @@ typedef int (*mca_pml_base_module_irecv_init_fn_t)(
  *  @param request (OUT)    Request handle.
  *  @return                 OMPI_SUCCESS or failure status.
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_pml_base_module_irecv_fn_t)(
     void *buf,
     size_t count,
@@ -260,6 +261,26 @@ typedef int (*mca_pml_base_module_imrecv_fn_t)(
     struct ompi_message_t **message,
     struct ompi_request_t **request
 );
+#else
+typedef int (*mca_pml_base_module_irecv_fn_t)(
+    void *buf,
+    size_t count,
+    struct ompi_datatype_t *datatype,
+    int src,
+    int tag,
+    struct ompi_communicator_t* comm,
+    struct ompi_request_t **request,
+    struct qentry **q
+);
+typedef int (*mca_pml_base_module_imrecv_fn_t)(
+    void *buf,
+    size_t count,
+    struct ompi_datatype_t *datatype,
+    struct ompi_message_t **message,
+    struct ompi_request_t **request,
+    struct qentry **q
+);
+#endif
 
 /**
  *  Post a receive and wait for completion.
@@ -273,6 +294,7 @@ typedef int (*mca_pml_base_module_imrecv_fn_t)(
  *  @param status (OUT)     Completion status
  *  @return                 OMPI_SUCCESS or failure status.
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_pml_base_module_recv_fn_t)(
     void *buf,
     size_t count,
@@ -289,6 +311,26 @@ typedef int (*mca_pml_base_module_mrecv_fn_t)(
     struct ompi_message_t **message,
     ompi_status_public_t* status
 );
+#else
+typedef int (*mca_pml_base_module_recv_fn_t)(
+    void *buf,
+    size_t count,
+    struct ompi_datatype_t *datatype,
+    int src,
+    int tag,
+    struct ompi_communicator_t* comm,
+    ompi_status_public_t* status,
+    struct qentry **q
+);
+typedef int (*mca_pml_base_module_mrecv_fn_t)(
+    void *buf,
+    size_t count,
+    struct ompi_datatype_t *datatype,
+    struct ompi_message_t **message,
+    ompi_status_public_t* status,
+    struct qentry **q
+);
+#endif
 
 /**
  *  Initialize a persistent send request.
@@ -328,6 +370,7 @@ typedef int (*mca_pml_base_module_isend_init_fn_t)(
  *  @param request (OUT)    Request handle.
  *  @return                 OMPI_SUCCESS or failure status.
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_pml_base_module_isend_fn_t)(
     const void *buf,
     size_t count,
@@ -338,6 +381,19 @@ typedef int (*mca_pml_base_module_isend_fn_t)(
     struct ompi_communicator_t* comm,
     struct ompi_request_t **request
 );
+#else
+typedef int (*mca_pml_base_module_isend_fn_t)(
+    const void *buf,
+    size_t count,
+    struct ompi_datatype_t *datatype,
+    int dst,
+    int tag,
+    mca_pml_base_send_mode_t mode,
+    struct ompi_communicator_t* comm,
+    struct ompi_request_t **request,
+    struct qentry **q
+);
+#endif
 
 
 /**
@@ -352,6 +408,7 @@ typedef int (*mca_pml_base_module_isend_fn_t)(
  *  @param comm (IN)        Communicator.
  *  @return                 OMPI_SUCCESS or failure status.
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*mca_pml_base_module_send_fn_t)(
     const void *buf,
     size_t count,
@@ -361,6 +418,18 @@ typedef int (*mca_pml_base_module_send_fn_t)(
     mca_pml_base_send_mode_t mode,
     struct ompi_communicator_t* comm
 );
+#else
+typedef int (*mca_pml_base_module_send_fn_t)(
+    const void *buf,
+    size_t count,
+    struct ompi_datatype_t *datatype,
+    int dst,
+    int tag,
+    mca_pml_base_send_mode_t mode,
+    struct ompi_communicator_t* comm,
+    struct qentry **q
+);
+#endif
 
 /**
  * Initiate one or more persistent requests.

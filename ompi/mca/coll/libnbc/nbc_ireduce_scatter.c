@@ -213,7 +213,11 @@ static int nbc_reduce_scatter_init(const void* sendbuf, void* recvbuf, const int
 
 int ompi_coll_libnbc_ireduce_scatter (const void* sendbuf, void* recvbuf, const int *recvcounts, MPI_Datatype datatype,
                                       MPI_Op op, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                      mca_coll_base_module_t *module) {
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      ) {
     int res = nbc_reduce_scatter_init(sendbuf, recvbuf, recvcounts, datatype, op,
                                       comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {
@@ -357,7 +361,11 @@ static int nbc_reduce_scatter_inter_init (const void* sendbuf, void* recvbuf, co
 
 int ompi_coll_libnbc_ireduce_scatter_inter (const void* sendbuf, void* recvbuf, const int *recvcounts, MPI_Datatype datatype,
                                             MPI_Op op, struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                            mca_coll_base_module_t *module) {
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            ) {
     int res = nbc_reduce_scatter_inter_init(sendbuf, recvbuf, recvcounts, datatype, op,
                                             comm, request, module, false);
     if (OPAL_LIKELY(OMPI_SUCCESS != res)) {

@@ -167,7 +167,11 @@ static int nbc_exscan_init(const void* sendbuf, void* recvbuf, int count, MPI_Da
 
 int ompi_coll_libnbc_iexscan(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
                              struct ompi_communicator_t *comm, ompi_request_t ** request,
-                             mca_coll_base_module_t *module) {
+                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             ) {
     int res = nbc_exscan_init(sendbuf, recvbuf, count, datatype, op,
                               comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {

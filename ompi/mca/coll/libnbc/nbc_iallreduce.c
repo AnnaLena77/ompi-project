@@ -223,7 +223,11 @@ static int nbc_allreduce_init(const void* sendbuf, void* recvbuf, int count, MPI
 
 int ompi_coll_libnbc_iallreduce(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
                                 struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                mca_coll_base_module_t *module) {
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+                                ) {
     int res = nbc_allreduce_init(sendbuf, recvbuf, count, datatype, op,
                                  comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {
@@ -242,7 +246,8 @@ int ompi_coll_libnbc_iallreduce(const void* sendbuf, void* recvbuf, int count, M
 
 static int nbc_allreduce_inter_init(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
                                     struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                    mca_coll_base_module_t *module, bool persistent)
+                                    mca_coll_base_module_t *module, bool persistent
+                                    )
 {
   int rank, res, rsize;
   size_t size;
@@ -306,7 +311,11 @@ static int nbc_allreduce_inter_init(const void* sendbuf, void* recvbuf, int coun
 
 int ompi_coll_libnbc_iallreduce_inter(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
                                       struct ompi_communicator_t *comm, ompi_request_t ** request,
-                                      mca_coll_base_module_t *module) {
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      ) {
     int res = nbc_allreduce_inter_init(sendbuf, recvbuf, count, datatype, op,
                                        comm, request, module, false);
     if (OPAL_UNLIKELY(OMPI_SUCCESS != res)) {

@@ -160,30 +160,69 @@ ompi_coll_tuned_scatter_intra_do_this(const void *sbuf, int scount,
                                       int root,
                                       struct ompi_communicator_t *comm,
                                       mca_coll_base_module_t *module,
-                                      int algorithm, int faninout, int segsize)
+                                      int algorithm, int faninout, int segsize
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      )
 {
+#ifdef ENABLE_ANALYSIS
+     qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL) {
+            item = *q;
+        }
+        else item = NULL;
+    }
+    else item = NULL;
+#endif
     OPAL_OUTPUT((ompi_coll_tuned_stream,
                  "coll:tuned:scatter_intra_do_this selected algorithm %d topo faninout %d segsize %d",
                  algorithm, faninout, segsize));
 
     switch (algorithm) {
     case (0):
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_tuned_scatter_intra_dec_fixed(sbuf, scount, sdtype,
                                                        rbuf, rcount, rdtype,
                                                        root, comm, module);
+#else
+        return ompi_coll_tuned_scatter_intra_dec_fixed(sbuf, scount, sdtype,
+                                                       rbuf, rcount, rdtype,
+                                                       root, comm, module, &item);
+#endif
     case (1):
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_scatter_intra_basic_linear(sbuf, scount, sdtype,
                                                          rbuf, rcount, rdtype,
                                                          root, comm, module);
+#else
+        return ompi_coll_base_scatter_intra_basic_linear(sbuf, scount, sdtype,
+                                                         rbuf, rcount, rdtype,
+                                                         root, comm, module, &item);
+#endif
     case (2):
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_scatter_intra_binomial(sbuf, scount, sdtype,
                                                      rbuf, rcount, rdtype,
                                                      root, comm, module);
+#else
+        return ompi_coll_base_scatter_intra_binomial(sbuf, scount, sdtype,
+                                                     rbuf, rcount, rdtype,
+                                                     root, comm, module, &item);
+#endif
     case (3):
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_scatter_intra_linear_nb(sbuf, scount, sdtype,
                                                       rbuf, rcount, rdtype,
                                                       root, comm, module,
                                                       ompi_coll_tuned_scatter_blocking_send_ratio);
+#else
+        return ompi_coll_base_scatter_intra_linear_nb(sbuf, scount, sdtype,
+                                                      rbuf, rcount, rdtype,
+                                                      root, comm, module,
+                                                      ompi_coll_tuned_scatter_blocking_send_ratio, &item);
+#endif
     } /* switch */
     OPAL_OUTPUT((ompi_coll_tuned_stream,
                  "coll:tuned:scatter_intra_do_this attempt to select algorithm %d when only 0-%d is valid?",

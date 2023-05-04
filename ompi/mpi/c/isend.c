@@ -33,7 +33,6 @@
 #include "ompi/request/request.h"
 #include "ompi/memchecker.h"
 #include "ompi/runtime/ompi_spc.h"
-#include "ompi/mpi/c/init.h"
 #include <time.h>
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -49,18 +48,43 @@ static const char FUNC_NAME[] = "MPI_Isend";
 int MPI_Isend(const void *buf, int count, MPI_Datatype type, int dest,
               int tag, MPI_Comm comm, MPI_Request *request)
 {
-    #ifdef ENABLE_ANALYSIS
-    time_t current_time = time(NULL);
-    char *operation = "isend";
-    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int comm_name_length;
-    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+#ifdef ENABLE_ANALYSIS
+    qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    //item->start
+    gettimeofday(&item->start, NULL);
+    //item->operation
+    strcpy(item->function, "MPI_Isend");
+    strcpy(item->communicationType, "p2p");
+    //item->blocking
+    item->blocking = 0;
+    //item->datatype
     char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
+    strcpy(item->datatype, type_name);
+    free(type_name);
+
+    //item->communicator
+    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
+    int comm_name_length;
+    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+    strcpy(item->communicationArea, comm_name);
+    free(comm_name);
+    //item->processrank
     int processrank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
-    enqueue(&operation, &type_name, count, count*sizeof(type), &comm_name, processrank, dest, current_time);
+    MPI_Comm_rank(comm, &processrank);
+    item->processrank = processrank;
+    //item->partnerrank
+    item->partnerrank = dest;
+    
+    //item->processorname
+    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
+    int proc_name_length;
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    strcpy(item->processorname, proc_name);
+    free(proc_name);
+
     #endif
     int rc = MPI_SUCCESS;
 
@@ -112,9 +136,14 @@ int MPI_Isend(const void *buf, int count, MPI_Datatype type, int dest,
      * order to trap end user errors. Unfortunatly valgrind does not support marking buffers as read-only,
      * so there is pretty much nothing we can do here.
      */
-
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(isend(buf, count, type, dest, tag,
                             MCA_PML_BASE_SEND_STANDARD, comm, request));
+#else
+    rc = MCA_PML_CALL(isend(buf, count, type, dest, tag,
+                            MCA_PML_BASE_SEND_STANDARD, comm, request, &item));
+    qentryIntoQueue(&item);
+#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
 

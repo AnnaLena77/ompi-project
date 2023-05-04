@@ -60,7 +60,11 @@ BEGIN_C_DECLS
                                        void *rbuf, int rcount,
                                        struct ompi_datatype_t *rdtype,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_allgatherv_inter(const void *sbuf, int scount,
                                         struct ompi_datatype_t *sdtype,
@@ -68,25 +72,41 @@ BEGIN_C_DECLS
                                         const int *disps,
                                         struct ompi_datatype_t *rdtype,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module);
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        );
 
     int mca_coll_basic_allreduce_intra(const void *sbuf, void *rbuf, int count,
                                        struct ompi_datatype_t *dtype,
                                        struct ompi_op_t *op,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
     int mca_coll_basic_allreduce_inter(const void *sbuf, void *rbuf, int count,
                                        struct ompi_datatype_t *dtype,
                                        struct ompi_op_t *op,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_alltoall_inter(const void *sbuf, int scount,
                                       struct ompi_datatype_t *sdtype,
                                       void *rbuf, int rcount,
                                       struct ompi_datatype_t *rdtype,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module);
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      );
 
     int mca_coll_basic_alltoallv_inter(const void *sbuf, const int *scounts,
                                        const int *sdisps,
@@ -95,7 +115,11 @@ BEGIN_C_DECLS
                                        const int *rdisps,
                                        struct ompi_datatype_t *rdtype,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_alltoallw_intra(const void *sbuf, const int *scounts,
                                        const int *sdisps,
@@ -104,7 +128,12 @@ BEGIN_C_DECLS
                                        const int *rdisps,
                                        struct ompi_datatype_t * const *rdtypes,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
+                                       
     int mca_coll_basic_alltoallw_inter(const void *sbuf, const int *scounts,
                                        const int *sdisps,
                                        struct ompi_datatype_t * const *sdtypes,
@@ -112,43 +141,75 @@ BEGIN_C_DECLS
                                        const int *rdisps,
                                        struct ompi_datatype_t * const *rdtypes,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_barrier_inter_lin(struct ompi_communicator_t *comm,
-                                         mca_coll_base_module_t *module);
+                                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         );
 
     int mca_coll_basic_barrier_intra_log(struct ompi_communicator_t *comm,
-                                         mca_coll_base_module_t *module);
+                                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         );
 
     int mca_coll_basic_bcast_lin_inter(void *buff, int count,
                                        struct ompi_datatype_t *datatype,
                                        int root,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_bcast_log_intra(void *buff, int count,
                                        struct ompi_datatype_t *datatype,
                                        int root,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_bcast_log_inter(void *buff, int count,
                                        struct ompi_datatype_t *datatype,
                                        int root,
                                        struct ompi_communicator_t *comm,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
     int mca_coll_basic_exscan_intra(const void *sbuf, void *rbuf, int count,
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    );
 
     int mca_coll_basic_exscan_inter(const void *sbuf, void *rbuf, int count,
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    );
 
     int mca_coll_basic_gather_inter(const void *sbuf, int scount,
                                     struct ompi_datatype_t *sdtype,
@@ -156,7 +217,11 @@ BEGIN_C_DECLS
                                     struct ompi_datatype_t *rdtype,
                                     int root,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    );
 
     int mca_coll_basic_gatherv_intra(const void *sbuf, int scount,
                                      struct ompi_datatype_t *sdtype,
@@ -164,7 +229,11 @@ BEGIN_C_DECLS
                                      struct ompi_datatype_t *rdtype,
                                      int root,
                                      struct ompi_communicator_t *comm,
-                                     mca_coll_base_module_t *module);
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     );
 
     int mca_coll_basic_gatherv_inter(const void *sbuf, int scount,
                                      struct ompi_datatype_t *sdtype,
@@ -172,66 +241,108 @@ BEGIN_C_DECLS
                                      struct ompi_datatype_t *rdtype,
                                      int root,
                                      struct ompi_communicator_t *comm,
-                                     mca_coll_base_module_t *module);
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     );
 
     int mca_coll_basic_reduce_lin_inter(const void *sbuf, void *rbuf, int count,
                                         struct ompi_datatype_t *dtype,
                                         struct ompi_op_t *op,
                                         int root,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module);
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        );
 
     int mca_coll_basic_reduce_log_intra(const void *sbuf, void *rbuf, int count,
                                         struct ompi_datatype_t *dtype,
                                         struct ompi_op_t *op,
                                         int root,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module);
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        );
+                                        
     int mca_coll_basic_reduce_log_inter(const void *sbuf, void *rbuf, int count,
                                         struct ompi_datatype_t *dtype,
                                         struct ompi_op_t *op,
                                         int root,
                                         struct ompi_communicator_t *comm,
-                                        mca_coll_base_module_t *module);
+                                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                        , qentry **q
+#endif
+                                        );
 
     int mca_coll_basic_reduce_scatter_block_intra(const void *sbuf, void *rbuf,
                                                   int rcount,
                                                   struct ompi_datatype_t *dtype,
                                                   struct ompi_op_t *op,
                                                   struct ompi_communicator_t *comm,
-                                                  mca_coll_base_module_t *module);
+                                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                  , qentry **q
+#endif
+                                                  );
 
     int mca_coll_basic_reduce_scatter_block_inter(const void *sbuf, void *rbuf,
                                                   int rcount,
                                                   struct ompi_datatype_t *dtype,
                                                   struct ompi_op_t *op,
                                                   struct ompi_communicator_t *comm,
-                                                  mca_coll_base_module_t *module);
+                                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                                  , qentry **q
+#endif
+                                                  );
 
     int mca_coll_basic_reduce_scatter_intra(const void *sbuf, void *rbuf,
                                             const int *rcounts,
                                             struct ompi_datatype_t *dtype,
                                             struct ompi_op_t *op,
                                             struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module);
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            );
 
     int mca_coll_basic_reduce_scatter_inter(const void *sbuf, void *rbuf,
                                             const int *rcounts,
                                             struct ompi_datatype_t *dtype,
                                             struct ompi_op_t *op,
                                             struct ompi_communicator_t *comm,
-                                            mca_coll_base_module_t *module);
+                                            mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            );
 
     int mca_coll_basic_scan_intra(const void *sbuf, void *rbuf, int count,
                                   struct ompi_datatype_t *dtype,
                                   struct ompi_op_t *op,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module);
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  );
+                                  
     int mca_coll_basic_scan_inter(const void *sbuf, void *rbuf, int count,
                                   struct ompi_datatype_t *dtype,
                                   struct ompi_op_t *op,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t *module);
+                                  mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  );
 
     int mca_coll_basic_scatter_inter(const void *sbuf, int scount,
                                      struct ompi_datatype_t *sdtype,
@@ -239,7 +350,11 @@ BEGIN_C_DECLS
                                      struct ompi_datatype_t *rdtype,
                                      int root,
                                      struct ompi_communicator_t *comm,
-                                     mca_coll_base_module_t *module);
+                                     mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                     , qentry **q
+#endif
+                                     );
 
     int mca_coll_basic_scatterv_intra(const void *sbuf, const int *scounts, const int *disps,
                                       struct ompi_datatype_t *sdtype,
@@ -247,38 +362,67 @@ BEGIN_C_DECLS
                                       struct ompi_datatype_t *rdtype,
                                       int root,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module);
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      );
+                                      
     int mca_coll_basic_scatterv_inter(const void *sbuf, const int *scounts, const int *disps,
                                       struct ompi_datatype_t *sdtype,
                                       void *rbuf, int rcount,
                                       struct ompi_datatype_t *rdtype,
                                       int root,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module);
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      );
 
      int mca_coll_basic_neighbor_allgather(const void *sbuf, int scount,
                                            struct ompi_datatype_t *sdtype, void *rbuf,
                                            int rcount, struct ompi_datatype_t *rdtype,
                                            struct ompi_communicator_t *comm,
-                                           mca_coll_base_module_t *module);
+                                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           );
 
      int mca_coll_basic_neighbor_allgatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                                             void *rbuf, const int rcounts[], const int disps[], struct ompi_datatype_t *rdtype,
-                                            struct ompi_communicator_t *comm, mca_coll_base_module_t *module);
+                                            struct ompi_communicator_t *comm, mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                            , qentry **q
+#endif
+                                            );
 
      int mca_coll_basic_neighbor_alltoall(const void *sbuf, int scount, struct ompi_datatype_t *sdtype, void *rbuf,
                                           int rcount, struct ompi_datatype_t *rdtype, struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module);
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          );
 
      int mca_coll_basic_neighbor_alltoallv(const void *sbuf, const int scounts[], const int sdisps[],
                                            struct ompi_datatype_t *sdtype, void *rbuf, const int rcounts[],
                                            const int rdisps[], struct ompi_datatype_t *rdtype,
-                                           struct ompi_communicator_t *comm, mca_coll_base_module_t *module);
+                                           struct ompi_communicator_t *comm, mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           );
 
      int mca_coll_basic_neighbor_alltoallw(const void *sbuf, const int scounts[], const MPI_Aint sdisps[],
                                            struct ompi_datatype_t * const *sdtypes, void *rbuf, const int rcounts[],
                                            const MPI_Aint rdisps[], struct ompi_datatype_t * const *rdtypes,
-                                           struct ompi_communicator_t *comm, mca_coll_base_module_t *module);
+                                           struct ompi_communicator_t *comm, mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                           , qentry **q
+#endif
+                                           );
 
 
 struct mca_coll_basic_module_t {

@@ -36,7 +36,11 @@ int mca_coll_sm_scatterv_intra(const void *sbuf, const int *scounts,
                                void *rbuf, int rcount,
                                struct ompi_datatype_t *rdtype, int root,
                                struct ompi_communicator_t *comm,
-                               mca_coll_base_module_t *module)
+                               mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			    , qentry **q
+#endif
+                               )
 {
     return OMPI_ERR_NOT_IMPLEMENTED;
 }

@@ -627,7 +627,11 @@ int ompi_osc_rdma_fence_atomic (int mpi_assert, ompi_win_t *win)
     ompi_osc_rdma_sync_rdma_complete (&module->all_sync);
 
     /* ensure all writes to my memory are complete (both local stores, and RMA operations) */
+#ifndef ENABLE_ANALYSIS
     ret = module->comm->c_coll->coll_barrier(module->comm, module->comm->c_coll->coll_barrier_module);
+#else
+    ret = module->comm->c_coll->coll_barrier(module->comm, module->comm->c_coll->coll_barrier_module, NULL);
+#endif
 
     if (mpi_assert & MPI_MODE_NOSUCCEED) {
         /* as specified in MPI-3 p 438 3-5 the fence can end an epoch. it isn't explicitly
