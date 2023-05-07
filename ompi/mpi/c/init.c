@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <string.h>
@@ -81,6 +82,7 @@ static mongoc_uri_t *uri;
 static mongoc_client_t *client;
 static mongoc_database_t *db;
 static mongoc_collection_t *collection;
+static mongoc_collection_t *collection_cluster;
 static bson_t *command, reply, *insert;
 static bson_error_t error;
 static char *str;
@@ -148,7 +150,7 @@ static int last_one = 0;
 static char *batchstring = "INSERT INTO MPI_Information(function, communicationType, blocking, datatype, count, sendcount, recvcount, datasize, operation, communicationArea, processorname, processrank, partnerrank, sendmode, immediate, usedBtl, usedProtocol, withinEagerLimit, foundMatchWild, usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel, time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue)VALUES";
 
 static void insertData(char **batchstr){
-    printf("InsertData: n");
+    //printf("InsertData: n");
     //count = LIMIT;
     char *batch = *batchstr;
     batch[strlen(batch)-1]=';';
@@ -328,7 +330,34 @@ static bson_t * generateBson(qentry **q){
     return document;
 }
 
+static void registerCluster(){
+    //Hier Slurm integrieren!
+    
+    MPI_Comm comm = MPI_COMM_WORLD;
+    int size, processrank;
+    char* processorname = (char*) malloc(MPI_MAX_OBJECT_NAME);;
+    MPI_Comm_size(comm, &size);
+    MPI_Comm_rank(comm, &processrank);
+    
+    int proc_name_length;
+    MPI_Get_processor_name(processorname, &proc_name_length);
+   
+    bson_t *document = bson_new();
+    
+    bson_append_int32(document, "core", -1, processrank);
+    bson_append_utf8(document, "node", -1, processorname, -1);
+    if (!mongoc_collection_insert_one (collection_cluster, (const bson_t*) document, NULL, NULL, &error)){ 
+                    fprintf (stderr, "%s\n", error.message);
+    }
+    
+    //printf("I am Rank %d from Node %s\n", processrank, processorname);
+    free(processorname);
+    
+}
+
 static void* MongoMonitorFunc(void* _arg){
+
+
     bson_oid_t oid;
     mongoc_bulk_operation_t *bulk;
     struct timeval start_timestamp;
@@ -354,7 +383,6 @@ static void* MongoMonitorFunc(void* _arg){
     qentry *prev;
 
     while(queueiteration != NULL){
-    	printf("Trigger 1\n");
     	//if(queueiteration->id == 6) break;
         bson_error_t error;
     	qentry *first = queueiteration;
@@ -370,7 +398,6 @@ static void* MongoMonitorFunc(void* _arg){
                 }
             }
         }
-        printf("Trigger 2\n");
     	
     	bson_t *doc;
     	bson_t reply;
@@ -382,7 +409,6 @@ static void* MongoMonitorFunc(void* _arg){
     	int index = 0;
        	
     	while(index<length){
-    	printf("Trigger 3\n");
     	    documents[index] = generateBson(&first);
     	    //doc = generateBson(&first);
     	    //printf("Size: %d", sizeof(doc));
@@ -567,6 +593,8 @@ void initializeSQL()
 
 void initializeMongoDB()
 {
+    int processrank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
     //Initialize libmongo's internals
     mongoc_init();
     
@@ -583,12 +611,25 @@ void initializeMongoDB()
     
     //handle on database and collection
     db = mongoc_client_get_database (client, "DataFromMPI");
+    //printf("Prozessrank = %d\n", processrank);
     collection = mongoc_client_get_collection (client, "DataFromMPI", "MPI_Information");
-	if(!mongoc_collection_drop (collection, &error)) {
-	    //fprintf (stderr, "%s\n", error.message);
-	    
+    if(processrank == 0){
+        if(!mongoc_collection_drop (collection, &error)) {
+            fprintf (stderr, "Database MPI_Information does not exist and can not be cleared, %s\n", error.message);
+        }
     }
-    
+ 
+    collection_cluster = mongoc_client_get_collection (client, "DataFromMPI", "Cluster_Information");
+    if(processrank == 0){
+        if(!mongoc_collection_drop (collection_cluster, &error)) {
+            fprintf (stderr, "Database Cluster_Information does not exist and can not be cleared, %s\n", error.message);
+        }
+    }
+    //MPI_Barrier(MPI_COMM_WORLD);
+    //if(processrank == 0){
+    	registerCluster();
+    //}
+    MPI_Barrier(MPI_COMM_WORLD);
     TAILQ_INIT(&head);
     pthread_create(&MONITOR_THREAD, NULL, MongoMonitorFunc, NULL);
 }
@@ -597,6 +638,7 @@ void closeMongoDB()
 {
     //Release handles
     mongoc_collection_destroy (collection);
+    mongoc_collection_destroy (collection_cluster);
     mongoc_database_destroy (db);
     mongoc_uri_destroy (uri);
     mongoc_client_destroy (client);
@@ -607,14 +649,12 @@ void closeMongoDB()
 
 int MPI_Init(int *argc, char ***argv)
 {
+    
     gettimeofday(&start, NULL);
     //printf("Test 1\n");
     
     #ifdef SQL
     	initializeSQL();
-    #endif
-    #ifdef ENABLE_ANALYSIS
-    	initializeMongoDB();
     #endif
     int err;
     int provided;
@@ -650,16 +690,15 @@ int MPI_Init(int *argc, char ***argv)
        back-end function directly. */
 
     if (MPI_SUCCESS != err) {
-    	printf("TEST\n");
         return ompi_errhandler_invoke(NULL, NULL,
                                       OMPI_ERRHANDLER_TYPE_COMM,
                                       err <
                                       0 ? ompi_errcode_get_mpi_code(err) :
                                       err, FUNC_NAME);
     }
-    //printf("Test 4\n");
-
+    #ifdef ENABLE_ANALYSIS
+    	initializeMongoDB();
+    #endif
     SPC_INIT();
-    //printf("Test 5\n");
     return MPI_SUCCESS;
 }
