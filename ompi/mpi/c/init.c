@@ -335,7 +335,7 @@ static void registerCluster(){
     
     MPI_Comm comm = MPI_COMM_WORLD;
     int size, processrank;
-    char* processorname = (char*) malloc(MPI_MAX_OBJECT_NAME);;
+    char processorname[30];
     MPI_Comm_size(comm, &size);
     MPI_Comm_rank(comm, &processrank);
     
@@ -344,15 +344,19 @@ static void registerCluster(){
    
     bson_t *document = bson_new();
     
+    bson_append_int32(document, "_id", -1, processrank);
     bson_append_int32(document, "core", -1, processrank);
     bson_append_utf8(document, "node", -1, processorname, -1);
-    if (!mongoc_collection_insert_one (collection_cluster, (const bson_t*) document, NULL, NULL, &error)){ 
-                    fprintf (stderr, "%s\n", error.message);
+    bson_error_t error;
+    mongoc_write_concern_t *write_concern = mongoc_write_concern_new();
+    mongoc_write_concern_set_w(write_concern, 1);
+    mongoc_write_concern_set_journal(write_concern, true);
+    if (!mongoc_collection_insert(collection_cluster, MONGOC_INSERT_NONE, (const bson_t*) document, write_concern, &error)){ 
+                    printf("Fehler! %s\n", error.message);
+    } else {
+        printf("I am Rank %d from Node %s\n", processrank, processorname);
     }
-    
-    //printf("I am Rank %d from Node %s\n", processrank, processorname);
-    free(processorname);
-    
+    mongoc_write_concern_destroy(write_concern);
 }
 
 static void* MongoMonitorFunc(void* _arg){
@@ -625,10 +629,9 @@ void initializeMongoDB()
             fprintf (stderr, "Database Cluster_Information does not exist and can not be cleared, %s\n", error.message);
         }
     }
-    //MPI_Barrier(MPI_COMM_WORLD);
-    //if(processrank == 0){
-    	registerCluster();
-    //}
+    MPI_Barrier(MPI_COMM_WORLD);
+    registerCluster();
+    //sleep(3);
     MPI_Barrier(MPI_COMM_WORLD);
     TAILQ_INIT(&head);
     pthread_create(&MONITOR_THREAD, NULL, MongoMonitorFunc, NULL);
