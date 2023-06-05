@@ -35,6 +35,7 @@
 #include <mysql/mysql.h>
 #include <mongoc/mongoc.h>
 #include <bson/bson.h>
+#include <postgresql/libpq-fe.h>
 
 #include "opal/util/show_help.h"
 #include "ompi/runtime/ompi_spc.h"
@@ -53,7 +54,7 @@
 #endif
 
 //#define SQL 1
-#define MongoDB 1
+//#define MongoDB 1
 
 //samplerate pro Minute!
 //#define SAMPLING 300
@@ -70,12 +71,9 @@ static int lock = 0;
 //sem_t ENSURE_INIT;
 
 //Database Information
-static MYSQL *conn;
-static char *server = "10.35.8.10";
-static char *user = "test";
-static char *password = "test_pwd";
-static char *database = "DataFromMPI";
-static char *port = "3306";
+static PGconn *conn;
+static const char *conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
+
 
 static const char *uri_string = "mongodb://10.35.8.10:27017";
 static mongoc_uri_t *uri;
@@ -149,7 +147,7 @@ int run_thread = 1;
 static int last_one = 0;
 static char *batchstring = "INSERT INTO MPI_Information(function, communicationType, blocking, datatype, count, sendcount, recvcount, datasize, operation, communicationArea, processorname, processrank, partnerrank, sendmode, immediate, usedBtl, usedProtocol, withinEagerLimit, foundMatchWild, usedAlgorithm, time_start, time_initializeRequest, time_startRequest, time_requestCompletePmlLevel, time_requestWaitCompletion, time_requestFini, time_sent, time_bufferFree, time_intoQueue)VALUES";
 
-static void insertData(char **batchstr){
+/*static void insertData(char **batchstr){
     //printf("InsertData: n");
     //count = LIMIT;
     char *batch = *batchstr;
@@ -159,11 +157,16 @@ static void insertData(char **batchstr){
         fprintf(stderr, "%s\n", mysql_error(conn));
         exit(1);
     }
-}
+}*/
 
 static void createTimeString(struct timeval time, char* timeString){
     if(time.tv_usec==NULL){
-    	sprintf(timeString, "NULL");
+        if(time.tv_sec==NULL){
+            sprintf(timeString, "NULL");
+        } else {
+            struct tm tm = *localtime(&time.tv_sec);
+    	   sprintf(timeString, "'%d-%02i-%02i %02i:%02i:%02i'", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        }
     }
     else {
     	struct tm tm = *localtime(&time.tv_sec);
@@ -181,10 +184,13 @@ void qentryIntoQueue(qentry **q){
     //printf("intoqueue: %d \n", item->id);
     if(item->id==2) lock = 1;
     TAILQ_INSERT_TAIL(&head, item, pointers);
+    //printf("Es kam was rein\n");
     queue_length++;
+    //printf("Queue Length: %d\n", queue_length);
 }
 
 static void collectData(qentry **q, char **batchstr){
+    
     qentry *item = *q;
     int countlen = (item->count==0 || item->count == -1)?1:(int)log10(item->count)+1;
     int sendcountlen = (item->sendcount==0 || item->sendcount == -1)?1:(int)log10(item->sendcount)+1;
@@ -354,7 +360,7 @@ static void registerCluster(){
     if (!mongoc_collection_insert(collection_cluster, MONGOC_INSERT_NONE, (const bson_t*) document, write_concern, &error)){ 
                     printf("Fehler! %s\n", error.message);
     } else {
-        printf("I am Rank %d from Node %s\n", processrank, processorname);
+        //printf("I am Rank %d from Node %s\n", processrank, processorname);
     }
     mongoc_write_concern_destroy(write_concern);
 }
@@ -449,26 +455,161 @@ static void* MongoMonitorFunc(void* _arg){
    // printf("Length: %d\n", queue_length);
 }
 
+static void insertBatch(PGconn *conn, const char **data, int numRecords) {
+    PGresult *res;
+    
+    const char *insertQuery = "INSERT INTO MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start)VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+    res = PQprepare(conn, "insert_stmt", insertQuery, 9, NULL);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        printf("Fehler beim Vorbereiten der INSERT-Anweisung: %s\n", PQresultErrorMessage(res));
+        PQclear(res);
+        return;
+    }
+    PQclear(res);
+    
+    //Parameterarray für Batch
+    //const Oid paramTypes[9] = {TEXTOID, TEXTOID, INT4OID, INT4OID, TEXTOID, TEXTOID, INT4OID, INT4OID, TIMESTAMPTZOID);
+    const int paramLengths[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    const int paramFormats[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    res = PQexecPrepared(conn, "insert_stmt", 9, data, paramLengths, paramFormats, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        printf("Fehler beim Ausführen des INSERT-Batches: %s\n", PQresultErrorMessage(res));
+    }
+    PQclear(res);
+}
+
+static void writeToPostgres(PGconn *conn, int numberOfEntries){
+    PGresult *res;
+    int i;
+    int totalWritten = 0;
+
+    // Erzeuge den COPY-Befehl
+    const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
+    res = PQexec(conn, copyQuery);
+    if (PQresultStatus(res) != PGRES_COPY_IN) {
+        printf("Fehler beim Starten des COPY-Befehls: %s\n", PQresultErrorMessage(res));
+        PQclear(res);
+        return;
+    }
+    PQclear(res);
+
+    // Schreibe die Daten in das COPY-Stream
+    for (i = 0; i < numberOfEntries; i++) {
+        //printf("DEQUEUE\n");
+        qentry *q = dequeue();
+        //printf("DEQUEUE FERTIG\n");
+        char buffer[1000]; // Puffer für den Text        
+        char buffer2[30];
+        createTimeString(q->start, buffer2);
+        snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\tNOW()\n",
+                 q->function, q->communicationType, q->count, q->datasize, q->communicationArea,
+                 q->processorname, q->processrank, q->partnerrank, buffer2);
+        //printf("%s\n", buffer);
+        PQputCopyData(conn, buffer, strlen(buffer));
+    }
+    // Beende den COPY-Befehl
+    PQputCopyEnd(conn, NULL);
+    PQflush(conn);
+
+    // Warte auf das Ergebnis der COPY-Operation
+    /*PGresult *copyResult = NULL;
+    while ((copyResult = PQgetResult(conn)) != NULL) {
+        ExecStatusType status = PQresultStatus(copyResult);
+        if (status == PGRES_COMMAND_OK) {
+        // INSERT erfolgreich
+            printf("Daten erfolgreich in die Datenbank geschrieben.\n");
+        } else {
+        // Fehler beim INSERT
+            printf("Fehler beim Schreiben der Daten in die Datenbank: %s\n", PQresultErrorMessage(copyResult));
+        }
+    PQclear(copyResult);
+    }*/
+}
+
+
 
 //Monitor-Function for SQL-Connection
 static void* SQLMonitorFunc(void* _arg){
+    //Batchstring für den ersten Eintrag vorbereiten
+    PGconn *conn = (PGconn*)_arg;
+    
     qentry *item;
-    //counter_time = time(NULL);
-    //#ifdef SQL
-    char *batch = (char*) malloc(strlen(batchstring)+1);
-    strcpy(batch, batchstring);
     int finish = 0;
-    struct timeval current_time;
-    while(!lock){
-    	sleep(0.001);
+    struct timeval start_timestamp;
+    struct timeval now;
+    gettimeofday(&start_timestamp, NULL);
+
+    while(TAILQ_EMPTY(&head)){
+        if(!run_thread){
+            printf("finished\n");
+            return;
+        } else {
+	   sleep(0.1);
+            if(!TAILQ_EMPTY(&head)){
+                break;
+            }
+        }
+    }
+
+    while ((TAILQ_LAST(&head, tailhead))->id < 5){
+    	gettimeofday(&now, NULL);
+    	sleep(0.1);
+    	if(timeDifference(now, start_timestamp)>2.0){
+    		break;
+    	}
     }
     
-    qentry *firstOne = TAILQ_FIRST(&head);
-    qentry *lastOne;
+    qentry *queueiteration = TAILQ_FIRST(&head);
+    qentry *prev;
+
+    while(queueiteration != NULL){
+    	qentry *first = queueiteration;
+    	qentry *last = TAILQ_LAST(&head, tailhead);
+    	//printf("First ID: %d\n", first->id);
+    	//printf("Last ID: %d\n", last->id);
+    	if(first->id == last->id){
+            if(run_thread){
+                continue;
+            }
+            else {
+            //Es ist noch genau ein Eintrag übrig und das Programm ist fertig
+                last = TAILQ_LAST(&head, tailhead);
+                if(first->id == last->id){
+                    writeToPostgres(conn, 1);
+                    break;
+                }
+            }
+         }
+    	
+    	//printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
+    	int length = last->id-first->id;
+    	//printf("Length: %d\n", length);
+    	if(length<500000){
+    		writeToPostgres(conn, length);
+         } else {
+             while(length>500000){
+                 length = length-500000;
+                 writeToPostgres(conn, 500000);
+             }
+             writeToPostgres(conn, length);
+         } 
+         
+         while(TAILQ_EMPTY(&head)){
+             //printf("empty\n");
+             if(run_thread){
+                 continue;
+             } else {
+                 queueiteration = TAILQ_FIRST(&head);
+                 break;
+             }
+         }
+         queueiteration = TAILQ_FIRST(&head);
+    }
+   // printf("Length: %d\n", queue_length);
+}
+
     
-    //printf("into_thread\n");
-    
-    #ifdef SAMPLING
+    /*#ifdef SAMPLING
     while(firstOne != NULL){
          gettimeofday(&current_time, NULL);
 	if(timeDifference(current_time, start)>0.1){
@@ -557,7 +698,7 @@ static void* SQLMonitorFunc(void* _arg){
             	    insertData(&batch);
 	             realloc(batch, strlen(batchstring)+1);
 	             strcpy(batch, batchstring);
-                  }*/
+                  }
             	break;
             }
         } else {
@@ -565,33 +706,33 @@ static void* SQLMonitorFunc(void* _arg){
         }
     }
     #endif
-    free(batch);
-}
+    free(batch);*/
 
 static const char FUNC_NAME[] = "MPI_Init";
 
 
 void initializeSQL()
 {
-    conn = mysql_init(NULL);
-    //if Proxy should be used: Port 6033 after database
-    if(!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)){
-        fprintf(stderr, "%s\n", mysql_error(conn));
+    PGconn *conn = PQconnectdb(conninfo);
+    if (PQstatus(conn) != CONNECTION_OK){
+        fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
+        PQfinish(conn);
         exit(1);
-    }
-    else {
-    	if(mysql_query(conn, "DELETE FROM MPI_Information")){
-        		fprintf(stderr, "%s\n", mysql_error(conn));
-        		exit(1);
-    	}
-    	if(mysql_query(conn, "ALTER TABLE MPI_Information AUTO_INCREMENT=1")){
-    		fprintf(stderr, "%s\n", mysql_error(conn));
-        		exit(1);
-    	}
-    }
-    
+    } else {
+        printf("Database connected\n");
+        if(!PQexec(conn, "DELETE FROM MPI_Information")){
+            fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
+            //PQfinish(conn);
+            //exit(1);
+        }
+        /*if(PQexec(conn, "ALTER TABLE MPI_Information AUTO_INCREMENT=1")){
+            fprintf(stderr, "Auto-Inocrement failed: %s\n", PQerrorMessage(conn));
+            //PQfinish(conn);
+            //exit(1);
+        }*/
+    }  
     TAILQ_INIT(&head);
-    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
+    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, (void*)conn);
 }
 
 
@@ -655,10 +796,6 @@ int MPI_Init(int *argc, char ***argv)
     
     gettimeofday(&start, NULL);
     //printf("Test 1\n");
-    
-    #ifdef SQL
-    	initializeSQL();
-    #endif
     int err;
     int provided;
     char *env;
@@ -700,8 +837,9 @@ int MPI_Init(int *argc, char ***argv)
                                       err, FUNC_NAME);
     }
     #ifdef ENABLE_ANALYSIS
-    	initializeMongoDB();
+    	initializeSQL();
     #endif
+    //printf("hier gehts weiter\n");
     SPC_INIT();
     return MPI_SUCCESS;
 }

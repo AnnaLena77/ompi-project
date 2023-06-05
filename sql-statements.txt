@@ -41,3 +41,5 @@ CREATE TABLE MPI_Information (
 
 //Remove Table:
 DROP TABLE MPI_Information;
+
+CREATE TABLE MPI_Information (id SERIAL PRIMARY KEY, function TEXT, communicationType TEXT, count INT, datasize INT, communicationArea TEXT, processorname TEXT, processrank INT, partnerrank INT, time_start TIMESTAMPTZ, time_db TIMESTAMPTZ DEFAULT NOW());

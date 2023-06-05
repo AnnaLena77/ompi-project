@@ -1,0 +1,1076 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "GUI_Cluster"
+		}
+	],
+	"backtrace" : 4,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"_qt_internal_create_executable",
+			"qt6_add_executable",
+			"qt_add_executable",
+			"install",
+			"target_link_libraries",
+			"set_target_properties",
+			"include",
+			"find_package",
+			"find_dependency",
+			"_qt_internal_find_qt_dependencies",
+			"_qt_internal_find_third_party_dependencies",
+			"set_property",
+			"add_dependencies",
+			"_qt_internal_scan_qml_imports",
+			"_qt_internal_generate_deploy_qml_imports_script",
+			"cmake_language",
+			"_qt_internal_finalize_executable",
+			"qt6_finalize_target",
+			"qt_finalize_executable",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Core/Qt6CoreMacros.cmake",
+			"CMakeLists.txt",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick3D/Qt6Quick3DTargets.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick3D/Qt6Quick3DConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6/Qt6Config.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick/Qt6QuickTargets.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick/Qt6QuickConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Network/Qt6NetworkVersionlessTargets.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Network/Qt6NetworkConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeFindDependencyMacro.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Qml/Qt6QmlDependencies.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Qml/Qt6QmlConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick/Qt6QuickDependencies.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6OpenGL/Qt6OpenGLVersionlessTargets.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6OpenGL/Qt6OpenGLConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick3DRuntimeRender/Qt6Quick3DRuntimeRenderTargets.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick3DRuntimeRender/Qt6Quick3DRuntimeRenderConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick3D/Qt6Quick3DDependencies.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6ShaderTools/Qt6ShaderToolsVersionlessTargets.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6ShaderTools/Qt6ShaderToolsConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Quick3DRuntimeRender/Qt6Quick3DRuntimeRenderDependencies.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6/FindWrapOpenGL.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Gui/Qt6GuiDependencies.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Gui/Qt6GuiConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentVersionlessTargets.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Concurrent/Qt6ConcurrentConfig.cmake",
+			"/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/FindThreads.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6/Qt6Dependencies.cmake",
+			"/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/cmake/Qt6Qml/Qt6QmlMacros.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 52,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 711,
+				"parent" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 548,
+				"parent" : 2
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 584,
+				"parent" : 3
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 84,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 1,
+				"line" : 74,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 1,
+				"line" : 99,
+				"parent" : 0
+			},
+			{
+				"command" : 8,
+				"file" : 1,
+				"line" : 13,
+				"parent" : 0
+			},
+			{
+				"file" : 4,
+				"parent" : 8
+			},
+			{
+				"command" : 8,
+				"file" : 4,
+				"line" : 157,
+				"parent" : 9
+			},
+			{
+				"file" : 3,
+				"parent" : 10
+			},
+			{
+				"command" : 7,
+				"file" : 3,
+				"line" : 52,
+				"parent" : 11
+			},
+			{
+				"file" : 2,
+				"parent" : 12
+			},
+			{
+				"command" : 6,
+				"file" : 2,
+				"line" : 61,
+				"parent" : 13
+			},
+			{
+				"command" : 8,
+				"file" : 4,
+				"line" : 157,
+				"parent" : 9
+			},
+			{
+				"file" : 6,
+				"parent" : 15
+			},
+			{
+				"command" : 7,
+				"file" : 6,
+				"line" : 52,
+				"parent" : 16
+			},
+			{
+				"file" : 5,
+				"parent" : 17
+			},
+			{
+				"command" : 6,
+				"file" : 5,
+				"line" : 61,
+				"parent" : 18
+			},
+			{
+				"command" : 7,
+				"file" : 6,
+				"line" : 40,
+				"parent" : 16
+			},
+			{
+				"file" : 13,
+				"parent" : 20
+			},
+			{
+				"command" : 10,
+				"file" : 13,
+				"line" : 39,
+				"parent" : 21
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 108,
+				"parent" : 22
+			},
+			{
+				"command" : 8,
+				"file" : 9,
+				"line" : 47,
+				"parent" : 23
+			},
+			{
+				"file" : 12,
+				"parent" : 24
+			},
+			{
+				"command" : 7,
+				"file" : 12,
+				"line" : 40,
+				"parent" : 25
+			},
+			{
+				"file" : 11,
+				"parent" : 26
+			},
+			{
+				"command" : 10,
+				"file" : 11,
+				"line" : 39,
+				"parent" : 27
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 108,
+				"parent" : 28
+			},
+			{
+				"command" : 8,
+				"file" : 9,
+				"line" : 47,
+				"parent" : 29
+			},
+			{
+				"file" : 8,
+				"parent" : 30
+			},
+			{
+				"command" : 7,
+				"file" : 8,
+				"line" : 55,
+				"parent" : 31
+			},
+			{
+				"file" : 7,
+				"parent" : 32
+			},
+			{
+				"command" : 6,
+				"file" : 7,
+				"line" : 61,
+				"parent" : 33
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 108,
+				"parent" : 22
+			},
+			{
+				"command" : 8,
+				"file" : 9,
+				"line" : 47,
+				"parent" : 35
+			},
+			{
+				"file" : 15,
+				"parent" : 36
+			},
+			{
+				"command" : 7,
+				"file" : 15,
+				"line" : 55,
+				"parent" : 37
+			},
+			{
+				"file" : 14,
+				"parent" : 38
+			},
+			{
+				"command" : 6,
+				"file" : 14,
+				"line" : 61,
+				"parent" : 39
+			},
+			{
+				"command" : 7,
+				"file" : 3,
+				"line" : 40,
+				"parent" : 11
+			},
+			{
+				"file" : 18,
+				"parent" : 41
+			},
+			{
+				"command" : 10,
+				"file" : 18,
+				"line" : 39,
+				"parent" : 42
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 108,
+				"parent" : 43
+			},
+			{
+				"command" : 8,
+				"file" : 9,
+				"line" : 47,
+				"parent" : 44
+			},
+			{
+				"file" : 17,
+				"parent" : 45
+			},
+			{
+				"command" : 7,
+				"file" : 17,
+				"line" : 52,
+				"parent" : 46
+			},
+			{
+				"file" : 16,
+				"parent" : 47
+			},
+			{
+				"command" : 6,
+				"file" : 16,
+				"line" : 61,
+				"parent" : 48
+			},
+			{
+				"command" : 7,
+				"file" : 17,
+				"line" : 40,
+				"parent" : 46
+			},
+			{
+				"file" : 21,
+				"parent" : 50
+			},
+			{
+				"command" : 10,
+				"file" : 21,
+				"line" : 39,
+				"parent" : 51
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 108,
+				"parent" : 52
+			},
+			{
+				"command" : 8,
+				"file" : 9,
+				"line" : 47,
+				"parent" : 53
+			},
+			{
+				"file" : 20,
+				"parent" : 54
+			},
+			{
+				"command" : 7,
+				"file" : 20,
+				"line" : 55,
+				"parent" : 55
+			},
+			{
+				"file" : 19,
+				"parent" : 56
+			},
+			{
+				"command" : 6,
+				"file" : 19,
+				"line" : 61,
+				"parent" : 57
+			},
+			{
+				"command" : 8,
+				"file" : 4,
+				"line" : 157,
+				"parent" : 9
+			},
+			{
+				"file" : 24,
+				"parent" : 59
+			},
+			{
+				"command" : 7,
+				"file" : 24,
+				"line" : 40,
+				"parent" : 60
+			},
+			{
+				"file" : 23,
+				"parent" : 61
+			},
+			{
+				"command" : 11,
+				"file" : 23,
+				"line" : 30,
+				"parent" : 62
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 33,
+				"parent" : 63
+			},
+			{
+				"command" : 8,
+				"file" : 9,
+				"line" : 47,
+				"parent" : 64
+			},
+			{
+				"file" : 22,
+				"parent" : 65
+			},
+			{
+				"command" : 5,
+				"file" : 22,
+				"line" : 44,
+				"parent" : 66
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 108,
+				"parent" : 52
+			},
+			{
+				"command" : 8,
+				"file" : 9,
+				"line" : 47,
+				"parent" : 68
+			},
+			{
+				"file" : 26,
+				"parent" : 69
+			},
+			{
+				"command" : 7,
+				"file" : 26,
+				"line" : 55,
+				"parent" : 70
+			},
+			{
+				"file" : 25,
+				"parent" : 71
+			},
+			{
+				"command" : 6,
+				"file" : 25,
+				"line" : 61,
+				"parent" : 72
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 549,
+				"parent" : 2
+			},
+			{
+				"command" : 8,
+				"file" : 1,
+				"line" : 12,
+				"parent" : 0
+			},
+			{
+				"file" : 4,
+				"parent" : 75
+			},
+			{
+				"command" : 7,
+				"file" : 4,
+				"line" : 112,
+				"parent" : 76
+			},
+			{
+				"file" : 28,
+				"parent" : 77
+			},
+			{
+				"command" : 11,
+				"file" : 28,
+				"line" : 24,
+				"parent" : 78
+			},
+			{
+				"command" : 9,
+				"file" : 10,
+				"line" : 33,
+				"parent" : 79
+			},
+			{
+				"command" : 8,
+				"file" : 9,
+				"line" : 47,
+				"parent" : 80
+			},
+			{
+				"file" : 27,
+				"parent" : 81
+			},
+			{
+				"command" : 12,
+				"file" : 27,
+				"line" : 242,
+				"parent" : 82
+			},
+			{
+				"command" : 5,
+				"file" : 1,
+				"line" : 98,
+				"parent" : 0
+			},
+			{
+				"command" : 19,
+				"file" : 1,
+				"line" : 104,
+				"parent" : 0
+			},
+			{
+				"command" : 18,
+				"file" : 0,
+				"line" : 719,
+				"parent" : 85
+			},
+			{
+				"command" : 17,
+				"file" : 0,
+				"line" : 705,
+				"parent" : 86
+			},
+			{
+				"command" : 16,
+				"file" : 0,
+				"line" : 640,
+				"parent" : 87
+			},
+			{
+				"command" : 15,
+				"file" : 0,
+				"line" : 640,
+				"parent" : 88
+			},
+			{
+				"command" : 14,
+				"file" : 29,
+				"line" : 2891,
+				"parent" : 89
+			},
+			{
+				"command" : 13,
+				"file" : 29,
+				"line" : 2744,
+				"parent" : 90
+			},
+			{
+				"command" : 20,
+				"file" : 1,
+				"line" : 94,
+				"parent" : 0
+			},
+			{
+				"command" : 20,
+				"file" : 1,
+				"line" : 95,
+				"parent" : 0
+			},
+			{
+				"command" : 20,
+				"file" : 1,
+				"line" : 96,
+				"parent" : 0
+			},
+			{
+				"command" : 20,
+				"file" : 1,
+				"line" : 92,
+				"parent" : 0
+			},
+			{
+				"command" : 20,
+				"file" : 1,
+				"line" : 93,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-DQT_QML_DEBUG -g"
+				},
+				{
+					"backtrace" : 74,
+					"fragment" : "-fPIC"
+				},
+				{
+					"backtrace" : 74,
+					"fragment" : "-pthread"
+				},
+				{
+					"fragment" : "-std=gnu++17"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 6,
+					"define" : "QT_CONCURRENT_LIB"
+				},
+				{
+					"backtrace" : 74,
+					"define" : "QT_CORE_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_GUI_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_NETWORK_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_OPENGL_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_QMLINTEGRATION_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_QMLMODELS_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_QML_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_QUICK3DRUNTIMERENDER_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_QUICK3DUTILS_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_QUICK3D_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_QUICK_LIB"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "QT_SHADERTOOLS_LIB"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 0,
+					"path" : "/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug/GUI_Cluster_autogen/include"
+				},
+				{
+					"backtrace" : 92,
+					"path" : "/usr/local/include/libmongoc-1.0"
+				},
+				{
+					"backtrace" : 93,
+					"path" : "/usr/local/include/libbson-1.0"
+				},
+				{
+					"backtrace" : 94,
+					"path" : "/usr/local/lib"
+				},
+				{
+					"backtrace" : 95,
+					"isSystem" : true,
+					"path" : "/usr/local/include/mongocxx/v_noabi"
+				},
+				{
+					"backtrace" : 96,
+					"isSystem" : true,
+					"path" : "/usr/local/include/bsoncxx/v_noabi"
+				},
+				{
+					"backtrace" : 74,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtCore"
+				},
+				{
+					"backtrace" : 74,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include"
+				},
+				{
+					"backtrace" : 74,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/mkspecs/linux-g++"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtQuick"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtGui"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtQml"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtQmlIntegration"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtNetwork"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtQmlModels"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtOpenGL"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtQuick3D"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtQuick3DRuntimeRender"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtQuick3DUtils"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtShaderTools"
+				},
+				{
+					"backtrace" : 6,
+					"isSystem" : true,
+					"path" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/include/QtConcurrent"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					74,
+					74
+				],
+				"standard" : "17"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				3,
+				5,
+				7,
+				9
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 91,
+			"id" : "GUI_Cluster_qmlimportscan::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "GUI_Cluster_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 0,
+			"id" : "GUI_Cluster_autogen::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "GUI_Cluster::@6890427a1f51a3e7e1df",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 5,
+				"path" : "bin"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "/usr/local"
+		}
+	},
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-DQT_QML_DEBUG -g",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "-Wl,-rpath,/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib:/usr/local/lib:",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 6,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Quick3D.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 7,
+				"fragment" : "/usr/local/lib/libmongocxx.so.3.7.0",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 14,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Quick3DRuntimeRender.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 6,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Quick.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6QmlModels.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 19,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Qml.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 34,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Network.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 40,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6OpenGL.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 49,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Quick3DUtils.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 58,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6ShaderTools.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 6,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Gui.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 67,
+				"fragment" : "/usr/lib/x86_64-linux-gnu/libGL.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 73,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Concurrent.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 74,
+				"fragment" : "/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/lib/libQt6Core.so.6.4.3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 83,
+				"fragment" : "-pthread",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 84,
+				"fragment" : "/usr/local/lib/libbsoncxx.so.3.7.0",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "GUI_Cluster",
+	"nameOnDisk" : "GUI_Cluster",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				3,
+				5,
+				7,
+				9
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				2,
+				4,
+				6,
+				8
+			]
+		},
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				10,
+				11,
+				12,
+				13,
+				14,
+				15
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				16
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 0,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug/GUI_Cluster_autogen/mocs_compilation.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "main.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "mongodata.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "mongodata.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "cluster_node.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "cluster_node.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "cluster_core.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "cluster_core.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "database_connection.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "database_connection.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "main.qml",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 4,
+			"path" : "Cores2D.qml",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 4,
+			"path" : "Cores3D.qml",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 4,
+			"path" : "Sidebar.qml",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 4,
+			"path" : "3D-Scene/Lights.qml",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug/GUI_Cluster_autogen/timestamp",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug/GUI_Cluster_autogen/timestamp.rule",
+			"sourceGroupIndex" : 3
+		}
+	],
+	"type" : "EXECUTABLE"
+}
