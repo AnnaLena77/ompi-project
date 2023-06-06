@@ -512,7 +512,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
     PQflush(conn);
 
     // Warte auf das Ergebnis der COPY-Operation
-    /*PGresult *copyResult = NULL;
+    PGresult *copyResult = NULL;
     while ((copyResult = PQgetResult(conn)) != NULL) {
         ExecStatusType status = PQresultStatus(copyResult);
         if (status == PGRES_COMMAND_OK) {
@@ -523,7 +523,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
             printf("Fehler beim Schreiben der Daten in die Datenbank: %s\n", PQresultErrorMessage(copyResult));
         }
     PQclear(copyResult);
-    }*/
+    }
 }
 
 
@@ -583,7 +583,7 @@ static void* SQLMonitorFunc(void* _arg){
     	
     	//printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
     	int length = last->id-first->id;
-    	//printf("Length: %d\n", length);
+    	printf("Length: %d\n", length);
     	if(length<500000){
     		writeToPostgres(conn, length);
          } else {
