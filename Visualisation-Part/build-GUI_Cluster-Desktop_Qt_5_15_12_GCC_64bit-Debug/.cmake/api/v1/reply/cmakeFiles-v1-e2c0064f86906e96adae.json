@@ -1,0 +1,523 @@
+{
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_5_15_12_GCC_64bit-Debug/CMakeFiles/3.24.2/CMakeSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_5_15_12_GCC_64bit-Debug/CMakeFiles/3.24.2/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/Platform/Linux.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/Platform/UnixPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/Compiler/GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/Platform/Linux-GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/Platform/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5/Qt5ConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5/Qt5Config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5/Qt5ConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5/Qt5Config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5/Qt5ModuleLocation.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Core/Qt5CoreConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Core/Qt5CoreConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Core/Qt5CoreConfigExtras.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Core/Qt5CoreMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeParseArguments.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5GuiConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5GuiConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QComposePlatformInputContextPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEglFSEmulatorIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEglFSIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEglFSKmsEglDeviceIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEglFSX11IntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEvdevKeyboardPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEvdevMousePlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEvdevTabletPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QEvdevTouchScreenPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QGifPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QGtk3ThemePlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QICNSPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QICOPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QIbusPlatformInputContextPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QJpegPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QLinuxFbIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QMinimalEglIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QMinimalIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QOffscreenIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QPdfPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QSvgIconPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QSvgPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QTgaPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QTiffPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QTuioTouchPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QVirtualKeyboardPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QVncIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWaylandEglPlatformIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWaylandIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWaylandXCompositeEglPlatformIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWaylandXCompositeGlxPlatformIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWbmpPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWebGLIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QWebpPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QXcbEglIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QXcbGlxIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QXcbIntegrationPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5Gui_QXdgDesktopPortalThemePlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Gui/Qt5GuiConfigExtras.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick/Qt5QuickConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick/Qt5QuickConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5QmlModels/Qt5QmlModelsConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5QmlModels/Qt5QmlModelsConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5QmlConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5QmlConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Network/Qt5NetworkConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Network/Qt5NetworkConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Network/Qt5Network_QConnmanEnginePlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Network/Qt5Network_QGenericEnginePlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Network/Qt5Network_QNetworkManagerEnginePlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QDebugMessageServiceFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QLocalClientConnectionFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QQmlDebugServerFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QQmlDebuggerServiceFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QQmlInspectorServiceFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QQmlNativeDebugConnectorFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QQmlNativeDebugServiceFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QQmlPreviewServiceFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QQmlProfilerServiceFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QQuickProfilerAdapterFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5Qml_QTcpServerConnectionFactory.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Qml/Qt5QmlConfigExtras.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3D/Qt5Quick3DConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3D/Qt5Quick3DConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DRuntimeRender/Qt5Quick3DRuntimeRenderConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DRuntimeRender/Qt5Quick3DRuntimeRenderConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DAssetImport/Qt5Quick3DAssetImportConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DAssetImport/Qt5Quick3DAssetImportConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DRender/Qt5Quick3DRenderConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DRender/Qt5Quick3DRenderConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DUtils/Qt5Quick3DUtilsConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DUtils/Qt5Quick3DUtilsConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DAssetImport/Qt5Quick3DAssetImport_AssimpImporterPlugin.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/5.15.12/gcc_64/lib/cmake/Qt5Quick3DAssetImport/Qt5Quick3DAssetImport_UipAssetImporterPlugin.cmake"
+		},
+		{
+			"path" : "resources.qrc"
+		},
+		{
+			"path" : "main.qml"
+		},
+		{
+			"path" : "Cores2D.qml"
+		},
+		{
+			"path" : "Cores3D.qml"
+		},
+		{
+			"path" : "Sidebar.qml"
+		},
+		{
+			"path" : "3D-Scene/Lights.qml"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/mongocxx-3.7.0/mongocxx-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/mongocxx-3.7.0/mongocxx-config.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/bsoncxx-3.7.0/bsoncxx-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/bsoncxx-3.7.0/bsoncxx-config.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/bsoncxx-3.7.0/bsoncxx_targets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/bsoncxx-3.7.0/bsoncxx_targets-release.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/mongocxx-3.7.0/mongocxx_targets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/mongocxx-3.7.0/mongocxx_targets-release.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/bsoncxx-3.7.0/bsoncxx-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/bsoncxx-3.7.0/bsoncxx-config.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/anna-lena/QtDesignStudio/Tools/CMake/share/cmake-3.24/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/usr/local/lib/cmake/bsoncxx-3.7.0/bsoncxx_targets.cmake"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_5_15_12_GCC_64bit-Debug",
+		"source" : "/home/anna-lena/Desktop/EduMPI/Visualisation-Part/GUI_Cluster"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 0
+	}
+}
