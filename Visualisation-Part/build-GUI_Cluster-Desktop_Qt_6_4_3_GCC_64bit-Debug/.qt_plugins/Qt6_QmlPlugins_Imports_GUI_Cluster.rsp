@@ -1,0 +1,9 @@
+-rootPath
+/home/anna-lena/Desktop/EduMPI/Visualisation-Part/GUI_Cluster
+-cmake-output
+-output-file
+/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug/.qt_plugins/Qt6_QmlPlugins_Imports_GUI_Cluster.cmake
+-importPath
+/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug
+-importPath
+/home/anna-lena/QtDesignStudio/6.4.3/gcc_64/./qml
