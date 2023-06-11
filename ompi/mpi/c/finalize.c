@@ -58,7 +58,6 @@ int MPI_Finalize(void)
     //printf("run_thread wird 0\n");
     run_thread = 0;
     pthread_join(MONITOR_THREAD, NULL);
-    closeMongoDB();
 #endif
     return ompi_mpi_finalize();
 }

@@ -71,6 +71,21 @@ float timeDifference(struct timeval a, struct timeval b){
     return seconds+microseconds;
 }
 
+static void createTimeString(struct timeval time, char* timeString){
+    if(time.tv_usec==NULL){
+        if(time.tv_sec==NULL){
+            sprintf(timeString, "NULL");
+        } else {
+            struct tm tm = *localtime(&time.tv_sec);
+           sprintf(timeString, "'%d-%02i-%02i %02i:%02i:%02i'", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        }
+    }
+    else {
+        struct tm tm = *localtime(&time.tv_sec);
+        sprintf(timeString, "'%d-%02i-%02i %02i:%02i:%02i.%06li'", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, time.tv_usec);
+    }
+}
+
 void initQentry(qentry **q){
     if(q==NULL || *q==NULL){
     	return;
@@ -181,7 +196,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
     PQflush(conn);
 
     // Warte auf das Ergebnis der COPY-Operation
-    PGresult *copyResult = NULL;
+    /*PGresult *copyResult = NULL;
     while ((copyResult = PQgetResult(conn)) != NULL) {
         ExecStatusType status = PQresultStatus(copyResult);
         if (status == PGRES_COMMAND_OK) {
@@ -192,7 +207,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
             printf("Fehler beim Schreiben der Daten in die Datenbank: %s\n", PQresultErrorMessage(copyResult));
         }
     PQclear(copyResult);
-    }
+    }*/
 }
 
 //Monitor-Function for SQL-Connection
@@ -211,7 +226,7 @@ static void* SQLMonitorFunc(void* _arg){
             printf("finished\n");
             return;
         } else {
-	   sleep(0.1);
+	   sleep(0.5);
             if(!TAILQ_EMPTY(&head)){
                 break;
             }
@@ -220,7 +235,7 @@ static void* SQLMonitorFunc(void* _arg){
 
     while ((TAILQ_LAST(&head, tailhead))->id < 5){
     	gettimeofday(&now, NULL);
-    	sleep(0.1);
+    	sleep(0.5);
     	if(timeDifference(now, start_timestamp)>2.0){
     		break;
     	}
@@ -230,39 +245,49 @@ static void* SQLMonitorFunc(void* _arg){
     qentry *prev;
 
     while(queueiteration != NULL){
-    	qentry *first = queueiteration;
-    	qentry *last = TAILQ_LAST(&head, tailhead);
-    	//printf("First ID: %d\n", first->id);
-    	//printf("Last ID: %d\n", last->id);
-    	if(first->id == last->id){
-            if(run_thread){
-                continue;
-            }
-            else {
-            //Es ist noch genau ein Eintrag übrig und das Programm ist fertig
-                last = TAILQ_LAST(&head, tailhead);
-                if(first->id == last->id){
-                    writeToPostgres(conn, 1);
-                    break;
-                }
-            }
-         }
-    	
-    	//printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
-    	int length = last->id-first->id;
-    	printf("Length: %d\n", length);
-    	if(length<500000){
-    		writeToPostgres(conn, length);
-         } else {
-             while(length>500000){
-                 length = length-500000;
-                 writeToPostgres(conn, 500000);
+        gettimeofday(&now, NULL);
+        //printf("in der Queueiteration-While\n");
+        if(timeDifference(now, start_timestamp)>0.5){
+    	     qentry *first = queueiteration;
+    	     qentry *last = TAILQ_LAST(&head, tailhead);
+    	     //printf("First ID: %d\n", first->id);
+    	     //printf("Last ID: %d\n", last->id);
+    	     if(first->id == last->id){
+                  if(run_thread){
+                     continue;
+                  }
+                  else {
+                      //Es ist noch genau ein Eintrag übrig und das Programm ist fertig
+                      //printf("letzter Eintrag, thread ist durch\n");
+                      last = TAILQ_LAST(&head, tailhead);
+                      if(first->id == last->id){
+                         writeToPostgres(conn, 1);
+                         break;
+                      }
+                 }
              }
-             writeToPostgres(conn, length);
-         } 
+    	
+    	    //printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
+    	    int length = last->id-first->id;
+    	    //printf("Length: %d\n", length);
+    	    if(length<500000){
+    	        writeToPostgres(conn, length);
+    		gettimeofday(&start_timestamp, NULL);
+    		
+            } else {
+                while(length>500000){
+                    length = length-500000;
+                    writeToPostgres(conn, 500000);
+                    gettimeofday(&start_timestamp, NULL);
+                }
+                writeToPostgres(conn, length);
+                gettimeofday(&start_timestamp, NULL);
+           } 
+           
+         }
          
          while(TAILQ_EMPTY(&head)){
-             //printf("empty\n");
+             printf("empty am ende\n");
              if(run_thread){
                  continue;
              } else {
@@ -278,13 +303,14 @@ static void* SQLMonitorFunc(void* _arg){
 
 void initializeSQL()
 {
+    char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
     PGconn *conn = PQconnectdb(conninfo);
     if (PQstatus(conn) != CONNECTION_OK){
         fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
         PQfinish(conn);
         exit(1);
     } else {
-        printf("Database connected\n");
+        //printf("Database connected\n");
         if(!PQexec(conn, "DELETE FROM MPI_Information")){
             fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
             //PQfinish(conn);
