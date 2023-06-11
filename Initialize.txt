@@ -14,7 +14,7 @@ Configure MPI:
 $ sudo apt-get install flex
 $ sudo apt-get install pandoc
 
-$ git clone https://github.com/AnnaLena77/ompi-project.git --recurse-submodules
+$ git clone https://github.com/AnnaLena77/EduMPI.git --recurse-submodules
 
 Needed packages for autogen:
 $ sudo apt install autoconf
@@ -22,7 +22,7 @@ $ sudo apt install libtool
 
 $ ./autogen.pl
 //Cofigure with Analysis, if you want to use the original Open_MPI, don't use the CFLAGS-Parameter!
-$ ./configure --prefix=/home/anna-lena/sharefolder/mpi LIBS="-lmongoc-1.0 -lmysqlclient" --with-pmix=internal CFLAGS="-DENABLE_ANALYSIS=1 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0"
+$ ./configure --prefix=/home/anna-lena/sharefolder/mpi LIBS="-lmongoc-1.0 -lmysqlclient -lpq" --with-pmix=internal CFLAGS="-DENABLE_ANALYSIS=1 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0"
 
 
 
