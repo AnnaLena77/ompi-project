@@ -19,6 +19,7 @@
  *                         reserved.
  * Copyright (c) 2019-2021 Google, LLC. All rights reserved.
  * Copyright (c) 2019      Intel, Inc.  All rights reserved.
+ * Copyright (c) 2022      IBM Corporation.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -42,8 +43,6 @@
 
 #include "btl_uct_am.h"
 #include "btl_uct_device_context.h"
-
-static int use_safety_valve = 0;
 
 static int mca_btl_uct_component_register(void)
 {
@@ -122,9 +121,11 @@ static int mca_btl_uct_component_open(void)
         int core_count = 36;
 
         (void) opal_hwloc_base_get_topology();
-        core_count = hwloc_get_nbobjs_by_type(opal_hwloc_topology, HWLOC_OBJ_CORE);
+        if (0 > (core_count = hwloc_get_nbobjs_by_type(opal_hwloc_topology, HWLOC_OBJ_CORE))) {
+            return OPAL_ERROR;
+        }
 
-        if (core_count <= opal_process_info.num_local_peers || !opal_using_threads()) {
+        if ((uint32_t)core_count <= opal_process_info.num_local_peers || !opal_using_threads()) {
             /* there is probably no benefit to using multiple device contexts when not
              * using threads or oversubscribing the node with mpi processes. */
             mca_btl_uct_component.num_contexts_per_module = 1;
@@ -145,7 +146,6 @@ static int mca_btl_uct_component_open(void)
                 & opal_mem_hooks_support_level()))) {
         ucm_set_external_event(UCM_EVENT_VM_UNMAPPED);
         opal_mem_hooks_register_release(mca_btl_uct_mem_release_cb, NULL);
-        use_safety_valve = 1;
     }
 
     return OPAL_SUCCESS;
@@ -456,7 +456,7 @@ static int mca_btl_uct_component_process_uct_component(uct_component_h component
         return OPAL_ERROR;
     }
 
-    for (int i = 0; i < attr.md_resource_count; ++i) {
+    for (unsigned i = 0; i < attr.md_resource_count; ++i) {
         rc = mca_btl_uct_component_process_uct_md(component, attr.md_resources + i, allowed_ifaces);
         if (OPAL_SUCCESS != rc) {
             break;
@@ -484,8 +484,6 @@ static mca_btl_base_module_t **mca_btl_uct_component_init(int *num_btl_modules,
     /* for this BTL to be useful the interface needs to support RDMA and certain atomic operations
      */
     struct mca_btl_base_module_t **base_modules;
-    uct_md_resource_desc_t *resources;
-    unsigned resource_count;
     ucs_status_t ucs_status;
     char **allowed_ifaces;
     int rc;
@@ -527,6 +525,8 @@ static mca_btl_base_module_t **mca_btl_uct_component_init(int *num_btl_modules,
     uct_release_component_list(components);
 
 #else /* UCT 1.6 and older */
+    uct_md_resource_desc_t *resources;
+    unsigned resource_count;
 
     uct_query_md_resources(&resources, &resource_count);
 
@@ -611,7 +611,7 @@ static int mca_btl_uct_component_progress_pending(mca_btl_uct_module_t *uct_btl)
 /**
  * @brief UCT BTL progress function
  *
- * This function explictly progresses all workers.
+ * This function explicitly progresses all workers.
  */
 static int mca_btl_uct_component_progress(void)
 {
@@ -671,9 +671,7 @@ mca_btl_uct_component_t mca_btl_uct_component = {
         .btl_progress = mca_btl_uct_component_progress,
     }};
 
-static void safety_valve(void) __attribute__((destructor));
+static void safety_valve(void) __opal_attribute_destructor__;
 void safety_valve(void) {
-    if (use_safety_valve) {
-        opal_mem_hooks_unregister_release(mca_btl_uct_mem_release_cb);
-    }
+    opal_mem_hooks_unregister_release(mca_btl_uct_mem_release_cb);
 }

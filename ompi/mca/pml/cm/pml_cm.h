@@ -7,6 +7,7 @@
  * Copyright (c) 2015      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * Copyright (c) 2017      Intel, Inc. All rights reserved
+ * Copyright (c) 2022      IBM Corporation. All rights reserved
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -42,13 +43,6 @@
 BEGIN_C_DECLS
 
 struct mca_mtl_request_t;
-
-/* Array of send completion callback - one per send type
- * These are called internally by the library when the send
- * is completed from its perspective.
- */
-extern void (*send_completion_callbacks[])
-    (struct mca_mtl_request_t *mtl_request);
 
 struct ompi_pml_cm_t {
     mca_pml_base_module_t super;
@@ -187,7 +181,7 @@ mca_pml_cm_recv(void *addr,
         ompi_proc = ompi_comm_peer_lookup( comm, src );
     }
 
-    MCA_PML_CM_SWITCH_CUDA_CONVERTOR_OFF(flags, datatype, count);
+    MCA_PML_CM_SWITCH_ACCELERATOR_CONVERTOR_OFF(flags, datatype, count);
 
     opal_convertor_copy_and_prepare_for_recv(
 	ompi_proc->super.proc_convertor,
@@ -197,7 +191,7 @@ mca_pml_cm_recv(void *addr,
                 flags,
 		&convertor );
 #else
-    MCA_PML_CM_SWITCH_CUDA_CONVERTOR_OFF(flags, datatype, count);
+    MCA_PML_CM_SWITCH_ACCELERATOR_CONVERTOR_OFF(flags, datatype, count);
 
     opal_convertor_copy_and_prepare_for_recv(
 	ompi_mpi_local_convertor,
@@ -252,8 +246,8 @@ mca_pml_cm_isend_init(const void* buf,
                                      datatype, sendmode, true, false, buf, count, flags);
 
     /* Work around a leak in start by marking this request as complete. The
-     * problem occured because we do not have a way to differentiate an
-     * inital request and an incomplete pml request in start. This line
+     * problem occurred because we do not have a way to differentiate an
+     * initial request and an incomplete pml request in start. This line
      * allows us to detect this state. */
     sendreq->req_send.req_base.req_pml_complete = true;
 
@@ -394,25 +388,18 @@ mca_pml_cm_send(const void *buf,
 		convertor.flags      = ompi_mpi_local_convertor->flags;
 		convertor.master     = ompi_mpi_local_convertor->master;
 
-		convertor.local_size = count * datatype->super.size;
-		convertor.pBaseBuf   = (unsigned char*)buf + datatype->super.true_lb;
-		convertor.count      = count;
-		convertor.pDesc      = &datatype->super;
-
-#if OPAL_CUDA_SUPPORT
-        /* Switches off CUDA detection if
-           MTL set MCA_MTL_BASE_FLAG_CUDA_INIT_DISABLE during init */
-        MCA_PML_CM_SWITCH_CUDA_CONVERTOR_OFF(flags, datatype, count);
-        convertor.flags      |= flags;
-        /* Sets CONVERTOR_CUDA flag if CUDA buffer */
-        opal_convertor_prepare_for_send( &convertor, &datatype->super, count, buf );
-#endif
+                /* Switches off device detection if
+                   MTL set MCA_MTL_BASE_FLAG_ACCELERATOR_INIT_DISABLE during init */
+                MCA_PML_CM_SWITCH_ACCELERATOR_CONVERTOR_OFF(flags, datatype, count);
+                convertor.flags      |= flags;
+                /* Sets CONVERTOR_ACCELERATOR flag if device buffer */
+                opal_convertor_prepare_for_send(&convertor, &datatype->super, count, (unsigned char *)buf);
     } else
 #endif
 	{
 		ompi_proc = ompi_comm_peer_lookup(comm, dst);
 
-                MCA_PML_CM_SWITCH_CUDA_CONVERTOR_OFF(flags, datatype, count);
+                MCA_PML_CM_SWITCH_ACCELERATOR_CONVERTOR_OFF(flags, datatype, count);
 
 		opal_convertor_copy_and_prepare_for_send(
 		ompi_proc->super.proc_convertor,

@@ -1,5 +1,5 @@
 variables:
-  SCHEDULER_PARAMETERS: "-pgeneral -t 2:00:00 -N 1 --ntasks-per-node=16"
+  SCHEDULER_PARAMETERS: "-pgeneral -t 4:00:00 -N 1 --ntasks-per-node=16"
   GIT_STRATEGY: clone
   NPROCS: 4
 
@@ -11,16 +11,16 @@ build:intel:
   stage: build
   tags: [darwin-slurm-shared]
   script:
-    - module load intel
+    - module load intel/2022.0.1
     - rm .gitmodules
     - cp $GITSUBMODULEPATCH .gitmodules
-    - git submodule update --init
+    - git submodule update --init --recursive
     - ./autogen.pl
-    - ./configure CC=icc FC=ifort CXX=icpc --prefix=$PWD/install_test --with-libevent=internal
+    - ./configure CC=icx FC=ifx CXX=icpx --prefix=$PWD/install_test --with-libevent=internal
     - make -j 8 install
     - make check
     - export PATH=$PWD/install_test/bin:$PATH
-    - cd examples 
+    - cd examples
     - make
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
@@ -34,12 +34,12 @@ build:ibm:
   stage: build
   tags: [darwin-slurm-shared]
   variables:
-    SCHEDULER_PARAMETERS: "-ppower9 -t 2:00:00 -N 1 --ntasks-per-node=16"
+    SCHEDULER_PARAMETERS: "-ppower9 -t 4:00:00 -N 1 --ntasks-per-node=16"
   script:
     - module load ibm
     - rm .gitmodules
     - cp $GITSUBMODULEPATCH .gitmodules
-    - git submodule update --init
+    - git submodule update --init --recursive
     - ./autogen.pl
     - ./configure CC=xlc FC=xlf CXX=xlc++ --prefix=$PWD/install_test --with-libevent=internal
     - make -j 8 install
@@ -59,14 +59,14 @@ build:amd:
   stage: build
   tags: [darwin-slurm-shared]
   variables:
-    SCHEDULER_PARAMETERS: "-pamd-rome -t 2:00:00 -N 1 --ntasks-per-node=16"
+    SCHEDULER_PARAMETERS: "-pamd-rome -t 4:00:00 -N 1 --ntasks-per-node=16"
   script:
     - module load aocc/3.0.0
     - rm .gitmodules
     - cp $GITSUBMODULEPATCH .gitmodules
-    - git submodule update --init
+    - git submodule update --init --recursive
     - ./autogen.pl
-    - ./configure CC=clang FC=flang CXX=clang++ --prefix=$PWD/install_test --with-libevent=internal
+    - ./configure CC=clang FC=flang CXX=clang++ --prefix=$PWD/install_test --with-libevent=internal LIBS="-lucm -lucs"
     - make -j 8 install
     - make check
     - export PATH=$PWD/install_test/bin:$PATH
@@ -87,13 +87,13 @@ build:gnu:
     - module load gcc
     - rm .gitmodules
     - cp $GITSUBMODULEPATCH .gitmodules
-    - git submodule update --init
+    - git submodule update --init --recursive
     - ./autogen.pl
     - ./configure --prefix=$PWD/install_test --with-libevent=internal
     - make -j 8 install
     - make check
     - export PATH=$PWD/install_test/bin:$PATH
-    - cd examples 
+    - cd examples
     - make
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
@@ -112,7 +112,7 @@ test:intel:
   script:
     - pwd
     - ls
-    - module load intel
+    - module load intel/2022.0.1
     - export PATH=$PWD/install_test/bin:$PATH
     - which mpirun
     - cd examples
@@ -143,6 +143,7 @@ test:ibm:
     - ls
     - module load ibm
     - export PATH=$PWD/install_test/bin:$PATH
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/install_test/lib
     - which mpirun
     - pushd examples
     - mpirun -np 4 hostname
@@ -190,6 +191,7 @@ test:amd:
     - ls
     - module load aocc/3.0.0
     - export PATH=$PWD/install_test/bin:$PATH
+    - export LD_LIBRARY_PATH=$PWD/install_test/lib:$LD_LIBRARY_PATH
     - which mpirun
     - cd examples
     - mpirun -np 4 hostname
@@ -232,3 +234,4 @@ test:gnu:
   artifacts:
     name: "$CI_JOB_NAME-$CI_COMMIT_REF_NAME"
     expire_in: 1 week
+

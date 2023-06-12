@@ -176,7 +176,7 @@ typedef struct ompi_op_t ompi_op_t;
 OMPI_DECLSPEC OBJ_CLASS_DECLARATION(ompi_op_t);
 
 /**
- * Padded struct to maintain back compatibiltiy.
+ * Padded struct to maintain back compatibility.
  * See ompi/communicator/communicator.h comments with struct ompi_communicator_t
  * for full explanation why we chose the following padding construct for predefines.
  */
@@ -328,16 +328,6 @@ extern struct opal_pointer_array_t *ompi_op_f_to_c_table;
 int ompi_op_init(void);
 
 /**
- * Finalize the op interface.
- *
- * @returns OMPI_SUCCESS Always
- *
- * Invokes from ompi_mpi_finalize(); tears down the op interface, and
- * destroys the F2C translation table.
- */
-int ompi_op_finalize(void);
-
-/**
  * Create a ompi_op_t with a user-defined callback (vs. creating an
  * intrinsic ompi_op_t).
  *
@@ -368,7 +358,7 @@ ompi_op_t *ompi_op_create_user(bool commute,
                                ompi_op_fortran_handler_fn_t func);
 
 /**
- * Mark an MPI_Op as holding a Java calback function, and cache that
+ * Mark an MPI_Op as holding a Java callback function, and cache that
  * function in the MPI_Op.
  */
 OMPI_DECLSPEC void ompi_op_set_java_callback(ompi_op_t *op,  void *jnienv,

@@ -10,7 +10,7 @@
  *                         University of Stuttgart.  All rights reserved.
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
- * Copyright (c) 2007-2020 Cisco Systems, Inc.  All rights reserved.
+ * Copyright (c) 2007-2022 Cisco Systems, Inc.  All rights reserved.
  * Copyright (c) 2006-2009 University of Houston.  All rights reserved.
  * Copyright (c) 2009      Sun Microsystems, Inc.  All rights reserved.
  * Copyright (c) 2011-2015 Los Alamos National Security, LLC.  All rights
@@ -20,9 +20,10 @@
  * Copyright (c) 2014-2020 Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * Copyright (c) 2018      Amazon.com, Inc. or its affiliates.  All Rights reserved.
- * Copyright (c) 2021      Nanook Consulting.  All rights reserved.
- * Copyright (c) 2021      Triad National Security, LLC. All rights
+ * Copyright (c) 2021-2022 Nanook Consulting.  All rights reserved.
+ * Copyright (c) 2018-2022 Triad National Security, LLC. All rights
  *                         reserved.
+ * Copyright (c) 2022      IBM Corporation.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -95,6 +96,18 @@ int ompi_dpm_init(void)
         return OMPI_ERROR;
     }
     return OMPI_SUCCESS;
+}
+
+static int compare_pmix_proc(const void *a, const void *b)
+{
+    const pmix_proc_t *proc_a = (pmix_proc_t *)a;
+    const pmix_proc_t *proc_b = (pmix_proc_t *)b;
+
+    int nspace_dif = strncmp(proc_a->nspace, proc_b->nspace, PMIX_MAX_NSLEN);
+    if (nspace_dif != 0)
+        return nspace_dif;
+
+    return proc_a->rank - proc_b->rank;
 }
 
 int ompi_dpm_connect_accept(ompi_communicator_t *comm, int root,
@@ -388,6 +401,11 @@ bcast_rportlen:
      * so that add_procs will not result in a slew of lookups */
     PMIX_INFO_CONSTRUCT(&tinfo);
     PMIX_INFO_LOAD(&tinfo, PMIX_TIMEOUT, &ompi_pmix_connect_timeout, PMIX_UINT32);
+
+    /*
+     * sort procs so that all ranks call PMIx_Connect() with the processes in same order
+     */
+    qsort(procs, nprocs, sizeof(pmix_proc_t), compare_pmix_proc);
     pret = PMIx_Connect(procs, nprocs, &tinfo, 1);
     PMIX_INFO_DESTRUCT(&tinfo);
     PMIX_PROC_FREE(procs, nprocs);
@@ -478,7 +496,7 @@ bcast_rportlen:
 
     /* now deal with the remote group */
     rsize = opal_list_get_size(&rlist);
-    new_group_pointer=ompi_group_allocate(rsize);
+    new_group_pointer=ompi_group_allocate(NULL, rsize);
     if (NULL == new_group_pointer) {
         rc = OMPI_ERR_OUT_OF_RESOURCE;
         OPAL_LIST_DESTRUCT(&rlist);
@@ -502,10 +520,9 @@ bcast_rportlen:
                          NULL  ,                   /* remote_procs */
                          NULL,                     /* attrs */
                          comm->error_handler,      /* error handler */
-                         NULL,                     /* topo component */
                          group,                    /* local group */
-                         new_group_pointer         /* remote group */
-                         );
+                         new_group_pointer,        /* remote group */
+                         0);                       /* flags */
     if (OMPI_SUCCESS != rc) {
         goto exit;
     }
@@ -730,10 +747,7 @@ static int dpm_convert(opal_list_t *infos,
                if (0 != strncasecmp(ck, directive, strlen(directive))) {
                     opal_asprintf(&help_str, "Conflicting directives \"%s %s\"", ck, directive);
 #if PMIX_NUMERIC_VERSION >= 0x00040000
-                    /* TODO: remove strdup if PMIx_Get_attribute_string takes const char* */
-                    char *option_dup = strdup(option);
-                    attr = PMIx_Get_attribute_string(option_dup);
-                    free(option_dup);
+                    attr = PMIx_Get_attribute_string(option);
 #else
                     attr = option;
 #endif
@@ -787,14 +801,16 @@ static int dpm_convert(opal_list_t *infos,
                     return OMPI_SUCCESS;
                 }
             }
+            free(ck);
         }
     }
 
     /**** Get here if the specified option is not found in the
      **** current list - add it
      ****/
-
-    if (NULL == directive) {
+    if (NULL == directive && NULL == modifier) {
+        return OMPI_ERR_BAD_PARAM;
+    } else if (NULL == directive) {
         opal_asprintf(&ptr, ":%s", modifier);
     } else if (NULL == modifier) {
         ptr = strdup(directive);
@@ -1590,19 +1606,12 @@ int ompi_dpm_spawn(int count, const char *array_of_commands[],
         opal_list_append(&job_info, &info->super);
     }
 
-    /* spawn procs */
-    ninfo = opal_list_get_size(&job_info);
-    if (0 < ninfo) {
-        PMIX_INFO_CREATE(pinfo, ninfo);
-        n = 0;
-        OPAL_LIST_FOREACH(info, &job_info, opal_info_item_t) {
-            PMIX_INFO_XFER(&pinfo[n], &info->info);
-            ++n;
-        }
-    }
-    OPAL_LIST_DESTRUCT(&job_info);
-
-    if (ompi_singleton) {
+    if (opal_process_info.is_singleton) {
+        /* The GDS 'hash' component is known to work for singleton, so
+         * recommend it. The user may set this envar to override the setting.
+         */
+        setenv("PMIX_MCA_gds", "hash", 0);
+        /* Start the DVM */
         rc = start_dvm(hostfiles, dash_host);
         if (OPAL_SUCCESS != rc) {
             if (NULL != pinfo) {
@@ -1617,6 +1626,16 @@ int ompi_dpm_spawn(int count, const char *array_of_commands[],
             }
             return MPI_ERR_SPAWN;
         }
+        /* tell it to forward output to us */
+        info = OBJ_NEW(opal_info_item_t);
+        PMIX_INFO_LOAD(&info->info, PMIX_FWD_STDOUT, NULL, PMIX_BOOL);
+        opal_list_append(&job_info, &info->super);
+        info = OBJ_NEW(opal_info_item_t);
+        PMIX_INFO_LOAD(&info->info, PMIX_FWD_STDERR, NULL, PMIX_BOOL);
+        opal_list_append(&job_info, &info->super);
+        info = OBJ_NEW(opal_info_item_t);
+        PMIX_INFO_LOAD(&info->info, PMIX_FWD_STDDIAG, NULL, PMIX_BOOL);
+        opal_list_append(&job_info, &info->super);
     }
     if (NULL != hostfiles) {
         opal_argv_free(hostfiles);
@@ -1624,6 +1643,18 @@ int ompi_dpm_spawn(int count, const char *array_of_commands[],
     if (NULL != dash_host) {
         opal_argv_free(dash_host);
     }
+
+    /* spawn procs */
+    ninfo = opal_list_get_size(&job_info);
+    if (0 < ninfo) {
+        PMIX_INFO_CREATE(pinfo, ninfo);
+        n = 0;
+        OPAL_LIST_FOREACH(info, &job_info, opal_info_item_t) {
+            PMIX_INFO_XFER(&pinfo[n], &info->info);
+            ++n;
+        }
+    }
+    OPAL_LIST_DESTRUCT(&job_info);
 
     pret = PMIx_Spawn(pinfo, ninfo, apps, count, nspace);
     rc = opal_pmix_convert_status(pret);
@@ -1713,15 +1744,6 @@ int ompi_dpm_dyn_init(void)
     return OMPI_SUCCESS;
 }
 
-
-/*
- * finalize the module
- */
-int ompi_dpm_finalize(void)
-{
-    return OMPI_SUCCESS;
-}
-
 static void cleanup_dpm_disconnect_objs(ompi_dpm_disconnect_obj **objs, int count)
 {
     for(int i = 0; i < count; i++) {
@@ -1765,6 +1787,7 @@ int ompi_dpm_dyn_finalize(void)
         }
 
         disconnect_waitall(ompi_comm_num_dyncomm, objs);
+        cleanup_dpm_disconnect_objs(objs, ompi_comm_num_dyncomm);
     }
 
     return OMPI_SUCCESS;
@@ -1895,8 +1918,6 @@ static int disconnect_waitall (int count, ompi_dpm_disconnect_obj **objs)
     /* force all non-blocking all-to-alls to finish */
     ret = ompi_request_wait_all(2*totalcount, reqs, MPI_STATUSES_IGNORE);
 
-    /* Finally, free everything */
-    cleanup_dpm_disconnect_objs(objs, count);
     free(reqs);
 
     return ret;
@@ -2001,6 +2022,7 @@ static int start_dvm(char **hostfiles, char **dash_host)
      */
     if (pipe(p) < 0) {
         OMPI_ERROR_LOG(OMPI_ERROR);
+        free(cmd);
         return OMPI_ERROR;
     }
 
@@ -2013,6 +2035,7 @@ static int start_dvm(char **hostfiles, char **dash_host)
         OMPI_ERROR_LOG(OMPI_ERROR);
         close(p[0]);
         close(p[1]);
+        free(cmd);
         return OMPI_ERROR;
     }
 
@@ -2047,7 +2070,6 @@ static int start_dvm(char **hostfiles, char **dash_host)
     opal_asprintf(&tmp, "%d", death_pipe[0]);
     opal_argv_append_nosize(&args, tmp);
     free(tmp);
-    opal_argv_append_nosize(&args, "&");
 
     /* Fork off the child */
     pid = fork();
@@ -2080,7 +2102,7 @@ static int start_dvm(char **hostfiles, char **dash_host)
         set_handler_default(SIGCHLD);
 
         /* Unblock all signals, for many of the same reasons that
-         we set the default handlers, above.  This is noticable
+         we set the default handlers, above.  This is noticeable
          on Linux where the event library blocks SIGTERM, but we
          don't want that blocked by the prted (or, more
          specifically, we don't want it to be blocked by the
@@ -2092,7 +2114,7 @@ static int start_dvm(char **hostfiles, char **dash_host)
         execv(cmd, args);
 
         /* if I get here, the execv failed! */
-        opal_show_help("help-ess-base.txt", "ess-base:execv-error",
+        opal_show_help("help-dpm.txt", "execv-error",
                        true, cmd, strerror(errno));
         exit(1);
 
@@ -2154,7 +2176,7 @@ static int start_dvm(char **hostfiles, char **dash_host)
     PMIx_Commit();
 
     /* we are no longer a singleton */
-    ompi_singleton = false;
+     opal_process_info.is_singleton = false;
 
     return OMPI_SUCCESS;
 }

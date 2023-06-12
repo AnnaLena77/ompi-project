@@ -11,6 +11,8 @@
 # Copyright (c) 2004-2005 The Regents of the University of California.
 #                         All rights reserved.
 # Copyright (c) 2009      Oak Ridge National Labs.  All rights reserved.
+# Copyright (c) 2022      Amazon.com, Inc. or its affiliates.
+#                         All Rights reserved.
 #
 #
 # Some grep/sed mojo may be of interest to others...
@@ -35,7 +37,7 @@ function del_header()
 
 #
 # In Subdirectory DIR, search for headers provided in array SEARCH_HEADER
-# SEARCH_HEADER must initilized with a[0]="header_file.h  typdefs  macros  functions"
+# SEARCH_HEADER must be initialized with a[0]="header_file.h  typdefs  macros  functions"
 #
 # If any of the typedefs, macros or functions show up, then
 # including the header is valid required, otherwise del_header
@@ -87,7 +89,7 @@ SEARCH_HEADER[2]="opal/class/opal_bitmap.h opal_bitmap_t opal_bitmap_set_max_siz
 SEARCH_HEADER[3]="opal/class/opal_free_list.h opal_free_list_t opal_free_list_item_t opal_free_list_init opal_free_list_grow OPAL_FREE_LIST_GET OPAL_FREE_LIST_WAIT OPAL_FREE_LIST_RETURN"
 SEARCH_HEADER[4]="opal/class/opal_graph.h opal_graph_vertex_t opal_graph_edge_t opal_adjacency_list_t opal_graph_t opal_graph_copy_vertex_data opal_graph_free_vertex_data opal_graph_alloc_vertex_data vertex_distance_from_t opal_graph_add_vertex opal_graph_remove_vertex opal_graph_add_edge opal_graph_remove_edge opal_graph_adjacent opal_graph_get_order opal_graph_get_size opal_graph_find_vertex opal_graph_get_graph_vertices opal_graph_get_adjacent_vertices opal_graph_duplicate opal_graph_spf opal_graph_dijkstra opal_graph_print"
 SEARCH_HEADER[5]="opal/class/opal_hash_table.h opal_hash_table_t opal_hash_table_init opal_hash_table_get_size opal_hash_table_remove_all opal_hash_table_get_value_uint32 opal_hash_table_set_value_uint32 opal_hash_table_remove_value_uint32 opal_hash_table_get_value_uint64 opal_hash_table_set_value_uint64 opal_hash_table_remove_value_uint64 opal_hash_table_get_value_ptr opal_hash_table_set_value_ptr opal_hash_table_remove_value_ptr opal_hash_table_get_first_key_uint32 opal_hash_table_get_next_key_uint32 opal_hash_table_get_first_key_uint64 opal_hash_table_get_next_key_uint64"
-SEARCH_HEADER[6]="opal/class/opal_list.h opal_list_t opal_list_item_t opal_list_get_next opal_list_get_prev opal_list_is_empty opal_list_get_first opal_list_get_last opal_list_get_begin opal_list_get_end opal_list_get_size opal_list_remove_item opal_list_append opal_list_prepend opal_list_remove_first opal_list_remove_last opal_list_insert_pos opal_list_insert opal_list_join opal_list_splice opal_list_sort opal_list_item_compare_fn_t"
+SEARCH_HEADER[6]="opal/class/opal_list.h opal_list_t opal_list_item_t opal_list_get_next opal_list_get_prev opal_list_is_empty opal_list_get_first opal_list_get_last opal_list_get_begin opal_list_get_end opal_list_get_size opal_list_remove_item opal_list_append opal_list_prepend opal_list_remove_first opal_list_remove_last opal_list_insert_pos opal_list_join opal_list_splice opal_list_sort opal_list_item_compare_fn_t"
 SEARCH_HEADER[7]="opal/class/opal_object.h opal_object_t opal_class_t opal_construct_t opal_destruct_t OPAL_OBJ_STATIC_INIT OBJ_CLASS OBJ_CLASS_INSTANCE OBJ_CLASS_DECLARATION OBJ_NEW OBJ_RETAIN OBJ_RELEASE OBJ_CONSTRUCT OBJ_DESTRUCT opal_class_initialize opal_class_finalize opal_obj_run_constructors opal_obj_run_destructors opal_obj_new opal_obj_update"
 SEARCH_HEADER[8]="opal/class/opal_pointer_array.h opal_pointer_array_t opal_pointer_array_init opal_pointer_array_add opal_pointer_array_set_item opal_pointer_array_get_item opal_pointer_array_get_size opal_pointer_array_set_size opal_pointer_array_test_and_set_item opal_pointer_array_remove_all"
 SEARCH_HEADER[9]="opal/class/opal_value_array.h opal_value_array_t opal_value_array_init opal_value_array_reserve opal_value_array_get_size opal_value_array_set_size OPAL_VALUE_ARRAY_GET_ITEM opal_value_array_get_item OPAL_VALUE_ARRAY_SET_ITEM opal_value_array_set_item opal_value_array_append_item opal_value_array_remove_item OPAL_VALUE_ARRAY_GET_BASE"
@@ -175,7 +177,7 @@ SEARCH_HEADER[29]=""
 delete_unnessary_header .
 
 ####################################
-SEARCH_HEADER[0]="ompi/attribute/attribute.h ATTR_HASH_SIZE OMPI_KEYVAL_PREDEFINED OMPI_KEYVAL_F77 ompi_attribute_type_t ompi_mpi1_fortran_copy_attr_function ompi_mpi1_fortran_delete_attr_function ompi_mpi2_fortran_copy_attr_function ompi_mpi2_fortran_delete_attr_function MPI_Comm_internal_copy_attr_function MPI_Type_internal_copy_attr_function MPI_Win_internal_copy_attr_function ompi_attribute_keyval_destructor_fn_t ompi_attribute_fn_ptr_union_t ompi_attribute_fortran_ptr_t ompi_attribute_keyval_t ompi_attr_hash_init ompi_attr_init ompi_attr_finalize ompi_attr_create_keyval ompi_attr_free_keyval ompi_attr_set_c ompi_attr_set_fortran_mpi1 ompi_attr_set_fortran_mpi2 ompi_attr_get_c ompi_attr_get_fortran_mpi1 ompi_attr_get_fortran_mpi2 ompi_attr_delete ompi_attr_copy_all ompi_attr_delete_all ompi_attr_create_predefined ompi_attr_free_predefined"
+SEARCH_HEADER[0]="ompi/attribute/attribute.h ATTR_HASH_SIZE OMPI_KEYVAL_PREDEFINED OMPI_KEYVAL_F77 ompi_attribute_type_t ompi_mpi1_fortran_copy_attr_function ompi_mpi1_fortran_delete_attr_function ompi_mpi2_fortran_copy_attr_function ompi_mpi2_fortran_delete_attr_function  ompi_attribute_keyval_destructor_fn_t ompi_attribute_fn_ptr_union_t ompi_attribute_fortran_ptr_t ompi_attribute_keyval_t ompi_attr_hash_init ompi_attr_init ompi_attr_finalize ompi_attr_create_keyval ompi_attr_free_keyval ompi_attr_set_c ompi_attr_set_fortran_mpi1 ompi_attr_set_fortran_mpi2 ompi_attr_get_c ompi_attr_get_fortran_mpi1 ompi_attr_get_fortran_mpi2 ompi_attr_delete ompi_attr_copy_all ompi_attr_delete_all ompi_attr_create_predefined ompi_attr_free_predefined"
 SEARCH_HEADER[1]="ompi/class/ompi_free_list.h ompi_free_list_item_init_fn_t ompi_free_list_t ompi_free_list_item_t ompi_free_list_init_ex ompi_free_list_init ompi_free_list_init_ex_new ompi_free_list_init_new ompi_free_list_grow ompi_free_list_resize ompi_free_list_pos_t OMPI_FREE_LIST_POS_BEGINNING ompi_free_list_parse OMPI_FREE_LIST_GET OMPI_FREE_LIST_WAIT __ompi_free_list_wait OMPI_FREE_LIST_RETURN"
 SEARCH_HEADER[2]="ompi/class/ompi_rb_tree.h ompi_rb_tree_nodecolor_t ompi_rb_tree_node_t ompi_rb_tree_comp_fn_t ompi_rb_tree_t ompi_rb_tree_condition_fn_t ompi_rb_tree_action_fn_t ompi_rb_tree_construct ompi_rb_tree_destruct ompi_rb_tree_init ompi_rb_tree_insert ompi_rb_tree_find_with ompi_rb_tree_find ompi_rb_tree_delete ompi_rb_tree_destroy ompi_rb_tree_traverse ompi_rb_tree_size"
 SEARCH_HEADER[3]="ompi/class/ompi_seq_tracker.h ompi_seq_tracker_range_t ompi_seq_tracker_t ompi_seq_tracker_check_duplicate ompi_seq_tracker_insert ompi_seq_tracker_copy"
@@ -230,7 +232,7 @@ echo "# for i in *.c ; do grep -q '#include \"ompi/runtime/params.h\"' $$i || ad
 
 
 # Finally erase a header that has been introduced for the STCI replacement
-# and is not necessary, if no occurences of #include "orte..."  reside...
+# and is not necessary, if no occurrences of #include "orte..."  reside...
 SEARCH_HEADER[0]="rte.h orte"
 SEARCH_HEADER[1]=""
 

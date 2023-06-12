@@ -9,7 +9,7 @@
  *                         University of Stuttgart.  All rights reserved.
  * Copyright (c) 2004-2005 The Regents of the University of California.
  *                         All rights reserved.
- * Copyright (c) 2008-2021 University of Houston. All rights reserved.
+ * Copyright (c) 2008-2022 University of Houston. All rights reserved.
  * Copyright (c) 2015-2018 Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
  * $COPYRIGHT$
@@ -40,7 +40,7 @@ BEGIN_C_DECLS
 extern int mca_fcoll_dynamic_gen2_priority;
 extern int mca_fcoll_dynamic_gen2_num_groups;
 
-OMPI_MODULE_DECLSPEC extern mca_fcoll_base_component_2_0_0_t mca_fcoll_dynamic_gen2_component;
+OMPI_DECLSPEC extern mca_fcoll_base_component_2_0_0_t mca_fcoll_dynamic_gen2_component;
 
 /* API functions */
 
@@ -54,18 +54,17 @@ int mca_fcoll_dynamic_gen2_component_file_unquery (ompio_file_t *file);
 int mca_fcoll_dynamic_gen2_module_init (ompio_file_t *file);
 int mca_fcoll_dynamic_gen2_module_finalize (ompio_file_t *file);
 
-int mca_fcoll_dynamic_gen2_file_read_all (ompio_file_t *fh,
-                                     void *buf,
-                                     int count,
-                                     struct ompi_datatype_t *datatype,
-                                     ompi_status_public_t * status);
-
-
-int mca_fcoll_dynamic_gen2_file_write_all (ompio_file_t *fh,
+int mca_fcoll_dynamic_gen2_file_write_all (struct ompio_file_t *fh,
                                       const void *buf,
                                       int count,
                                       struct ompi_datatype_t *datatype,
                                       ompi_status_public_t * status);
+int mca_fcoll_dynamic_gen2_file_read_all (struct ompio_file_t *fh,
+                                          void *buf,
+                                          int count,
+                                          struct ompi_datatype_t *datatype,
+                                          ompi_status_public_t * status);
+
 
 
 END_C_DECLS

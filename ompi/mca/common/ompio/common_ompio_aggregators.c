@@ -42,7 +42,7 @@
 #include "common_ompio.h"
 
 /*
-** This file contains all the functionality related to determing the number of aggregators
+** This file contains all the functionality related to determining the number of aggregators
 ** and the list of aggregators.
 **
 ** The first group functions determines the number of aggregators based on various characteristics
@@ -239,13 +239,13 @@ int mca_common_ompio_fview_based_grouping(ompio_file_t *fh,
     OMPI_MPI_OFFSET_TYPE *start_offsets_lens = NULL;
 
     //Store start offset,length and corresponding rank in an array
-    if(NULL == fh->f_decoded_iov){
+    if(NULL == fh->f_fview.f_decoded_iov){
       start_offset_len[0] = 0;
       start_offset_len[1] = 0;
     }
     else{
-       start_offset_len[0] = (OMPI_MPI_OFFSET_TYPE) fh->f_decoded_iov[0].iov_base;
-       start_offset_len[1] = fh->f_decoded_iov[0].iov_len;
+       start_offset_len[0] = (OMPI_MPI_OFFSET_TYPE) fh->f_fview.f_decoded_iov[0].iov_base;
+       start_offset_len[1] = fh->f_fview.f_decoded_iov[0].iov_len;
     }
     start_offset_len[2] = fh->f_rank;
 
@@ -1348,13 +1348,13 @@ int mca_common_ompio_prepare_to_group(ompio_file_t *fh,
     int ret=OMPI_SUCCESS;
 
     //Store start offset and length in an array //also add bytes per process
-    if(NULL == fh->f_decoded_iov){
+    if(NULL == fh->f_fview.f_decoded_iov){
          start_offset_len[0] = 0;
          start_offset_len[1] = 0;
     }
     else{
-         start_offset_len[0] = (OMPI_MPI_OFFSET_TYPE) fh->f_decoded_iov[0].iov_base;
-         start_offset_len[1] = fh->f_decoded_iov[0].iov_len;
+         start_offset_len[0] = (OMPI_MPI_OFFSET_TYPE) fh->f_fview.f_decoded_iov[0].iov_base;
+         start_offset_len[1] = fh->f_fview.f_decoded_iov[0].iov_len;
     }
     start_offset_len[2] = bytes_per_proc;
     start_offsets_lens_tmp = (OMPI_MPI_OFFSET_TYPE* )malloc (3 * fh->f_init_procs_per_group * sizeof(OMPI_MPI_OFFSET_TYPE));
@@ -1491,7 +1491,7 @@ int mca_common_ompio_prepare_to_group(ompio_file_t *fh,
     }
 
     //print decision list of aggregators
-    /*printf("RANK%d  : Printing decsion list   : \n",fh->f_rank);
+    /*printf("RANK%d  : Printing decision list   : \n",fh->f_rank);
     for( i = 0; i < fh->f_init_num_aggrs; i++){
         if(decision_list_tmp[i] == OMPIO_MERGE)
             printf("MERGE,");
@@ -1532,8 +1532,8 @@ exit:
 */
 static double cost_calc (int P, int P_a, size_t d_p, size_t b_c, int dim )
 {
-    float  n_as=1.0, m_s=1.0, n_s=1.0;
-    float  n_ar=1.0;
+    double  n_as=1.0, m_s=1.0, n_s=1.0;
+    double  n_ar=1.0;
     double t_send, t_recv, t_tot;
 
     /* LogGP parameters based on DDR InfiniBand values */
@@ -1543,7 +1543,7 @@ static double cost_calc (int P, int P_a, size_t d_p, size_t b_c, int dim )
     double G=.00000000067;
     
     long file_domain = (P * d_p) / P_a;
-    float n_r = (float)file_domain/(float) b_c;
+    double n_r = (double)file_domain/(double) b_c;
     
     switch (dim) {
 	case DIM1:
@@ -1553,10 +1553,10 @@ static double cost_calc (int P, int P_a, size_t d_p, size_t b_c, int dim )
 		n_ar = 1;
 		n_as = 1;
 		m_s = b_c;
-		n_s = (float)d_p/(float)b_c;
+		n_s = (double)d_p/(double)b_c;
 	    }
 	    else {
-		n_ar = (float)b_c/(float)d_p;
+		n_ar = (double)b_c/(double)d_p;
 		n_as = 1;
 		m_s = d_p;
 		n_s = 1;
@@ -1568,14 +1568,14 @@ static double cost_calc (int P, int P_a, size_t d_p, size_t b_c, int dim )
 	    int P_x, P_y;
 	    
 	    P_x = P_y = (int) sqrt(P);
-	    n_as = (float) P_a / (float)P_x;
+	    n_as = (double) P_a / (double)P_x;
 	    
-	    n_ar = (float) P_y;
+	    n_ar = (double) P_y;
 	    if ( d_p > (P_a*b_c/P )) {
-		m_s = fmin(b_c / P_y, d_p);
+		m_s = fmin((double) b_c / (double)P_y, (double)d_p);
 	    }
 	    else {
-		m_s = fmin(d_p * P_x / P_a, d_p);
+		m_s = fmin((double) (d_p * P_x) / (double)P_a, (double)d_p);
 	    }
 	    break;	  
 	}
@@ -1584,7 +1584,7 @@ static double cost_calc (int P, int P_a, size_t d_p, size_t b_c, int dim )
 	    break;
     } 
     
-    n_s = (float) d_p / (float)(n_as * m_s);
+    n_s = (double) d_p / (double)(n_as * m_s);
     
     if( m_s < 33554432) {
 	g = .00000108;

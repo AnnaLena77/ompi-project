@@ -58,7 +58,7 @@ int mca_sharedfp_sm_write (ompio_file_t *fh,
 
     /*Request the offset to write bytesRequested bytes*/
     ret = mca_sharedfp_sm_request_position(fh, bytesRequested,&offset);
-    offset /= fh->f_etype_size;
+    offset /= fh->f_fview.f_etype_size;
     if ( -1 != ret ) {
         if ( mca_sharedfp_sm_verbose ) {
             opal_output(ompi_sharedfp_base_framework.framework_output,
@@ -91,7 +91,7 @@ int mca_sharedfp_sm_write_ordered (ompio_file_t *fh,
 
     if( NULL == fh->f_sharedfp_data){
         opal_output(ompi_sharedfp_base_framework.framework_output,
-                    "sharedfp_sm_write_ordered: module not initialzed \n");
+                    "sharedfp_sm_write_ordered: module not initialized \n");
         return OMPI_ERROR;
     }
 
@@ -167,7 +167,7 @@ int mca_sharedfp_sm_write_ordered (ompio_file_t *fh,
 
     /* Each process now has its own individual offset */
     offset = offsetBuff - sendBuff;
-    offset /= fh->f_etype_size;
+    offset /= fh->f_fview.f_etype_size;
 
     if ( mca_sharedfp_sm_verbose ) {
         opal_output(ompi_sharedfp_base_framework.framework_output,

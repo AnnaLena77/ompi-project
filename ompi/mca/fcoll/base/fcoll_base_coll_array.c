@@ -161,7 +161,7 @@ int ompi_fcoll_base_coll_gatherv_array (void *sbuf,
         return err;
     }
 
-    /* writer processes, loop receiving data from proceses
+    /* writer processes, loop receiving data from processes
        belonging to each corresponding root */
 
     err = opal_datatype_get_extent (&rdtype->super, &lb, &extent);
@@ -270,7 +270,7 @@ int ompi_fcoll_base_coll_scatterv_array (void *sbuf,
         return err;
     }
 
-    /* writer processes, loop sending data to proceses
+    /* writer processes, loop sending data to processes
        belonging to each corresponding root */
 
     err = opal_datatype_get_extent (&sdtype->super, &lb, &extent);

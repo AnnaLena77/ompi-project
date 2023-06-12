@@ -28,7 +28,7 @@ static inline ucc_status_t mca_scoll_ucc_alltoall_init(const void *sbuf, void *r
     }
 
     ucc_coll_args_t coll = {
-        .mask = 0,
+        .mask = UCC_COLL_ARGS_FIELD_FLAGS | UCC_COLL_ARGS_FIELD_GLOBAL_WORK_BUFFER,
         .coll_type = UCC_COLL_TYPE_ALLTOALL,
         .src.info = {
             .buffer = (void *)sbuf,
@@ -42,8 +42,21 @@ static inline ucc_status_t mca_scoll_ucc_alltoall_init(const void *sbuf, void *r
             .datatype = dt,
             .mem_type = UCC_MEMORY_TYPE_UNKNOWN
         },
+        .flags = UCC_COLL_ARGS_FLAG_MEM_MAPPED_BUFFERS,
+        .global_work_buffer = ucc_module->pSync,
     };
 
+    if (NULL == mca_scoll_ucc_component.ucc_context) {
+        if (OSHMEM_ERROR == mca_scoll_ucc_init_ctx(ucc_module->group)) {
+            return OSHMEM_ERROR;
+        }
+    }
+
+    if (NULL == ucc_module->ucc_team) {
+        if (OSHMEM_ERROR == mca_scoll_ucc_team_create(ucc_module, ucc_module->group)) {
+            return OSHMEM_ERROR;
+        }
+    }
     SCOLL_UCC_REQ_INIT(req, coll, ucc_module);
     return UCC_OK;
 fallback:
@@ -63,11 +76,15 @@ int mca_scoll_ucc_alltoall(struct oshmem_group_t *group,
     mca_scoll_ucc_module_t *ucc_module;
     size_t count;
     ucc_coll_req_h req;
+    int rc;
 
     UCC_VERBOSE(3, "running ucc alltoall");
     ucc_module = (mca_scoll_ucc_module_t *) group->g_scoll.scoll_alltoall_module;
     count = nelems;
 
+    if ((sst != 1) || (dst != 1)) {
+        goto fallback;
+    }
     /* Do nothing on zero-length request */
     if (OPAL_UNLIKELY(!nelems)) {
         return OSHMEM_SUCCESS;
@@ -80,7 +97,7 @@ int mca_scoll_ucc_alltoall(struct oshmem_group_t *group,
     return OSHMEM_SUCCESS;
 fallback:
     UCC_VERBOSE(3, "running fallback alltoall");
-    return ucc_module->previous_alltoall(group, target, source, dst, sst, nelems, 
-                                         element_size, pSync, alg);
+    PREVIOUS_SCOLL_FN(ucc_module, alltoall, group, target, source,
+                      dst, sst, nelems, element_size, pSync, alg);
+    return rc;
 }
-

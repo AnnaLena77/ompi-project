@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2020 The University of Tennessee and The University
+ * Copyright (c) 2018-2023 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2020      Bull S.A.S. All rights reserved.
@@ -51,7 +51,7 @@ mca_coll_han_set_bcast_args(mca_coll_han_bcast_args_t * args, mca_coll_task_t * 
 }
 
 /*
- * Each segment of the messsage needs to go though 2 steps to perform MPI_Bcast:
+ * Each segment of the message needs to go though 2 steps to perform MPI_Bcast:
  *     ub: upper level (inter-node) bcast
  *     lb: low level (shared-memory or intra-node) bcast.
  * Hence, in each iteration, there is a combination of collective operations which is called a task.
@@ -63,7 +63,7 @@ mca_coll_han_set_bcast_args(mca_coll_han_bcast_args_t * args, mca_coll_task_t * 
  * iter 4 |       |       |       |  lb   | task: t1, contains lb
  */
 int
-mca_coll_han_bcast_intra(void *buff,
+mca_coll_han_bcast_intra(void *buf,
                          int count,
                          struct ompi_datatype_t *dtype,
                          int root,
@@ -98,13 +98,15 @@ mca_coll_han_bcast_intra(void *buff,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module);
+        return han_module->previous_bcast(buf, count, dtype, root,
+                                          comm, han_module->previous_bcast_module);
 #else
-        return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module, &item);
+        return han_module->previous_bcast(buf, count, dtype, root,
+                                          comm, han_module->previous_bcast_module, &item);
 #endif
+
     }
     /* Topo must be initialized to know rank distribution which then is used to
      * determine if han can be used */
@@ -116,12 +118,13 @@ mca_coll_han_bcast_intra(void *buff,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, bcast);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module);
+        return han_module->previous_bcast(buf, count, dtype, root,
+                                          comm, han_module->previous_bcast_module);
 #else
-        return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module, &item);
+        return han_module->previous_bcast(buf, count, dtype, root,
+                                          comm, han_module->previous_bcast_module, &item);
 #endif
     }
 
@@ -153,7 +156,7 @@ mca_coll_han_bcast_intra(void *buff,
     mca_coll_task_t *t0 = OBJ_NEW(mca_coll_task_t);
     /* Setup up t0 task arguments */
     mca_coll_han_bcast_args_t *t = malloc(sizeof(mca_coll_han_bcast_args_t));
-    mca_coll_han_set_bcast_args(t, t0, (char *) buff, seg_count, dtype,
+    mca_coll_han_set_bcast_args(t, t0, (char *)buf, seg_count, dtype,
                                 root_up_rank, root_low_rank, up_comm, low_comm,
                                 num_segments, 0, w_rank, count - (num_segments - 1) * seg_count,
                                 low_rank != root_low_rank);
@@ -265,7 +268,7 @@ int mca_coll_han_bcast_t1_task(void *task_args)
  * communications without tasks.
  */
 int
-mca_coll_han_bcast_intra_simple(void *buff,
+mca_coll_han_bcast_intra_simple(void *buf,
                                 int count,
                                 struct ompi_datatype_t *dtype,
                                 int root,
@@ -301,12 +304,14 @@ mca_coll_han_bcast_intra_simple(void *buff,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module);
+        return han_module->previous_bcast(buf, count, dtype, root,
+                                          comm, han_module->previous_bcast_module);
 #else
-        return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module, &item);
+        return han_module->previous_bcast(buf, count, dtype, root,
+                                          comm, han_module->previous_bcast_module, &item);
 #endif
     }
     /* Topo must be initialized to know rank distribution which then is used to
@@ -319,12 +324,13 @@ mca_coll_han_bcast_intra_simple(void *buff,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, bcast);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module);
+        return han_module->previous_bcast(buf, count, dtype, root,
+                                          comm, han_module->previous_bcast_module);
 #else
-        return comm->c_coll->coll_bcast(buff, count, dtype, root,
-                                        comm, comm->c_coll->coll_bcast_module, &item);
+        return han_module->previous_bcast(buf, count, dtype, root,
+                                          comm, han_module->previous_bcast_module, &item);
 #endif
     }
 
@@ -342,27 +348,28 @@ mca_coll_han_bcast_intra_simple(void *buff,
                          w_rank, root_low_rank, root_up_rank));
 
     if (low_rank == root_low_rank) {
+
 #ifndef ENABLE_ANALYSIS
-        up_comm->c_coll->coll_bcast(buff, count, dtype, root_up_rank,
+        up_comm->c_coll->coll_bcast(buf, count, dtype, root_up_rank,
                                     up_comm, up_comm->c_coll->coll_bcast_module);
 #else
-        up_comm->c_coll->coll_bcast(buff, count, dtype, root_up_rank,
+        up_comm->c_coll->coll_bcast(buf, count, dtype, root_up_rank,
                                     up_comm, up_comm->c_coll->coll_bcast_module, &item);
 #endif
 
         /* To remove when han has better sub-module selection.
            For now switching to ibcast enables to make runs with libnbc. */
         //ompi_request_t req;
-        //up_comm->c_coll->coll_ibcast(buff, count, dtype, root_up_rank,
+        //up_comm->c_coll->coll_ibcast(buf, count, dtype, root_up_rank,
         //                             up_comm, &req, up_comm->c_coll->coll_ibcast_module);
         //ompi_request_wait(&req, MPI_STATUS_IGNORE);
 
     }
 #ifndef ENABLE_ANALYSIS
-    low_comm->c_coll->coll_bcast(buff, count, dtype, root_low_rank,
+    low_comm->c_coll->coll_bcast(buf, count, dtype, root_low_rank,
                                  low_comm, low_comm->c_coll->coll_bcast_module);
 #else
-    low_comm->c_coll->coll_bcast(buff, count, dtype, root_low_rank,
+    low_comm->c_coll->coll_bcast(buf, count, dtype, root_low_rank,
                                  low_comm, low_comm->c_coll->coll_bcast_module, &item);
 #endif
 

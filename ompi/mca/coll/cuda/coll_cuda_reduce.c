@@ -3,6 +3,7 @@
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2014-2015 NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2022      Amazon.com, Inc. or its affiliates.  All Rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -17,7 +18,6 @@
 
 #include "ompi/op/op.h"
 #include "opal/datatype/opal_convertor.h"
-#include "opal/mca/common/cuda/common_cuda.h"
 
 /*
  *	reduce_log_inter
@@ -47,6 +47,7 @@ mca_coll_cuda_reduce(const void *sbuf, void *rbuf, int count,
 #endif
 
     mca_coll_cuda_module_t *s = (mca_coll_cuda_module_t*) module;
+    int rank = ompi_comm_rank(comm);
     ptrdiff_t gap;
     char *rbuf1 = NULL, *sbuf1 = NULL, *rbuf2 = NULL;
     const char *sbuf2;
@@ -55,24 +56,31 @@ mca_coll_cuda_reduce(const void *sbuf, void *rbuf, int count,
 
     bufsize = opal_datatype_span(&dtype->super, count, &gap);
 
-
-    if ((MPI_IN_PLACE != sbuf) && (opal_cuda_check_bufs((char *)sbuf, NULL))) {
+    rc = mca_coll_cuda_check_buf((void *)sbuf);
+    if (rc < 0) {
+        return rc;
+    }
+    if ((MPI_IN_PLACE != sbuf) && (rc > 0)) {
         sbuf1 = (char*)malloc(bufsize);
         if (NULL == sbuf1) {
             return OMPI_ERR_OUT_OF_RESOURCE;
         }
-        opal_cuda_memcpy_sync(sbuf1, sbuf, bufsize);
+        mca_coll_cuda_memcpy(sbuf1, sbuf, bufsize);
         sbuf2 = sbuf; /* save away original buffer */
         sbuf = sbuf1 - gap;
     }
 
-    if (opal_cuda_check_bufs(rbuf, NULL)) {
+    rc = mca_coll_cuda_check_buf(rbuf);
+    if (rc < 0) {
+        return rc;
+    }
+    if ((rank == root) && (rc > 0)) {
         rbuf1 = (char*)malloc(bufsize);
         if (NULL == rbuf1) {
             if (NULL != sbuf1) free(sbuf1);
             return OMPI_ERR_OUT_OF_RESOURCE;
         }
-        opal_cuda_memcpy_sync(rbuf1, rbuf, bufsize);
+        mca_coll_cuda_memcpy(rbuf1, rbuf, bufsize);
         rbuf2 = rbuf; /* save away original buffer */
         rbuf = rbuf1 - gap;
     }
@@ -91,7 +99,7 @@ mca_coll_cuda_reduce(const void *sbuf, void *rbuf, int count,
     }
     if (NULL != rbuf1) {
         rbuf = rbuf2;
-        opal_cuda_memcpy_sync(rbuf, rbuf1, bufsize);
+        mca_coll_cuda_memcpy(rbuf, rbuf1, bufsize);
         free(rbuf1);
     }
     return rc;

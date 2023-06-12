@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2007-2018 Cisco Systems, Inc.  All rights reserved.
+ * Copyright (c) 2007-2022 Cisco Systems, Inc.  All rights reserved
  * Copyright (c) 2004-2010 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
@@ -79,7 +79,7 @@
 
 /* Notice to developers!!!!
  * The following include files with _dbg.h suffixes contains definitions
- * that are shared between the debuggger plugins and the OMPI code base.
+ * that are shared between the debugger plugins and the OMPI code base.
  * This is done instead of including the non-_dbg suffixed files because
  * of the different way compilers may handle extern definitions. The
  * particular case that is causing problems is when there is an extern
@@ -650,11 +650,13 @@ static int rebuild_communicator_list (mqs_process *proc)
         if( 0 == comm_ptr ) continue;
         commcount++;
         /* Now let's grab the data we want from inside */
+        /* NTH:  XXXXXXXXXXXXX FIXME!!!!!!!!!!!!!! c_index is local but MSGQ needs a global identifier
+         * that is sizeof (void *) or smaller. */
         DEBUG(VERBOSE_GENERAL, ("Retrieve context_id from 0x%llx and local_rank from 0x%llx\n",
-                                (long long)(comm_ptr + i_info->ompi_communicator_t.offset.c_contextid),
+                                (long long)(comm_ptr + i_info->ompi_communicator_t.offset.c_index),
                                 (long long)(comm_ptr + i_info->ompi_communicator_t.offset.c_my_rank)));
         context_id = ompi_fetch_int( proc,
-                                     comm_ptr + i_info->ompi_communicator_t.offset.c_contextid,
+                                     comm_ptr + i_info->ompi_communicator_t.offset.c_index,
                                      p_info );
         /* Do we already have this communicator ? */
         old = find_communicator(p_info, context_id);
@@ -1165,7 +1167,7 @@ static int fetch_request( mqs_process *proc, mpi_process_info *p_info,
             // data_name in res->extra_text[2] (vs. extra_text[1]),
             // where it is guaranteed to fit.
             data_name[4] = '\0';
-            snprintf( (char*)res->extra_text[1], 64, "Data: %d",
+            snprintf( (char*)res->extra_text[1], 64, "Data: %d instances of MPI datatype",
                       (int)res->desired_length);
             snprintf( (char*)res->extra_text[2], 64, "%s",
                       data_name );

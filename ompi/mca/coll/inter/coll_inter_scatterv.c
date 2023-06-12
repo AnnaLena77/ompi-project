@@ -12,6 +12,7 @@
  * Copyright (c) 2006-2010 University of Houston. All rights reserved.
  * Copyright (c) 2015-2016 Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
+ * Copyright (c) 2022      IBM Corporation.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -49,6 +50,7 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
 #endif
                               )
 {
+
 #ifdef ENABLE_ANALYSIS
      qentry *item;
     if(q!=NULL){
@@ -59,7 +61,10 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
     }
     else item = NULL;
 #endif
-    int i, rank, size, err, total=0, size_local;
+
+    int i, rank, size, err, size_local;
+    size_t total = 0;
+
     int *counts=NULL,*displace=NULL;
     char *ptmp_free=NULL, *ptmp=NULL;
     ompi_datatype_t *ndtype;
@@ -75,7 +80,7 @@ mca_coll_inter_scatterv_inter(const void *sbuf, const int *scounts,
         err = OMPI_SUCCESS;
     } else if (MPI_ROOT != root) {
 	if(0 == rank) {
-	    /* local root recieves the counts from the root */
+	    /* local root receives the counts from the root */
 	    counts = (int *)malloc(sizeof(int) * size_local);
 #ifndef ENABLE_ANALYSIS
 	    err = MCA_PML_CALL(recv(counts, size_local, MPI_INT,

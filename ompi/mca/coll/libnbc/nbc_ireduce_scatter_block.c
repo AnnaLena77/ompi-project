@@ -24,7 +24,7 @@
 #include "nbc_internal.h"
 
 /* an reduce_csttare schedule can not be cached easily because the contents
- * ot the recvcount value may change, so a comparison of the address
+ * of the recvcount value may change, so a comparison of the address
  * would not be sufficient ... we simply do not cache it */
 
 /* binomial reduce to rank 0 followed by a linear scatter ...
@@ -68,9 +68,9 @@ static int nbc_reduce_scatter_block_init(const void* sendbuf, void* recvbuf, int
     return OMPI_ERR_OUT_OF_RESOURCE;
   }
 
-  maxr = (int)ceil((log((double)p)/LOG2));
+  maxr = ceil_of_log2(p);
 
-  count = p * recvcount;
+  count = (size_t) p * recvcount;
 
   if (0 < count) {
     char *rbuf, *lbuf, *buf;
@@ -252,7 +252,7 @@ static int nbc_reduce_scatter_block_inter_init(const void *sendbuf, void *recvbu
     return res;
   }
 
-  count = rcount * lsize;
+  count = (size_t)rcount * lsize;
 
   span = opal_datatype_span(&dtype->super, count, &gap);
   span_align = OPAL_ALIGN(span, dtype->super.align, ptrdiff_t);

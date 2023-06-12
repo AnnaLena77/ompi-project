@@ -151,11 +151,6 @@ int mca_spml_ucx_peer_mkey_cache_add(ucp_peer_t *ucp_peer, int index)
     /* Allocate an array to hold the pointers to the ucx_cached_mkey */
     if (index >= (int)ucp_peer->mkeys_cnt){
         int old_size = ucp_peer->mkeys_cnt;
-        if (MCA_MEMHEAP_MAX_SEGMENTS <= (index + 1)) {
-            SPML_UCX_ERROR("Failed to get new mkey for segment: max number (%d) of segment descriptor is exhausted",
-                        MCA_MEMHEAP_MAX_SEGMENTS);
-            return OSHMEM_ERROR;
-        }
         ucp_peer->mkeys_cnt = index + 1;
         ucp_peer->mkeys = realloc(ucp_peer->mkeys, sizeof(ucp_peer->mkeys[0]) * ucp_peer->mkeys_cnt);
         if (NULL == ucp_peer->mkeys) {
@@ -336,7 +331,7 @@ int mca_spml_ucx_del_procs(oshmem_group_t* group, size_t nprocs)
     return ret;
 }
 
-/* TODO: move func into common place, use it with rkey exchng too */
+/* TODO: move func into common place, use it with rkey exchange too */
 static int oshmem_shmem_xchng(
         void **local_data, unsigned int *local_size, int nprocs, int ucp_workers,
         void **rdata_p, unsigned int **roffsets_p, unsigned int **rsizes_p)
@@ -694,7 +689,7 @@ sshmem_mkey_t *mca_spml_ucx_register(void* addr,
 {
     sshmem_mkey_t *mkeys;
     ucs_status_t status;
-    spml_ucx_mkey_t   *ucx_mkey;
+    spml_ucx_mkey_t   *ucx_mkey = NULL;
     size_t len;
     ucp_mem_map_params_t mem_map_params;
     uint32_t segno;
@@ -714,7 +709,7 @@ sshmem_mkey_t *mca_spml_ucx_register(void* addr,
     if (MEMHEAP_SEG_INVALID == segno) {
         SPML_UCX_ERROR("mca_spml_ucx_register failed because of invalid "
             "segment number: %d\n", segno);
-        return NULL;
+        goto error_out;
     }
     mem_seg = memheap_find_seg(segno);
 
@@ -745,7 +740,7 @@ sshmem_mkey_t *mca_spml_ucx_register(void* addr,
     status = ucp_rkey_pack(mca_spml_ucx.ucp_context, mem_h,
                            &mkeys[SPML_UCX_TRANSP_IDX].u.data, &len);
     if (UCS_OK != status) {
-        goto error_unmap;
+        goto error_out;
     }
     if (len >= 0xffff) {
         SPML_UCX_ERROR("packed rkey is too long: %llu >= %d",
@@ -766,7 +761,9 @@ sshmem_mkey_t *mca_spml_ucx_register(void* addr,
     return mkeys;
 
 error_unmap:
-    ucp_mem_unmap(mca_spml_ucx.ucp_context, ucx_mkey->mem_h);
+    if (NULL != ucx_mkey) {
+        ucp_mem_unmap(mca_spml_ucx.ucp_context, ucx_mkey->mem_h);
+    }
 error_out:
     free(mkeys);
 
@@ -1555,14 +1552,14 @@ int mca_spml_ucx_test_all_vector(void *ivars, int cmp, void
 }
 
 /* This routine is not implemented */
-size_t mca_spml_ucx_test_any_vector(void *ivars, int cmp, void
+int mca_spml_ucx_test_any_vector(void *ivars, int cmp, void
         *cmp_values, size_t nelems, const int *status, int datatype)
 {
     return OSHMEM_ERR_NOT_IMPLEMENTED;
 }
 
 /* This routine is not implemented */
-size_t mca_spml_ucx_test_some_vector(void *ivars, int cmp, void
+int mca_spml_ucx_test_some_vector(void *ivars, int cmp, void
         *cmp_values, size_t nelems, size_t *indices, const int *status, int
         datatype)
 {

@@ -3,6 +3,7 @@
  * Copyright (c) 2016-2021 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
+ * Copyright (c) 2022      IBM Corporation.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -15,6 +16,9 @@
 
 #include "pml_ucx.h"
 #include "pml_ucx_datatype.h"
+#if MPI_VERSION >= 4
+#include "ompi/mca/pml/base/pml_base_sendreq.h"
+#endif
 
 
 enum {
@@ -42,7 +46,7 @@ enum {
 #define PML_UCX_MAKE_SEND_TAG(_tag, _comm) \
     ((((uint64_t) (_tag)            ) << (PML_UCX_RANK_BITS + PML_UCX_CONTEXT_BITS)) | \
      (((uint64_t)(_comm)->c_my_rank ) << PML_UCX_CONTEXT_BITS) | \
-     ((uint64_t)(_comm)->c_contextid))
+     ((uint64_t)(_comm)->c_index))
 
 
 #define PML_UCX_MAKE_RECV_TAG(_ucp_tag, _ucp_tag_mask, _tag, _src, _comm) \
@@ -54,7 +58,7 @@ enum {
         } \
         \
         _ucp_tag = (((uint64_t)(_src) & UCS_MASK(PML_UCX_RANK_BITS)) << PML_UCX_CONTEXT_BITS) | \
-                   (_comm)->c_contextid; \
+                   (_comm)->c_index; \
         \
         if ((_tag) != MPI_ANY_TAG) { \
             _ucp_tag_mask |= PML_UCX_TAG_MASK; \
@@ -145,6 +149,11 @@ void mca_pml_ucx_request_init(void *request);
 
 void mca_pml_ucx_request_cleanup(void *request);
 
+int mca_pml_ucx_request_cancel(ompi_request_t *req, int flag);
+#if MPI_VERSION >= 4
+int mca_pml_ucx_request_cancel_send(ompi_request_t *req, int flag);
+#endif
+
 
 static inline void mca_pml_ucx_request_reset(ompi_request_t *req)
 {
@@ -180,10 +189,9 @@ static inline int mca_pml_ucx_set_recv_status(ompi_status_public_t* mpi_status,
                                                ucs_status_t ucp_status,
                                                const ucp_tag_recv_info_t *info)
 {
-    int64_t tag;
+    int64_t tag = info->sender_tag;
 
     if (OPAL_LIKELY(ucp_status == UCS_OK)) {
-        tag = info->sender_tag;
         mpi_status->MPI_ERROR  = MPI_SUCCESS;
         mpi_status->MPI_SOURCE = PML_UCX_TAG_GET_SOURCE(tag);
         mpi_status->MPI_TAG    = PML_UCX_TAG_GET_MPI_TAG(tag);

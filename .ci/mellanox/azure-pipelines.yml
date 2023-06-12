@@ -1,6 +1,6 @@
 trigger: none
 pr:
-  - master
+  - main
   - v*.*.x
 
 pool:
@@ -25,7 +25,7 @@ jobs:
       --ulimit memlock=-1 --security-opt seccomp=unconfined --cap-add=SYS_ADMIN --device=/dev/infiniband/
   steps:
   - checkout: self
-    submodules: true
+    submodules: recursive
     path: ompi
     clean: true
   - bash: |

@@ -2,12 +2,13 @@
  * Copyright (c) 2015-2020 Intel, Inc.  All rights reserved.
  * Copyright (c) 2017      Los Alamos National Security, LLC.  All rights
  *                         reserved.
- * Copyright (c) 2020-2021 Triad National Security, LLC. All rights
+ * Copyright (c) 2020-2022 Triad National Security, LLC. All rights
  *                         reserved.
- * Copyright (c) 2020-2021 Cisco Systems, Inc.  All rights reserved
- * Copyright (c) 2021      Nanook Consulting.  All rights reserved.
+ * Copyright (c) 2020-2021 Cisco Systems, Inc.  All rights reserved.
+ * Copyright (c) 2021-2023 Nanook Consulting.  All rights reserved.
  * Copyright (c) 2021      Amazon.com, Inc. or its affiliates. All rights
  *                         reserved.
+ * Copyright (c) 2023      UT-Battelle, LLC.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -22,6 +23,7 @@
 #include <unistd.h>
 #include <rdma/fabric.h>
 #include <rdma/fi_errno.h>
+#include <rdma/fi_cm.h>
 #ifdef HAVE_RDMA_FI_EXT_H
 #include <rdma/fi_ext.h>
 #endif
@@ -39,7 +41,7 @@
 opal_common_ofi_module_t opal_common_ofi = {.prov_include = NULL,
                                             .prov_exclude = NULL,
                                             .output = -1};
-static const char default_prov_exclude_list[] = "shm,sockets,tcp,udp,rstream,usnic";
+static const char default_prov_exclude_list[] = "shm,sockets,tcp,udp,rstream,usnic,net";
 static opal_mutex_t opal_common_ofi_mutex = OPAL_MUTEX_STATIC_INIT;
 static int opal_common_ofi_verbose_level = 0;
 static int opal_common_ofi_init_ref_cnt = 0;
@@ -120,9 +122,11 @@ int opal_common_ofi_export_memory_monitor(void)
     int ret = -FI_ENOSYS;
 
 #ifdef HAVE_STRUCT_FI_OPS_MEM_MONITOR
+    bool memory_base_frame_open = false;
     OPAL_THREAD_LOCK(&opal_common_ofi_mutex);
 
     if (NULL != opal_common_ofi_cache_fid) {
+        OPAL_THREAD_UNLOCK(&opal_common_ofi_mutex);
         return 0;
     }
 
@@ -143,7 +147,10 @@ int opal_common_ofi_export_memory_monitor(void)
     if (OPAL_SUCCESS != ret) {
         ret = -FI_ENOSYS;
         goto err;
+    } else {
+       memory_base_frame_open = true;
     }
+
     if ((OPAL_MEMORY_FREE_SUPPORT | OPAL_MEMORY_MUNMAP_SUPPORT)
         != (((OPAL_MEMORY_FREE_SUPPORT | OPAL_MEMORY_MUNMAP_SUPPORT))
         & opal_mem_hooks_support_level())) {
@@ -188,6 +195,9 @@ err:
             free(opal_common_ofi_monitor);
         }
 
+        if (memory_base_frame_open) {
+            mca_base_framework_close(&opal_memory_base_framework);
+        }
         opal_common_ofi_installed_memory_monitor = false;
     }
 
@@ -205,6 +215,7 @@ static int opal_common_ofi_remove_memory_monitor(void)
         fi_close(opal_common_ofi_cache_fid);
         fi_close(&opal_common_ofi_monitor->fid);
         free(opal_common_ofi_monitor);
+        mca_base_framework_close(&opal_memory_base_framework);
         opal_common_ofi_installed_memory_monitor = false;
     }
 #endif
@@ -237,9 +248,6 @@ int opal_common_ofi_close(void)
     if (-1 != opal_common_ofi.output) {
         opal_output_close(opal_common_ofi.output);
         opal_common_ofi.output = -1;
-        if (OPAL_SUCCESS != ret) {
-            return ret;
-        }
     }
 
     return OPAL_SUCCESS;
@@ -438,65 +446,241 @@ static int check_provider_attr(struct fi_info *provider_info, struct fi_info *pr
     }
 }
 
-#if OPAL_OFI_PCI_DATA_AVAILABLE
-/* Check if a process and a pci device share the same cpuset
- *     @param (IN) pci              struct fi_pci_attr pci device attributes,
- *                                  used to find hwloc object for device.
+/**
+ * Calculate device distances
  *
- *     @param (IN) topology         hwloc_topology_t topology to get the cpusets
- *                                  from
+ * Calculate the distances between the current thread and all devices of
+ * type OPENFABRICS or NETWORK.
  *
- *     @param (OUT)                 returns true if cpusets match and false if
- *                                  cpusets do not match or an error prevents comparison
+ * The shortest distances are the nearest and therefore most efficient
+ * devices to use.
  *
- *     Uses a pci device to find an ancestor that contains a cpuset, and
- *     determines if it intersects with the cpuset that the process is bound to.
- *     if the process is not bound, or if a cpuset is unavailable for whatever
- *     reason, returns false. Otherwise, returns the result of
- *     hwloc_cpuset_intersects()
+ * Return an array of all the distances. Each entry is of type
+ * pmix_device_distance_t
+ *
+ * This function is used if there is no PMIx server running.
+ *
+ * @param distances (OUT)     distances array
+ * @param ndist (OUT)    number of entries in the distances array
+ *
+ * @return   0 on success. Error otherwise.
+ *
  */
-static bool compare_cpusets(hwloc_topology_t topology, struct fi_pci_attr pci)
+static int compute_dev_distances(pmix_device_distance_t **distances,
+                                  size_t *ndist)
 {
-    bool result = false;
-    int ret;
-    hwloc_bitmap_t proc_cpuset;
-    hwloc_obj_t obj = NULL;
+    int ret = OPAL_SUCCESS;
+    size_t ninfo;
+    pmix_info_t *info;
+    pmix_cpuset_t cpuset;
+    pmix_topology_t pmix_topo = PMIX_TOPOLOGY_STATIC_INIT;
+    pmix_device_type_t type = PMIX_DEVTYPE_OPENFABRICS |
+      PMIX_DEVTYPE_NETWORK;
 
-    /* Cannot find topology info if no topology is found */
-    if (NULL == topology) {
+    PMIX_CPUSET_CONSTRUCT(&cpuset);
+    ret = PMIx_Get_cpuset(&cpuset, PMIX_CPUBIND_THREAD);
+    if (PMIX_SUCCESS != ret) {
+        /* we are not bound */
+        ret = OPAL_ERR_NOT_BOUND;
+        goto out;
+    }
+    /* if we are not bound, then we cannot compute distances */
+    if (hwloc_bitmap_iszero(cpuset.bitmap) ||
+        hwloc_bitmap_isfull(cpuset.bitmap)) {
+        return OPAL_ERR_NOT_BOUND;
+    }
+
+    /* load the PMIX topology - this just loads a pointer to
+     * the local topology held in PMIx, so you must not
+     * free it */
+    ret = PMIx_Load_topology(&pmix_topo);
+    if (PMIX_SUCCESS != ret) {
+        goto out;
+    }
+
+    ninfo = 1;
+    info = PMIx_Info_create(ninfo);
+    PMIx_Info_load(&info[0], PMIX_DEVICE_TYPE, &type, PMIX_DEVTYPE);
+    ret = PMIx_Compute_distances(&pmix_topo, &cpuset, info, ninfo, distances,
+                                 ndist);
+    PMIx_Info_free(info, ninfo);
+
+out:
+    return ret;
+}
+
+/**
+ * Find the nearest devices to the current thread
+ *
+ * Use the PMIx server or calculate the device distances, then out of the set of
+ * returned distances find the subset of the nearest devices. This can be
+ * 1 or more.
+ *
+ * @param num_distances (OUT)     number of entries in the returned array
+ *
+ * @return   An array of device distances which are nearest this thread
+ *           or NULL if we fail to get the distances. In this case we will just
+ *           revert to round robin.
+ *
+ */
+static pmix_device_distance_t *
+get_nearest_nics(int *num_distances, pmix_value_t **valin)
+{
+    size_t ndist, i;
+    int ret, idx = 0;
+    pmix_data_array_t *dptr;
+    uint16_t near = USHRT_MAX;
+    pmix_info_t directive;
+    pmix_value_t *val = NULL;
+    pmix_device_distance_t *distances, *nearest = NULL;
+
+    PMIx_Info_load(&directive, PMIX_OPTIONAL, NULL, PMIX_BOOL);
+    ret = PMIx_Get(&opal_process_info.myprocid,
+             PMIX_DEVICE_DISTANCES, &directive, 1, &val);
+    PMIx_Info_destruct(&directive);
+    if (ret != PMIX_SUCCESS || !val) {
+        ret = compute_dev_distances(&distances, &ndist);
+        if (ret) {
+            goto out;
+        }
+        goto find_nearest;
+    }
+
+    if (PMIX_DATA_ARRAY != val->type) {
+        goto out;
+    }
+    dptr = val->data.darray;
+    if (NULL == dptr) {
+        goto out;
+    }
+    if (PMIX_DEVICE_DIST != dptr->type) {
+        goto out;
+    }
+
+    distances = (pmix_device_distance_t*)dptr->array;
+    ndist = dptr->size;
+
+find_nearest:
+    nearest = calloc(sizeof(*distances), ndist);
+    if (!nearest) {
+        goto out;
+    }
+
+    for (i = 0; i < ndist; i++) {
+        if (distances[i].type != PMIX_DEVTYPE_NETWORK &&
+            distances[i].type != PMIX_DEVTYPE_OPENFABRICS)
+            continue;
+        if (distances[i].mindist < near) {
+            idx = 0;
+            near = distances[i].mindist;
+            nearest[idx] = distances[i];
+            idx++;
+        } else if (distances[i].mindist == near) {
+            nearest[idx] = distances[i];
+            idx++;
+        }
+    }
+
+    *num_distances = idx;
+
+out:
+    *valin = val;
+    return nearest;
+}
+
+#if OPAL_OFI_PCI_DATA_AVAILABLE
+/**
+ * Determine if a device is nearest
+ *
+ * Given a device distances array of the nearest pci devices,
+ * determine if one of these device distances refers to the pci
+ * device passed in
+ *
+ * @param distances (IN)     distances array
+ * @param num_distances (IN) number of entries in the distances array
+ * @param topology (IN)      topology of the node
+ * @param pci (IN)           PCI device being examined
+ *
+ * @return   true if the PCI device is in the distances array or if the
+ *           distances array is not provided. False otherwise.
+ *
+ */
+#if HWLOC_API_VERSION < 0x00020000
+static bool is_near(pmix_device_distance_t *distances,
+                    int num_distances,
+                    hwloc_topology_t topology,
+                    struct fi_pci_attr pci)
+{
+    return true;
+}
+#else
+static bool is_near(pmix_device_distance_t *distances,
+                    int num_distances,
+                    hwloc_topology_t topology,
+                    struct fi_pci_attr pci)
+{
+    hwloc_obj_t pcidev, osdev;
+
+    /* if we failed to find any distances, then we consider all interfaces
+     * to be of equal distances and let the caller decide how to handle
+     * them
+     */
+    if (!distances)
+        return true;
+
+    pcidev = hwloc_get_pcidev_by_busid(topology, pci.domain_id,
+                        pci.bus_id, pci.device_id,
+                        pci.function_id);
+    if (!pcidev)
         return false;
+
+    for(osdev = pcidev->io_first_child; osdev != NULL; osdev = osdev->next_sibling) {
+        int i;
+
+        if (osdev->attr->osdev.type == HWLOC_OBJ_OSDEV_OPENFABRICS) {
+            const char *nguid = hwloc_obj_get_info_by_name(osdev,"NodeGUID");
+            const char *sguid = hwloc_obj_get_info_by_name(osdev, "SysImageGUID");
+
+            if (!nguid && !sguid)
+                continue;
+
+            for (i = 0; i < num_distances; i++) {
+                char lsguid[20], lnguid[20];
+                int ret;
+
+                if (!distances[i].osname || !osdev->name
+                    || strcmp(distances[i].osname, osdev->name))
+                    continue;
+
+                ret = sscanf(distances[i].uuid, "fab://%19s::%19s", lnguid, lsguid);
+                if (ret != 2)
+                    continue;
+                if (nguid && (0 == strcasecmp(lnguid, nguid))) {
+                    return true;
+                } else if (sguid && (0 == strcasecmp(lsguid, sguid))) {
+                    return true;
+                }
+            }
+        } else if (osdev->attr->osdev.type == HWLOC_OBJ_OSDEV_NETWORK) {
+            const char *address = hwloc_obj_get_info_by_name(osdev, "Address");
+            if (!address)
+                continue;
+            for (i = 0; i < num_distances; i++) {
+                char *addr = strstr(distances[i].uuid, "://");
+                if (!addr || addr + 3 > distances[i].uuid
+                    + strlen(distances[i].uuid))
+                    continue;
+                if (!strcmp(addr+3, address)) {
+                    return true;
+                }
+            }
+        }
     }
 
-    /* Allocate memory for proc_cpuset */
-    proc_cpuset = hwloc_bitmap_alloc();
-    if (NULL == proc_cpuset) {
-        return false;
-    }
-
-    /* Fill cpuset with the collection of cpu cores that the process runs on */
-    ret = hwloc_get_cpubind(topology, proc_cpuset, HWLOC_CPUBIND_PROCESS);
-    if (0 > ret) {
-        goto error;
-    }
-
-    /* Get the pci device from bdf */
-    obj = hwloc_get_pcidev_by_busid(topology, pci.domain_id, pci.bus_id, pci.device_id,
-                                    pci.function_id);
-    if (NULL == obj) {
-        goto error;
-    }
-
-    /* pcidev objects don't have cpusets so find the first non-io object above */
-    obj = hwloc_get_non_io_ancestor_obj(topology, obj);
-    if (NULL != obj) {
-        result = hwloc_bitmap_intersects(proc_cpuset, obj->cpuset);
-    }
-
-error:
-    hwloc_bitmap_free(proc_cpuset);
-    return result;
+    return false;
 }
 #endif
+#endif  // OPAL_OFI_PCI_DATA_AVAILABLE
 
 /* Count providers returns the number of providers present in an fi_info list
  *     @param (IN) provider_list    struct fi_info* list of providers available
@@ -518,7 +702,7 @@ static int count_providers(struct fi_info *provider_list)
     return num_provider;
 }
 
-/* Calculate the currrent process package rank.
+/* Calculate the current process package rank.
  *     @param (IN) process_info     struct opal_process_info_t information
  *                                  about the current process. used to get
  *                                  num_local_peers, myprocid.rank, and
@@ -533,10 +717,9 @@ static int count_providers(struct fi_info *provider_list)
  */
 static uint32_t get_package_rank(opal_process_info_t *process_info)
 {
-    int i;
+    int i, level = 10;
     uint16_t relative_locality, *package_rank_ptr;
-    uint16_t current_package_rank = 0;
-    uint16_t package_ranks[process_info->num_local_peers + 1];
+    uint32_t ranks_on_package = 0;
     opal_process_name_t pname;
     pmix_status_t rc;
     char **peers = NULL;
@@ -545,6 +728,14 @@ static uint32_t get_package_rank(opal_process_info_t *process_info)
 
     pname.jobid = OPAL_PROC_MY_NAME.jobid;
     pname.vpid = OPAL_VPID_WILDCARD;
+
+    /*
+     * if we are a singleton just return myprocid.rank
+     * because we by definition don't know about any local peers
+     */
+    if (opal_process_info.is_singleton) {
+        return (uint32_t) process_info->myprocid.rank;
+    }
 
 #if HAVE_DECL_PMIX_PACKAGE_RANK
     // Try to get the PACKAGE_RANK from PMIx
@@ -557,26 +748,20 @@ static uint32_t get_package_rank(opal_process_info_t *process_info)
     // Get the local peers
     OPAL_MODEX_RECV_VALUE(rc, PMIX_LOCAL_PEERS, &pname, &local_peers, PMIX_STRING);
     if (PMIX_SUCCESS != rc || NULL == local_peers) {
-        // We can't find package_rank, fall back to procid
-        opal_show_help("help-common-ofi.txt", "package_rank failed", true);
-        return (uint32_t) process_info->myprocid.rank;
+        goto err;
     }
     peers = opal_argv_split(local_peers, ',');
     free(local_peers);
 
     for (i = 0; NULL != peers[i]; i++) {
         pname.vpid = strtoul(peers[i], NULL, 10);
+
         locality_string = NULL;
         // Get the LOCALITY_STRING for process[i]
         OPAL_MODEX_RECV_VALUE_OPTIONAL(rc, PMIX_LOCALITY_STRING, &pname, &locality_string,
                                        PMIX_STRING);
         if (PMIX_SUCCESS != rc || NULL == locality_string) {
-            // If we don't have information about locality, fall back to procid
-            int level = 10;
-            if (opal_output_get_verbosity(opal_common_ofi.output) >= level) {
-                opal_show_help("help-common-ofi.txt", "package_rank failed", true, level);
-            }
-            return (uint32_t) process_info->myprocid.rank;
+            goto err;
         }
 
         // compute relative locality
@@ -584,27 +769,41 @@ static uint32_t get_package_rank(opal_process_info_t *process_info)
                                                                  locality_string);
         free(locality_string);
 
+        if ((uint16_t) pname.vpid == process_info->my_local_rank) {
+            return ranks_on_package;
+        }
+
         if (relative_locality & OPAL_PROC_ON_SOCKET) {
-            package_ranks[i] = current_package_rank;
-            current_package_rank++;
+            ranks_on_package++;
         }
     }
+err:
+    if (opal_output_get_verbosity(opal_common_ofi.output) >= level) {
+        opal_show_help("help-common-ofi.txt", "package_rank failed", true, level);
+    }
 
-    return (uint32_t) package_ranks[process_info->my_local_rank];
+    if (locality_string)
+        free(locality_string);
+
+    return (uint32_t) process_info->myprocid.rank;
 }
 
-struct fi_info *opal_mca_common_ofi_select_provider(struct fi_info *provider_list,
+struct fi_info *opal_common_ofi_select_provider(struct fi_info *provider_list,
                                                     opal_process_info_t *process_info)
 {
     struct fi_info *provider = provider_list, *current_provider = provider_list;
     struct fi_info **provider_table;
 #if OPAL_OFI_PCI_DATA_AVAILABLE
+    pmix_device_distance_t *distances = NULL;
+    pmix_value_t *pmix_val;
     struct fi_pci_attr pci;
+    int num_distances = 0;
 #endif
+    bool near = false;
     int ret;
-    uint32_t package_rank;
     unsigned int num_provider = 0, provider_limit = 0;
-    bool provider_found = false, cpusets_match = false;
+    bool provider_found = false;
+    uint32_t package_rank = 0;
 
     /* Initialize opal_hwloc_topology if it is not already */
     ret = opal_hwloc_base_get_topology();
@@ -625,25 +824,30 @@ struct fi_info *opal_mca_common_ofi_select_provider(struct fi_info *provider_lis
         return provider_list;
     }
 
+#if OPAL_OFI_PCI_DATA_AVAILABLE
+    /* find all the nearest devices to this thread, then out of these
+     * determine which device we should bind to.
+     */
+    distances = get_nearest_nics(&num_distances, &pmix_val);
+#endif
+
     current_provider = provider;
 
     /* Cycle through remaining fi_info objects, looking for alike providers */
     while (NULL != current_provider) {
         if (!check_provider_attr(provider, current_provider)) {
-            cpusets_match = false;
+            near = false;
 #if OPAL_OFI_PCI_DATA_AVAILABLE
             if (NULL != current_provider->nic
                 && NULL != current_provider->nic->bus_attr
                 && current_provider->nic->bus_attr->bus_type == FI_BUS_PCI) {
                 pci = current_provider->nic->bus_attr->attr.pci;
-                cpusets_match = compare_cpusets(opal_hwloc_topology, pci);
+                near = is_near(distances, num_distances,
+                               opal_hwloc_topology, pci);
             }
 #endif
-
-            /* Reset the list if the cpusets match and no other provider was
-             * found on the same cpuset as the process.
-             */
-            if (cpusets_match && !provider_found) {
+            /* We could have multiple near providers */
+            if (near && !provider_found) {
                 provider_found = true;
                 num_provider = 0;
             }
@@ -651,7 +855,7 @@ struct fi_info *opal_mca_common_ofi_select_provider(struct fi_info *provider_lis
             /* Add the provider to the provider list if the cpusets match or if
              * no other provider was found on the same cpuset as the process.
              */
-            if (cpusets_match || !provider_found) {
+            if (near || !provider_found) {
                 provider_table[num_provider] = current_provider;
                 num_provider++;
             }
@@ -673,16 +877,89 @@ struct fi_info *opal_mca_common_ofi_select_provider(struct fi_info *provider_lis
         && NULL != provider->nic->bus_attr
         && provider->nic->bus_attr->bus_type == FI_BUS_PCI) {
         pci = provider->nic->bus_attr->attr.pci;
-        cpusets_match = compare_cpusets(opal_hwloc_topology, pci);
+        near = is_near(distances, num_distances,
+                       opal_hwloc_topology, pci);
     }
 #endif
 
 #if OPAL_ENABLE_DEBUG
     opal_output_verbose(1, opal_common_ofi.output,
-                        "package rank: %d device: %s cpusets match: %s\n", package_rank,
-                        provider->domain_attr->name, cpusets_match ? "true" : "false");
+                        "package rank: %d device: %s near: %s\n", package_rank,
+                        provider->domain_attr->name, near ? "true" : "false");
 #endif
 
     free(provider_table);
+#if OPAL_OFI_PCI_DATA_AVAILABLE
+    if (pmix_val)
+        PMIx_Value_free(pmix_val, 1);
+#endif
     return provider;
 }
+
+/**
+ * Obtain EP endpoint name
+ *
+ * Obtain the EP endpoint name and length for the supplied endpoint fid.
+ *
+ * @param fid (IN)     fid of (S)EP endpoint
+ * @param addr (OUT)   buffer containing endpoint name 
+ * @param addrlen (OUT) length of allocated buffer in bytes
+ *
+ * @return             OPAL_SUCCESS or OPAL error code
+ *
+ * The caller is responsible for freeing the buffer allocated to
+ * contain the endpoint name.
+ *
+ */
+OPAL_DECLSPEC int opal_common_ofi_fi_getname(fid_t fid, void **addr, size_t *addrlen)
+{
+    int ret=OPAL_SUCCESS;
+    size_t namelen = 0;
+    char *ep_name = NULL;
+
+    /**
+     * Get our address and publish it with modex.
+     * Use the two step process of first getting the required
+     * buffer size, then allocating the memory and calling
+     * fi_getname again.
+     */
+    namelen = 0;
+    ret = fi_getname(fid,
+                     NULL,
+                     &namelen);
+    if ((FI_SUCCESS != ret) && (-FI_ETOOSMALL != ret)) {
+        opal_output_verbose(1, opal_common_ofi.output, "%s:%d:fi_endpoint (namelen) returned %s\n",
+                            __FILE__, __LINE__, fi_strerror(-ret));
+        ret = OPAL_ERROR;
+        goto error;
+    }
+
+    ep_name = (char *)malloc(namelen);
+    if (NULL == ep_name) {
+        ret = OPAL_ERR_OUT_OF_RESOURCE;
+        goto error;
+    }
+
+    ret = fi_getname(fid,
+                     ep_name,
+                     &namelen);
+    if (ret) {
+        opal_output_verbose(1, opal_common_ofi.output, "%s:%d:fi_endpoint (ep_name) returned %s\n",
+                            __FILE__, __LINE__, fi_strerror(-ret));
+        ret = OPAL_ERROR;
+        goto error;
+    }
+
+    *addr = ep_name;
+    *addrlen = namelen;
+
+    return ret;
+
+error:
+    if (NULL != ep_name) {
+       free(ep_name); 
+    }
+    return ret;
+}
+
+

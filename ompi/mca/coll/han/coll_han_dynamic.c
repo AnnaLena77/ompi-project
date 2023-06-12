@@ -1,6 +1,9 @@
 /* -*- Mode: C; c-basic-offset:4 ; indent-tabs-mode:nil -*- */
 /*
- * Copyright (c) 2020      Bull S.A.S. All rights reserved.
+ * Copyright (c) 2020-2022 Bull S.A.S. All rights reserved.
+ * Copyright (c) 2021      Triad National Security, LLC. All rights
+ *                         reserved.
+ * Copyright (c) 2022      IBM Corporation. All rights reserved
  *
  * $COPYRIGHT$
  *
@@ -20,11 +23,12 @@
 #include "opal/class/opal_list.h"
 #include "ompi/mca/coll/han/coll_han.h"
 #include "ompi/mca/coll/han/coll_han_dynamic.h"
+#include "ompi/mca/coll/han/coll_han_algorithms.h"
 #include "ompi/mca/coll/base/coll_base_util.h"
 
 /*
  * Tests if a dynamic collective is implemented
- * Usefull for file reading warnings and MCA parameter generation
+ * Useful for file reading warnings and MCA parameter generation
  * When a new dynamic collective is implemented, this function must
  * return true for it
  */
@@ -53,7 +57,7 @@ mca_coll_han_component_name_to_id(const char* name)
     }
 
     for( int i = SELF; i < COMPONENTS_COUNT ; i++ ) {
-        if (0 == strcmp(name, available_components[i].component_name)) {
+        if (0 == strcmp(name, ompi_coll_han_available_components[i].component_name)) {
             return i;
         }
     }
@@ -94,9 +98,9 @@ mca_coll_han_get_all_coll_modules(struct ompi_communicator_t *comm,
             han_module->modules_storage.modules[id].module_handler = module;
             opal_output_verbose(80, mca_coll_han_component.han_output,
                                 "coll:han:get_all_coll_modules HAN found module %s with id %d "
-                                "for topological level %d (%s) for communicator (%d/%s)\n",
+                                "for topological level %d (%s) for communicator (%s/%s)\n",
                                 name, id, topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                                comm->c_contextid, comm->c_name);
+                                ompi_comm_print_cid(comm), comm->c_name);
             nb_modules++;
         }
     }
@@ -113,9 +117,9 @@ mca_coll_han_get_all_coll_modules(struct ompi_communicator_t *comm,
     opal_output_verbose(60, mca_coll_han_component.han_output,
                         "coll:han:get_all_coll_modules HAN sub-communicator modules storage "
                         "for topological level %d (%s) gets %d modules "
-                        "for communicator (%d/%s)\n",
+                        "for communicator (%s/%s)\n",
                         topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                        nb_modules, comm->c_contextid, comm->c_name);
+                        nb_modules, ompi_comm_print_cid(comm), comm->c_name);
 
     assert(0 != nb_modules);
 
@@ -248,7 +252,7 @@ get_dynamic_rule(COLLTYPE_T collective,
                         msg_size_rule->topologic_level,
                         mca_coll_han_topo_lvl_to_str(msg_size_rule->topologic_level),
                         msg_size_rule->configuration_size,
-                        msg_size_rule->msg_size, component, available_components[component].component_name);
+                        msg_size_rule->msg_size, component, ompi_coll_han_available_components[component].component_name);
 
     return msg_size_rule;
 }
@@ -269,7 +273,7 @@ get_module(COLLTYPE_T coll_id,
     COMPONENT_T mca_rule_component;
 
     topo_lvl = han_module->topologic_level;
-    mca_rule_component = mca_coll_han_component.mca_rules[coll_id][topo_lvl];
+    mca_rule_component = mca_coll_han_component.mca_sub_components[coll_id][topo_lvl];
 
     mca_coll_han_get_all_coll_modules(comm, han_module);
 
@@ -300,6 +304,60 @@ get_module(COLLTYPE_T coll_id,
         return NULL;
     }
     return han_module->modules_storage.modules[mca_rule_component].module_handler;
+}
+
+/*
+ * whether OMPI_MCA_coll_han_use_xxx_algorithm was set by user
+ */
+static bool
+han_algorithm_is_user_provided(COLLTYPE_T coll_id) {
+    const int *value = NULL;
+    mca_base_var_source_t source;
+    mca_base_var_get_value(mca_coll_han_component.use_algorithm_param[coll_id],
+                           &value, &source, NULL);
+    return (MCA_BASE_VAR_SOURCE_DEFAULT != source);
+}
+
+/*
+ * Return the algorithm to use for the collective coll_id
+ * for a msg_size sized message on the comm communicator
+ * following the dynamic rules
+ */
+static int
+get_algorithm(COLLTYPE_T coll_id,
+              size_t msg_size,
+              struct ompi_communicator_t *comm,
+              mca_coll_han_module_t *han_module)
+{
+    int algorithm_id = -1;
+    int rank = ompi_comm_rank(comm);
+    algorithm_id = mca_coll_han_component.use_algorithm[coll_id];
+    if (!han_algorithm_is_user_provided(coll_id)) {
+        /* find the correct dynamic rule to check */
+        const msg_size_rule_t *dynamic_rule = get_dynamic_rule(coll_id,
+                                                               msg_size,
+                                                               comm,
+                                                               han_module);
+        if(NULL != dynamic_rule && dynamic_rule->algorithm_id >= 0) {
+            /* Use dynamic rule from file */
+            algorithm_id = dynamic_rule->algorithm_id;
+        } else {
+            /*
+             * No dynamic rule from file
+             * Use default behaviour
+             */
+            algorithm_id = 0;
+        }
+    }
+    if ( 0 == rank ) {
+        opal_output_verbose(1, mca_coll_han_component.han_output,
+                            "coll:han:get_algorithm %s size:%ld algorithm:%d %s",
+                            mca_coll_base_colltype_to_str(coll_id),
+                            msg_size,
+                            algorithm_id,
+                            mca_coll_han_algorithm_id_to_name(coll_id, algorithm_id));
+    }
+    return algorithm_id;
 }
 
 
@@ -364,11 +422,11 @@ mca_coll_han_allgather_intra_dynamic(const void *sbuf, int scount,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_allgather_intra_dynamic "
                             "HAN did not find any valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s). "
+                            "with topological level %d (%s) on communicator (%s/%s). "
                             "Please check dynamic file/mca parameters\n",
                             ALLGATHER, mca_coll_base_colltype_to_str(ALLGATHER),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/ALLGATHER: No module found for the sub-communicator. "
                              "Falling back to another component\n"));
@@ -382,11 +440,11 @@ mca_coll_han_allgather_intra_dynamic(const void *sbuf, int scount,
         han_module->dynamic_errors++;
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_allgather_intra_dynamic HAN found valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s) but this module cannot handle this collective. "
+                            "with topological level %d (%s) on communicator (%s/%s) but this module cannot handle this collective. "
                             "Please check dynamic file/mca parameters\n",
                             ALLGATHER, mca_coll_base_colltype_to_str(ALLGATHER),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/ALLGATHER: the module found for the sub-communicator"
                              " cannot handle the ALLGATHER operation. Falling back to another component\n"));
@@ -399,10 +457,17 @@ mca_coll_han_allgather_intra_dynamic(const void *sbuf, int scount,
          * sub_module->coll_allgather is valid and point to this function
          * Call han topological collective algorithm
          */
-        if(mca_coll_han_component.use_simple_algorithm[ALLGATHER]) {
-            allgather = mca_coll_han_allgather_intra_simple;
-        } else {
-            allgather = mca_coll_han_allgather_intra;
+        int algorithm_id = get_algorithm(ALLGATHER,
+                                         dtype_size,
+                                         comm,
+                                         han_module);
+        allgather = (mca_coll_base_module_allgather_fn_t)mca_coll_han_algorithm_id_to_fn(ALLGATHER, algorithm_id);
+        if (NULL == allgather) { /* default behaviour */
+            if(mca_coll_han_component.use_simple_algorithm[ALLGATHER]) {
+                allgather = mca_coll_han_allgather_intra_simple;
+            } else {
+                allgather = mca_coll_han_allgather_intra;
+            }
         }
     } else {
         /*
@@ -493,11 +558,11 @@ mca_coll_han_allgatherv_intra_dynamic(const void *sbuf, int scount,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_allgatherv_intra_dynamic "
                             "HAN did not find any valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s). "
+                            "with topological level %d (%s) on communicator (%s/%s). "
                             "Please check dynamic file/mca parameters\n",
                             ALLGATHERV, mca_coll_base_colltype_to_str(ALLGATHERV),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/ALLGATHERV: No module found for the sub-communicator. "
                              "Falling back to another component\n"));
@@ -512,12 +577,12 @@ mca_coll_han_allgatherv_intra_dynamic(const void *sbuf, int scount,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_allgatherv_intra_dynamic "
                             "HAN found valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s) "
+                            "with topological level %d (%s) on communicator (%s/%s) "
                             "but this module cannot handle this collective. "
                             "Please check dynamic file/mca parameters\n",
                             ALLGATHERV, mca_coll_base_colltype_to_str(ALLGATHERV),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/ALLGATHERV: the module found for the sub-"
                              "communicator cannot handle the ALLGATHERV operation. "
@@ -534,11 +599,11 @@ mca_coll_han_allgatherv_intra_dynamic(const void *sbuf, int scount,
         opal_output_verbose(30, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_allgatherv_intra_dynamic "
                             "HAN used for collective %d (%s) with topological level %d (%s) "
-                            "on communicator (%d/%s) but this module cannot handle "
+                            "on communicator (%s/%s) but this module cannot handle "
                             "this collective on this topologic level\n",
                             ALLGATHERV, mca_coll_base_colltype_to_str(ALLGATHERV),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         allgatherv = han_module->previous_allgatherv;
         sub_module = han_module->previous_allgatherv_module;
     } else {
@@ -601,6 +666,11 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
     size_t dtype_size;
     int rank, verbosity = 0;
 
+    if (!han_module->enabled) {
+        return han_module->previous_allreduce(sbuf, rbuf, count, dtype, op, comm,
+                                              han_module->previous_allreduce_module);
+    }
+
     /* Compute configuration information for dynamic rules */
     ompi_datatype_type_size(dtype, &dtype_size);
     dtype_size = dtype_size * count;
@@ -625,11 +695,11 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_allreduce_intra_dynamic "
                             "HAN did not find any valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s). "
+                            "with topological level %d (%s) on communicator (%s/%s). "
                             "Please check dynamic file/mca parameters\n",
                             ALLREDUCE, mca_coll_base_colltype_to_str(ALLREDUCE),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/ALLREDUCE: No module found for the sub-communicator. "
                              "Falling back to another component\n"));
@@ -644,12 +714,12 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_allreduce_intra_dynamic "
                             "HAN found valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s) "
+                            "with topological level %d (%s) on communicator (%s/%s) "
                             "but this module cannot handle this collective. "
                             "Please check dynamic file/mca parameters\n",
                             ALLREDUCE, mca_coll_base_colltype_to_str(ALLREDUCE),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/ALLREDUCE: the module found for the sub-"
                              "communicator cannot handle the ALLREDUCE operation. "
@@ -657,7 +727,7 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
         allreduce = han_module->previous_allreduce;
         sub_module = han_module->previous_allreduce_module;
     } else if (GLOBAL_COMMUNICATOR == topo_lvl && sub_module == module) {
-        /* Reproducibility: fallback on reproducible algo */
+        /* Reproducibility: fallback on reproducible algorithm */
         if (mca_coll_han_component.han_reproducible) {
             allreduce = mca_coll_han_allreduce_reproducible;
         } else {
@@ -667,13 +737,17 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
              * sub_module->coll_allreduce is valid and point to this function
              * Call han topological collective algorithm
              */
-            if(mca_coll_han_component.use_simple_algorithm[ALLREDUCE]) {
-                allreduce = mca_coll_han_allreduce_intra_simple;
-            } else {
-                allreduce = mca_coll_han_allreduce_intra;
+            int algorithm_id = get_algorithm(ALLREDUCE, dtype_size, comm, han_module);
+            allreduce = (mca_coll_base_module_allreduce_fn_t) mca_coll_han_algorithm_id_to_fn(ALLREDUCE, algorithm_id);
+
+            if (NULL == allreduce) { /* default behaviour */
+                if(mca_coll_han_component.use_simple_algorithm[ALLREDUCE]) {
+                    allreduce = mca_coll_han_allreduce_intra_simple;
+                } else {
+                    allreduce = mca_coll_han_allreduce_intra;
+                }
             }
         }
-        sub_module = module;
     } else {
         /*
          * If we get here:
@@ -682,7 +756,7 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
          * They points to the collective to use, according to the dynamic rules
          * Selector's job is done, call the collective
          */
-        allreduce = mca_coll_han_allreduce_intra;
+        allreduce = sub_module->coll_allreduce;
     }
 #ifndef ENABLE_ANALYSIS
     return allreduce(sbuf, rbuf, count, dtype,
@@ -714,6 +788,9 @@ mca_coll_han_barrier_intra_dynamic(struct ompi_communicator_t *comm,
     mca_coll_base_module_t *sub_module;
     int rank, verbosity = 0;
 
+    if (!han_module->enabled) {
+        return han_module->previous_barrier(comm, han_module->previous_barrier_module);
+    }
 
     /* Compute configuration information for dynamic rules */
     sub_module = get_module(BARRIER,
@@ -736,11 +813,11 @@ mca_coll_han_barrier_intra_dynamic(struct ompi_communicator_t *comm,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_barrier_intra_dynamic "
                             "Han did not find any valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s). "
+                            "with topological level %d (%s) on communicator (%s/%s). "
                             "Please check dynamic file/mca parameters\n",
                             BARRIER, mca_coll_base_colltype_to_str(BARRIER),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/BARRIER: No module found for the sub-communicator. "
                              "Falling back to another component\n"));
@@ -755,12 +832,12 @@ mca_coll_han_barrier_intra_dynamic(struct ompi_communicator_t *comm,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_barrier_intra_dynamic "
                             "Han found valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s) "
+                            "with topological level %d (%s) on communicator (%s/%s) "
                             "but this module cannot handle this collective. "
                             "Please check dynamic file/mca parameters\n",
                             BARRIER, mca_coll_base_colltype_to_str(BARRIER),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/BARRIER: the module found for the sub-"
                              "communicator cannot handle the BARRIER operation. "
@@ -774,7 +851,11 @@ mca_coll_han_barrier_intra_dynamic(struct ompi_communicator_t *comm,
          * sub_module->coll_barrier is valid and point to this function
          * Call han topological collective algorithm
          */
-        barrier = mca_coll_han_barrier_intra_simple;
+        int algorithm_id = get_algorithm(BARRIER, 0, comm, han_module);
+        barrier = (mca_coll_base_module_barrier_fn_t) mca_coll_han_algorithm_id_to_fn(BARRIER, algorithm_id);
+        if (NULL == barrier) { /* default behaviour*/
+            barrier = mca_coll_han_barrier_intra_simple;
+        }
     } else {
         /*
          * If we get here:
@@ -827,6 +908,11 @@ mca_coll_han_bcast_intra_dynamic(void *buff,
     size_t dtype_size;
     int rank, verbosity = 0;
 
+    if (!han_module->enabled) {
+        return han_module->previous_bcast(buff, count, dtype, root, comm,
+                                          han_module->previous_bcast_module);
+    }
+
     /* Compute configuration information for dynamic rules */
     ompi_datatype_type_size(dtype, &dtype_size);
     dtype_size = dtype_size * count;
@@ -851,11 +937,11 @@ mca_coll_han_bcast_intra_dynamic(void *buff,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_bcast_intra_dynamic "
                             "HAN did not find any valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s). "
+                            "with topological level %d (%s) on communicator (%s/%s). "
                             "Please check dynamic file/mca parameters\n",
                             BCAST, mca_coll_base_colltype_to_str(BCAST),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/BCAST: No module found for the sub-communicator. "
                              "Falling back to another component\n"));
@@ -870,12 +956,12 @@ mca_coll_han_bcast_intra_dynamic(void *buff,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_bcast_intra_dynamic "
                             "HAN found valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s) "
+                            "with topological level %d (%s) on communicator (%s/%s) "
                             "but this module cannot handle this collective. "
                             "Please check dynamic file/mca parameters\n",
                             BCAST, mca_coll_base_colltype_to_str(BCAST),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/BCAST: the module found for the sub-"
                              "communicator cannot handle the BCAST operation. "
@@ -889,12 +975,18 @@ mca_coll_han_bcast_intra_dynamic(void *buff,
          * sub_module->coll_bcast is valid and point to this function
          * Call han topological collective algorithm
          */
-        if(mca_coll_han_component.use_simple_algorithm[BCAST]) {
-            bcast = mca_coll_han_bcast_intra_simple;
-        } else {
-            bcast = mca_coll_han_bcast_intra;
+        int algorithm_id = get_algorithm(BCAST,
+                                         dtype_size,
+                                         comm,
+                                         han_module);
+        bcast = (mca_coll_base_module_bcast_fn_t)mca_coll_han_algorithm_id_to_fn(BCAST, algorithm_id);
+        if (NULL == bcast) { /* default behaviour */
+             if(mca_coll_han_component.use_simple_algorithm[BCAST]) {
+                bcast = mca_coll_han_bcast_intra_simple;
+            } else {
+                bcast = mca_coll_han_bcast_intra;
+            }
         }
-        sub_module = module;
     } else {
         /*
          * If we get here:
@@ -951,6 +1043,11 @@ mca_coll_han_gather_intra_dynamic(const void *sbuf, int scount,
     size_t dtype_size;
     int rank, verbosity = 0;
 
+    if (!han_module->enabled) {
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm,
+                                           han_module->previous_gather_module);
+    }
+
     /* Compute configuration information for dynamic rules */
     if( MPI_IN_PLACE != sbuf ) {
         ompi_datatype_type_size(sdtype, &dtype_size);
@@ -980,11 +1077,11 @@ mca_coll_han_gather_intra_dynamic(const void *sbuf, int scount,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_gather_intra_dynamic "
                             "HAN did not find any valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s). "
+                            "with topological level %d (%s) on communicator (%s/%s). "
                             "Please check dynamic file/mca parameters\n",
                             GATHER, mca_coll_base_colltype_to_str(GATHER),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/GATHER: No module found for the sub-communicator. "
                              "Falling back to another component\n"));
@@ -999,12 +1096,12 @@ mca_coll_han_gather_intra_dynamic(const void *sbuf, int scount,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_gather_intra_dynamic "
                             "HAN found valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s) "
+                            "with topological level %d (%s) on communicator (%s/%s) "
                             "but this module cannot handle this collective. "
                             "Please check dynamic file/mca parameters\n",
                             GATHER, mca_coll_base_colltype_to_str(GATHER),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/GATHER: the module found for the sub-"
                              "communicator cannot handle the GATHER operation. "
@@ -1018,10 +1115,17 @@ mca_coll_han_gather_intra_dynamic(const void *sbuf, int scount,
          * sub_module->coll_gather is valid and point to this function
          * Call han topological collective algorithm
          */
-        if(mca_coll_han_component.use_simple_algorithm[GATHER]) {
-            gather = mca_coll_han_gather_intra_simple;
-        } else {
-            gather = mca_coll_han_gather_intra;
+        int algorithm_id = get_algorithm(GATHER,
+                                         dtype_size,
+                                         comm,
+                                         han_module);
+        gather = (mca_coll_base_module_gather_fn_t) mca_coll_han_algorithm_id_to_fn(GATHER, algorithm_id);
+        if (NULL == gather) { /* default behaviour */
+            if(mca_coll_han_component.use_simple_algorithm[GATHER]) {
+                gather = mca_coll_han_gather_intra_simple;
+            } else {
+                gather = mca_coll_han_gather_intra;
+            }
         }
     } else {
         /*
@@ -1083,6 +1187,11 @@ mca_coll_han_reduce_intra_dynamic(const void *sbuf,
     size_t dtype_size;
     int rank, verbosity = 0;
 
+    if (!han_module->enabled) {
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root, comm,
+                                           han_module->previous_reduce_module);
+    }
+
     /* Compute configuration information for dynamic rules */
     ompi_datatype_type_size(dtype, &dtype_size);
     dtype_size = dtype_size * count;
@@ -1107,11 +1216,11 @@ mca_coll_han_reduce_intra_dynamic(const void *sbuf,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_reduce_intra_dynamic "
                             "HAN did not find any valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s). "
+                            "with topological level %d (%s) on communicator (%s/%s). "
                             "Please check dynamic file/mca parameters\n",
                             REDUCE, mca_coll_base_colltype_to_str(REDUCE),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/REDUCE: No module found for the sub-communicator. "
                              "Falling back to another component\n"));
@@ -1126,12 +1235,12 @@ mca_coll_han_reduce_intra_dynamic(const void *sbuf,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_reduce_intra_dynamic "
                             "HAN found valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s) "
+                            "with topological level %d (%s) on communicator (%s/%s) "
                             "but this module cannot handle this collective. "
                             "Please check dynamic file/mca parameters\n",
                             REDUCE, mca_coll_base_colltype_to_str(REDUCE),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/REDUCE: the module found for the sub-"
                              "communicator cannot handle the REDUCE operation. "
@@ -1139,7 +1248,7 @@ mca_coll_han_reduce_intra_dynamic(const void *sbuf,
         reduce = han_module->previous_reduce;
         sub_module = han_module->previous_reduce_module;
     } else if (GLOBAL_COMMUNICATOR == topo_lvl && sub_module == module) {
-        /* Reproducibility: fallback on reproducible algo */
+        /* Reproducibility: fallback on reproducible algorithm */
         if (mca_coll_han_component.han_reproducible) {
             reduce = mca_coll_han_reduce_reproducible;
         } else {
@@ -1149,13 +1258,19 @@ mca_coll_han_reduce_intra_dynamic(const void *sbuf,
              * sub_module->coll_reduce is valid and point to this function
              * Call han topological collective algorithm
              */
-            if(mca_coll_han_component.use_simple_algorithm[REDUCE]) {
-                reduce = mca_coll_han_reduce_intra_simple;
-            } else {
-                reduce = mca_coll_han_reduce_intra;
+            int algorithm_id = get_algorithm(REDUCE,
+                                             dtype_size,
+                                             comm,
+                                             han_module);
+            reduce = (mca_coll_base_module_reduce_fn_t)mca_coll_han_algorithm_id_to_fn(REDUCE, algorithm_id);
+            if (NULL == reduce) { /* default behaviour */
+                if(mca_coll_han_component.use_simple_algorithm[REDUCE]) {
+                    reduce = mca_coll_han_reduce_intra_simple;
+                } else {
+                    reduce = mca_coll_han_reduce_intra;
+                }
             }
         }
-        sub_module = module;
     } else {
         /*
          * If we get here:
@@ -1212,6 +1327,11 @@ mca_coll_han_scatter_intra_dynamic(const void *sbuf, int scount,
     size_t dtype_size;
     int rank, verbosity = 0;
 
+    if (!han_module->enabled) {
+        return han_module->previous_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm,
+                                            han_module->previous_scatter_module);
+    }
+
     /* Compute configuration information for dynamic rules */
     if( MPI_IN_PLACE != rbuf ) {
         ompi_datatype_type_size(rdtype, &dtype_size);
@@ -1241,11 +1361,11 @@ mca_coll_han_scatter_intra_dynamic(const void *sbuf, int scount,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_scatter_intra_dynamic "
                             "HAN did not find any valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s). "
+                            "with topological level %d (%s) on communicator (%s/%s). "
                             "Please check dynamic file/mca parameters\n",
                             SCATTER, mca_coll_base_colltype_to_str(SCATTER),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/SCATTER: No module found for the sub-communicator. "
                              "Falling back to another component\n"));
@@ -1260,12 +1380,12 @@ mca_coll_han_scatter_intra_dynamic(const void *sbuf, int scount,
         opal_output_verbose(verbosity, mca_coll_han_component.han_output,
                             "coll:han:mca_coll_han_scatter_intra_dynamic "
                             "HAN found valid module for collective %d (%s) "
-                            "with topological level %d (%s) on communicator (%d/%s) "
+                            "with topological level %d (%s) on communicator (%s/%s) "
                             "but this module cannot handle this collective. "
                             "Please check dynamic file/mca parameters\n",
                             SCATTER, mca_coll_base_colltype_to_str(SCATTER),
                             topo_lvl, mca_coll_han_topo_lvl_to_str(topo_lvl),
-                            comm->c_contextid, comm->c_name);
+                            ompi_comm_print_cid(comm), comm->c_name);
         OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output,
                              "HAN/SCATTER: the module found for the sub-"
                              "communicator cannot handle the SCATTER operation. "
@@ -1279,10 +1399,17 @@ mca_coll_han_scatter_intra_dynamic(const void *sbuf, int scount,
          * sub_module->coll_scatter is valid and point to this function
          * Call han topological collective algorithm
          */
-        if(mca_coll_han_component.use_simple_algorithm[SCATTER]) {
-            scatter = mca_coll_han_scatter_intra_simple;
-        } else {
-            scatter = mca_coll_han_scatter_intra;
+        int algorithm_id = get_algorithm(SCATTER,
+                                         dtype_size,
+                                         comm,
+                                         han_module);
+        scatter = (mca_coll_base_module_scatter_fn_t)mca_coll_han_algorithm_id_to_fn(SCATTER, algorithm_id);
+        if (NULL == scatter) { /* default behaviour */
+            if(mca_coll_han_component.use_simple_algorithm[SCATTER]) {
+                scatter = mca_coll_han_scatter_intra_simple;
+            } else {
+                scatter = mca_coll_han_scatter_intra;
+            }
         }
     } else {
         /*
