@@ -848,19 +848,20 @@ static int am_rdma_progress(void)
     }
 #else
 #define ACTION2                                                         \
-    mca_btl_base_am_rdma_queued_descriptor_t *descriptor, *next;        \
-    OPAL_LIST_FOREACH_SAFE (descriptor, next,                           \
-                            &default_module.queued_initiator_descriptors, \
-                            mca_btl_base_am_rdma_queued_descriptor_t) { \
-        mca_btl_base_rdma_context_t *context =                          \
-            (mca_btl_base_rdma_context_t *)                             \
-            descriptor->descriptor->des_context;                        \
-        int ret = descriptor->btl->btl_send(descriptor->btl,            \
-                                            descriptor->endpoint,       \
-                                            descriptor->descriptor,     \
-                                            mca_btl_base_rdma_tag(context->type), NULL); \
-        if (OPAL_SUCCESS == ret) {                                      \
-            opal_list_remove_item(&default_module.queued_initiator_descriptors, \
+    am_rdma_queued_descriptor_t *descriptor, *next;                     \
+    OPAL_LIST_FOREACH_SAFE(descriptor, next,                            \
+                           &default_component.queued_initiator_descriptors, \
+                           am_rdma_queued_descriptor_t) {               \
+        am_rdma_context_t *context =                                    \
+            (am_rdma_context_t *) descriptor->descriptor->des_context;  \
+        mca_btl_base_module_t *btl = descriptor->am_module->btl;        \
+        assert(0 != (descriptor->descriptor->des_flags & MCA_BTL_DES_SEND_ALWAYS_CALLBACK)); \
+        int ret = btl->btl_send(btl,                                    \
+                                descriptor->endpoint,                   \
+                                descriptor->descriptor,                 \
+                                am_rdma_tag(context->type), NULL);            \
+        if (OPAL_SUCCESS == ret || 1 == ret) {                          \
+            opal_list_remove_item(&default_component.queued_initiator_descriptors, \
                                   &descriptor->super);                  \
         }                                                               \
     }

@@ -750,7 +750,11 @@ int mca_pml_ob1_send_control_btl (mca_bml_base_btl_t *bml_btl, int order, mca_pm
     int rc;
 
     if (NULL != bml_btl->btl->btl_sendi) {
+#ifndef ENABLE_ANALYSIS
         rc = mca_bml_base_sendi (bml_btl, NULL, hdr, hdr_size, 0, order, des_flags, hdr->hdr_common.hdr_type, &des);
+#else
+        rc = mca_bml_base_sendi (bml_btl, NULL, hdr, hdr_size, 0, order, des_flags, hdr->hdr_common.hdr_type, &des, NULL);
+#endif
         if (OPAL_LIKELY(OPAL_SUCCESS == rc)) {
             return rc;
         }

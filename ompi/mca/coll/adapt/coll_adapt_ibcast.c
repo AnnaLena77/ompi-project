@@ -380,13 +380,9 @@ int ompi_coll_adapt_ibcast(void *buff, int count, struct ompi_datatype_t *dataty
     }
 
 #ifndef ENABLE_ANALYSIS
-    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module,
-                                          ompi_coll_adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm),
-                                          mca_coll_adapt_component.adapt_ibcast_segment_size);
+    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module, ompi_coll_adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm), mca_coll_adapt_component.adapt_ibcast_segment_size);
 #else
-    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module,
-                                          adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm),
-                                          mca_coll_adapt_component.adapt_ibcast_segment_size, &item);
+    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module, ompi_coll_adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm), mca_coll_adapt_component.adapt_ibcast_segment_size, &item);
 #endif
 }
 

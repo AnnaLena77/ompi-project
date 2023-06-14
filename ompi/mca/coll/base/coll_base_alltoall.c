@@ -168,7 +168,7 @@ mca_coll_base_alltoall_intra_basic_inplace(const void *rbuf, int rcount,
                                       left, MCA_COLL_BASE_TAG_ALLTOALL, comm, &req));
 #else
             err = MCA_PML_CALL(irecv ((char *) rbuf + (MPI_Aint) left * rcount * extent, rcount, rdtype,
-                                      left, MCA_COLL_BASE_TAG_ALLTOALL, comm, &req));
+                                      left, MCA_COLL_BASE_TAG_ALLTOALL, comm, &req, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 line = __LINE__;

@@ -1253,8 +1253,13 @@ int ompi_comm_split_type (ompi_communicator_t *comm, int split_type, int key,
     tmp[4] = split_type;
     tmp[5] = -split_type;
 
+#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &tmp, 6, MPI_INT, MPI_MAX, comm,
                                       comm->c_coll->coll_allreduce_module);
+#else
+    rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &tmp, 6, MPI_INT, MPI_MAX, comm,
+                                      comm->c_coll->coll_allreduce_module, NULL);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }
@@ -1267,16 +1272,26 @@ int ompi_comm_split_type (ompi_communicator_t *comm, int split_type, int key,
         ok[0] = (MPI_UNDEFINED == orig_split_type) || global_orig_split_type == orig_split_type;
         ok[1] = (MPI_UNDEFINED == orig_split_type) || global_split_type == split_type;
 
+#ifndef ENABLE_ANALYSIS
         rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &ok, 2, MPI_INT, MPI_MIN, comm,
                                           comm->c_coll->coll_allreduce_module);
+#else
+        rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &ok, 2, MPI_INT, MPI_MIN, comm,
+                                          comm->c_coll->coll_allreduce_module, NULL);
+#endif
         if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
             return rc;
         }
 
         if (inter) {
             /* need an extra allreduce to ensure that all ranks have the same result */
+#ifndef ENABLE_ANALYSIS
             rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &ok, 2, MPI_INT, MPI_MIN, comm,
                                               comm->c_coll->coll_allreduce_module);
+#else
+            rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &ok, 2, MPI_INT, MPI_MIN, comm,
+                                              comm->c_coll->coll_allreduce_module, NULL);
+#endif
             if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
                 return rc;
             }
@@ -1694,12 +1709,21 @@ int ompi_intercomm_create (ompi_communicator_t *local_comm, int local_leader, om
         MPI_Request req;
 
         /* local leader exchange group sizes lists */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv (&rsize, 1, MPI_INT, rleader, tag, bridge_comm, &req));
+#else
+        rc = MCA_PML_CALL(irecv (&rsize, 1, MPI_INT, rleader, tag, bridge_comm, &req, NULL));
+#endif
         if ( rc != MPI_SUCCESS ) {
             return rc;
         }
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(send (&local_size, 1, MPI_INT, rleader, tag,
                                 MCA_PML_BASE_SEND_STANDARD, bridge_comm));
+#else
+        rc = MCA_PML_CALL(send (&local_size, 1, MPI_INT, rleader, tag,
+                                MCA_PML_BASE_SEND_STANDARD, bridge_comm, NULL));
+#endif
         if ( rc != MPI_SUCCESS ) {
             return rc;
         }
@@ -1710,8 +1734,13 @@ int ompi_intercomm_create (ompi_communicator_t *local_comm, int local_leader, om
     }
 
     /* bcast size and list of remote processes to all processes in local_comm */
+#ifndef ENABLE_ANALYSIS
     rc = local_comm->c_coll->coll_bcast (&rsize, 1, MPI_INT, lleader, local_comm,
                                          local_comm->c_coll->coll_bcast_module);
+#else
+    rc = local_comm->c_coll->coll_bcast (&rsize, 1, MPI_INT, lleader, local_comm,
+                                         local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }
@@ -1871,8 +1900,13 @@ int ompi_intercomm_create_from_groups (ompi_group_t *local_group, int local_lead
     }
 
     /* bcast size and list of remote processes to all processes in local_comm */
+#ifndef ENABLE_ANALYSIS
     rc = local_comm->c_coll->coll_bcast (data, 4, MPI_UINT64_T, local_leader, local_comm,
                                          local_comm->c_coll->coll_bcast_module);
+#else
+    rc = local_comm->c_coll->coll_bcast (data, 4, MPI_UINT64_T, local_leader, local_comm,
+                                         local_comm->c_coll->coll_bcast_module, NULL);
+#endif
     rsize = data[0];
     if (OPAL_UNLIKELY(OPAL_SUCCESS != rc)) {
         ompi_comm_free (&local_comm);

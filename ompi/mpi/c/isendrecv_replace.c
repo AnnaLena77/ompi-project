@@ -211,8 +211,13 @@ int MPI_Isendrecv_replace(void * buf, int count, MPI_Datatype datatype,
     }
 
     if (source != MPI_PROC_NULL) { /* post recv */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(buf, count, datatype,
                                 source, recvtag, comm, &context->subreq[nreqs++]));
+#else
+        rc = MCA_PML_CALL(irecv(buf, count, datatype,
+                                source, recvtag, comm, &context->subreq[nreqs++], NULL));
+#endif
         if (MPI_SUCCESS != rc) {
             OBJ_RELEASE(context);
             ompi_comm_request_return (crequest);
@@ -221,9 +226,15 @@ int MPI_Isendrecv_replace(void * buf, int count, MPI_Datatype datatype,
     }
 
     if (dest != MPI_PROC_NULL) { /* send */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(isend(context->iov.iov_base, context->packed_size, MPI_PACKED, dest,
                                sendtag, MCA_PML_BASE_SEND_STANDARD, comm, 
                                 &context->subreq[nreqs++]));
+#else
+        rc = MCA_PML_CALL(isend(context->iov.iov_base, context->packed_size, MPI_PACKED, dest,
+                               sendtag, MCA_PML_BASE_SEND_STANDARD, comm, 
+                                &context->subreq[nreqs++], NULL));
+#endif
         if (MPI_SUCCESS != rc) {
             OBJ_RELEASE(context);
             ompi_comm_request_return (crequest);

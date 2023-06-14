@@ -27,7 +27,7 @@
 
 #ifndef MCA_COLL_HAN_ALGORITHMS_H
 #define MCA_COLL_HAN_ALGORITHMS_H
-
+    
 /* use this pointer type instead of void* to avoid warnings as it is
  * not legal to convert function pointers to void*
  *
@@ -71,16 +71,28 @@ mca_coll_han_algorithm_id_to_name(int coll_id, int algorithm_id);
  */
 
 int mca_coll_han_barrier_intra_simple(struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module);
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      );
 /* Bcast */
 int mca_coll_han_bcast_intra_simple(void *buff,
                                     int count,
                                     struct ompi_datatype_t *dtype,
                                     int root,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    );
 int mca_coll_han_bcast_intra(void *buff, int count, struct ompi_datatype_t *dtype, int root,
-                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module);
+                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             );
 
 /* Reduce */
 int
@@ -91,10 +103,18 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
                                  ompi_op_t *op,
                                  int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                 , qentry **q
+#endif
+                                 );
 int
 mca_coll_han_reduce_reproducible_decision(struct ompi_communicator_t *comm,
-                                          mca_coll_base_module_t *module);
+                                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                          , qentry **q
+#endif
+                                          );
 int
 mca_coll_han_reduce_reproducible(const void *sbuf,
                                  void *rbuf,
@@ -103,7 +123,11 @@ mca_coll_han_reduce_reproducible(const void *sbuf,
                                  struct ompi_op_t *op,
                                  int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                 , qentry **q
+#endif
+                                 );
 
 int mca_coll_han_reduce_intra(const void *sbuf,
                               void *rbuf,
@@ -112,7 +136,11 @@ int mca_coll_han_reduce_intra(const void *sbuf,
                               ompi_op_t* op,
                               int root,
                               struct ompi_communicator_t *comm,
-                              mca_coll_base_module_t * module);
+                              mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+                              , qentry **q
+#endif
+                              );
 
 /* Allreduce */
 int
@@ -122,10 +150,18 @@ mca_coll_han_allreduce_intra_simple(const void *sbuf,
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    );
 int
 mca_coll_han_allreduce_reproducible_decision(struct ompi_communicator_t *comm,
-                                             mca_coll_base_module_t *module);
+                                             mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                             , qentry **q
+#endif
+                                             );
 int
 mca_coll_han_allreduce_reproducible(const void *sbuf,
                                     void *rbuf,
@@ -133,14 +169,22 @@ mca_coll_han_allreduce_reproducible(const void *sbuf,
                                     struct ompi_datatype_t *dtype,
                                     struct ompi_op_t *op,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    );
 
 int mca_coll_han_allreduce_intra(const void *sbuf,
                                  void *rbuf,
                                  int count,
                                  struct ompi_datatype_t *dtype,
                                  struct ompi_op_t *op,
-                                 struct ompi_communicator_t *comm, mca_coll_base_module_t * module);
+                                 struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+                                 , qentry **q
+#endif                   
+                                 );
 
 /* Scatter */
 int
@@ -149,7 +193,11 @@ mca_coll_han_scatter_intra(const void *sbuf, int scount,
                            void *rbuf, int rcount,
                            struct ompi_datatype_t *rdtype,
                            int root,
-                           struct ompi_communicator_t *comm, mca_coll_base_module_t * module);
+                           struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+                           , qentry **q
+#endif
+                           );
 int
 mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                                   struct ompi_datatype_t *sdtype,
@@ -157,7 +205,11 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                                   struct ompi_datatype_t *rdtype,
                                   int root,
                                   struct ompi_communicator_t *comm,
-                                  mca_coll_base_module_t * module);
+                                  mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  );
 
 /* Gather */
 int
@@ -166,7 +218,11 @@ mca_coll_han_gather_intra(const void *sbuf, int scount,
                           void *rbuf, int rcount,
                           struct ompi_datatype_t *rdtype,
                           int root,
-                          struct ompi_communicator_t *comm, mca_coll_base_module_t * module);
+                          struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+                          , qentry **q
+#endif
+                          );
 int
 mca_coll_han_gather_intra_simple(const void *sbuf, int scount,
                                  struct ompi_datatype_t *sdtype,
@@ -174,7 +230,11 @@ mca_coll_han_gather_intra_simple(const void *sbuf, int scount,
                                  struct ompi_datatype_t *rdtype,
                                  int root,
                                  struct ompi_communicator_t *comm,
-                                 mca_coll_base_module_t *module);
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                 , qentry **q
+#endif
+                                 );
 
 /* Allgather */
 int
@@ -182,13 +242,21 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
                              struct ompi_datatype_t *sdtype,
                              void *rbuf, int rcount,
                              struct ompi_datatype_t *rdtype,
-                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module);
+                             struct ompi_communicator_t *comm, mca_coll_base_module_t * module
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             );
 int
 mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
                                     struct ompi_datatype_t *sdtype,
                                     void* rbuf, int rcount,
                                     struct ompi_datatype_t *rdtype,
                                     struct ompi_communicator_t *comm,
-                                    mca_coll_base_module_t *module);
+                                    mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                    , qentry **q
+#endif
+                                    );
 
 #endif

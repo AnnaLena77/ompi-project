@@ -122,7 +122,7 @@ static inline void vprotocol_pessimist_matching_log_finish(ompi_request_t *req)
         vprotocol_pessimist_clock_t max_clock;                                \
         if(OPAL_UNLIKELY(ompi_comm_invalid(mca_vprotocol_pessimist.el_comm))) \
         {                                                                     \
-            rc = vprotocol_pessimist_event_logger_connect(0,                  \
+            rc = ompi_vprotocol_pessimist_event_logger_connect(0,             \
                                         &mca_vprotocol_pessimist.el_comm);    \
             if(OMPI_SUCCESS != rc)                                            \
                 OMPI_ERRHANDLER_INVOKE(mca_vprotocol_pessimist.el_comm, rc,   \

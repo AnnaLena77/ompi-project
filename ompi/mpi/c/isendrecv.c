@@ -151,8 +151,13 @@ int MPI_Isendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     context->source = source;
 
     if (source != MPI_PROC_NULL) { /* post recv */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(irecv(recvbuf, recvcount, recvtype,
                                 source, recvtag, comm, &context->subreq[nreqs++]));
+#else
+        rc = MCA_PML_CALL(irecv(recvbuf, recvcount, recvtype,
+                                source, recvtag, comm, &context->subreq[nreqs++], NULL));
+#endif
         if (MPI_SUCCESS != rc) {
             OBJ_RELEASE(context);
             ompi_comm_request_return (crequest);
@@ -161,8 +166,13 @@ int MPI_Isendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     }
 
     if (dest != MPI_PROC_NULL) { /* send */
+#ifndef ENABLE_ANALYSIS
         rc = MCA_PML_CALL(isend(sendbuf, sendcount, sendtype, dest,
                                 sendtag, MCA_PML_BASE_SEND_STANDARD, comm, &context->subreq[nreqs++]));
+#else
+        rc = MCA_PML_CALL(isend(sendbuf, sendcount, sendtype, dest,
+                                sendtag, MCA_PML_BASE_SEND_STANDARD, comm, &context->subreq[nreqs++], NULL));
+#endif
         if (MPI_SUCCESS != rc) {
             OBJ_RELEASE(context);
             ompi_comm_request_return (crequest);

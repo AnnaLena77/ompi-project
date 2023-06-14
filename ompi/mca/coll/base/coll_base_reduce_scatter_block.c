@@ -125,9 +125,15 @@ ompi_coll_base_reduce_scatter_block_basic_linear(const void *sbuf, void *rbuf, i
             sbuf_ptr = (char*)sbuf     + span * (size_t)i;
 
             /* Reduction for this peer */
+#ifndef ENABLE_ANALYSIS
             err = comm->c_coll->coll_reduce(sbuf_ptr, recv_buf, rcount,
                                             dtype, op, 0, comm,
                                             comm->c_coll->coll_reduce_module);
+#else
+            err = comm->c_coll->coll_reduce(sbuf_ptr, recv_buf, rcount,
+                                            dtype, op, 0, comm,
+                                            comm->c_coll->coll_reduce_module, &item);
+#endif
             if (MPI_SUCCESS != err) {
                 goto cleanup;
             }
@@ -137,18 +143,30 @@ ompi_coll_base_reduce_scatter_block_basic_linear(const void *sbuf, void *rbuf, i
                 if( i == rank ) {
                     err = ompi_datatype_copy_content_same_ddt(dtype, rcount, rbuf, recv_buf);
                 } else {
+#ifndef ENABLE_ANALYSIS
                     err = MCA_PML_CALL(send(recv_buf, rcount, dtype, i,
                                             MCA_COLL_BASE_TAG_REDUCE_SCATTER_BLOCK,
                                             MCA_PML_BASE_SEND_STANDARD, comm));
+#else
+                    err = MCA_PML_CALL(send(recv_buf, rcount, dtype, i,
+                                            MCA_COLL_BASE_TAG_REDUCE_SCATTER_BLOCK,
+                                            MCA_PML_BASE_SEND_STANDARD, comm, &item));
+#endif
                 }
                 if (MPI_SUCCESS != err) {
                     goto cleanup;
                 }
             }
             else if( i == rank ) {
+#ifndef ENABLE_ANALYSIS
                 err = MCA_PML_CALL(recv(rbuf, rcount, dtype, 0,
                                         MCA_COLL_BASE_TAG_REDUCE_SCATTER_BLOCK,
                                         comm, MPI_STATUS_IGNORE));
+#else
+                err = MCA_PML_CALL(recv(rbuf, rcount, dtype, 0,
+                                        MCA_COLL_BASE_TAG_REDUCE_SCATTER_BLOCK,
+                                        comm, MPI_STATUS_IGNORE, &item));
+#endif
                 if (MPI_SUCCESS != err) {
                     goto cleanup;
                 }
@@ -260,7 +278,11 @@ ompi_coll_base_reduce_scatter_block_intra_recursivedoubling(
          * will overflow an int data type.
          * Fallback to the linear algorithm.
          */
+#ifndef ENABLE_ANALYSIS
         return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount, dtype, op, comm, module);
+#else
+        return ompi_coll_base_reduce_scatter_block_basic_linear(sbuf, rbuf, rcount, dtype, op, comm, module, &item);
+#endif
     }
     ompi_datatype_type_extent(dtype, &extent);
     span = opal_datatype_span(&dtype->super, totalcount, &gap);

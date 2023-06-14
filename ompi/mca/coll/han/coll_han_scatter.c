@@ -354,7 +354,7 @@ mca_coll_han_scatter_intra_simple(const void *sbuf, int scount,
                                             comm, han_module->previous_scatter_module);
 #else
         return han_module->previous_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
-                                            comm, han_module->previous_scatter_module);
+                                            comm, han_module->previous_scatter_module, &item);
 #endif
     }
     ompi_communicator_t *low_comm = han_module->sub_comm[INTRA_NODE];

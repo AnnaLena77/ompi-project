@@ -99,7 +99,7 @@ static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
 static inline int mca_pml_ob1_send_inline (const void *buf, size_t count,
                                            ompi_datatype_t * datatype,
                                            int dst, int tag, int16_t seqn,
-                                           ompi_proc_t *dst_proc, mca_bml_base_endpoint_t* endpoint,
+                                           ompi_proc_t *dst_proc, mca_pml_ob1_comm_proc_t *ob1_proc, mca_bml_base_endpoint_t* endpoint,
                                            ompi_communicator_t * comm, qentry **q)
 {
 #endif

@@ -667,8 +667,13 @@ mca_coll_han_allreduce_intra_dynamic(const void *sbuf,
     int rank, verbosity = 0;
 
     if (!han_module->enabled) {
+#ifndef ENABLE_ANALYSIS
         return han_module->previous_allreduce(sbuf, rbuf, count, dtype, op, comm,
                                               han_module->previous_allreduce_module);
+#else
+        return han_module->previous_allreduce(sbuf, rbuf, count, dtype, op, comm,
+                                              han_module->previous_allreduce_module, &item);
+#endif
     }
 
     /* Compute configuration information for dynamic rules */
@@ -782,6 +787,15 @@ mca_coll_han_barrier_intra_dynamic(struct ompi_communicator_t *comm,
 #endif
                                    )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t*) module;
     TOPO_LVL_T topo_lvl = han_module->topologic_level;
     mca_coll_base_module_barrier_fn_t barrier;
@@ -789,7 +803,11 @@ mca_coll_han_barrier_intra_dynamic(struct ompi_communicator_t *comm,
     int rank, verbosity = 0;
 
     if (!han_module->enabled) {
+#ifndef ENABLE_ANALYSIS
         return han_module->previous_barrier(comm, han_module->previous_barrier_module);
+#else
+        return han_module->previous_barrier(comm, han_module->previous_barrier_module, &item);
+#endif
     }
 
     /* Compute configuration information for dynamic rules */
@@ -909,8 +927,13 @@ mca_coll_han_bcast_intra_dynamic(void *buff,
     int rank, verbosity = 0;
 
     if (!han_module->enabled) {
+#ifndef ENABLE_ANALYSIS
         return han_module->previous_bcast(buff, count, dtype, root, comm,
                                           han_module->previous_bcast_module);
+#else
+        return han_module->previous_bcast(buff, count, dtype, root, comm,
+                                          han_module->previous_bcast_module, &item);
+#endif
     }
 
     /* Compute configuration information for dynamic rules */
@@ -1044,8 +1067,13 @@ mca_coll_han_gather_intra_dynamic(const void *sbuf, int scount,
     int rank, verbosity = 0;
 
     if (!han_module->enabled) {
+#ifndef ENABLE_ANALYSIS
         return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm,
                                            han_module->previous_gather_module);
+#else
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm,
+                                           han_module->previous_gather_module, &item);
+#endif
     }
 
     /* Compute configuration information for dynamic rules */
@@ -1188,8 +1216,13 @@ mca_coll_han_reduce_intra_dynamic(const void *sbuf,
     int rank, verbosity = 0;
 
     if (!han_module->enabled) {
+#ifndef ENABLE_ANALYSIS
         return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root, comm,
                                            han_module->previous_reduce_module);
+#else
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root, comm,
+                                           han_module->previous_reduce_module, &item);
+#endif
     }
 
     /* Compute configuration information for dynamic rules */
@@ -1328,8 +1361,13 @@ mca_coll_han_scatter_intra_dynamic(const void *sbuf, int scount,
     int rank, verbosity = 0;
 
     if (!han_module->enabled) {
+#ifndef ENABLE_ANALYSIS
         return han_module->previous_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm,
                                             han_module->previous_scatter_module);
+#else
+        return han_module->previous_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root, comm,
+                                            han_module->previous_scatter_module, &item);
+#endif
     }
 
     /* Compute configuration information for dynamic rules */

@@ -321,22 +321,43 @@ int mca_coll_han_allreduce_t1_task(void *task_args)
         }
         if (t->sbuf == MPI_IN_PLACE) {
             if (!t->noop) {
+#ifndef ENABLE_ANALYSIS
                 t->low_comm->c_coll->coll_reduce(MPI_IN_PLACE,
                                                  (char *) t->rbuf + extent * t->seg_count, tmp_count,
                                                  t->dtype, t->op, t->root_low_rank, t->low_comm,
                                                  t->low_comm->c_coll->coll_reduce_module);
+#else
+                t->low_comm->c_coll->coll_reduce(MPI_IN_PLACE,
+                                                 (char *) t->rbuf + extent * t->seg_count, tmp_count,
+                                                 t->dtype, t->op, t->root_low_rank, t->low_comm,
+                                                 t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
             } else {
+#ifndef ENABLE_ANALYSIS
                 t->low_comm->c_coll->coll_reduce((char *) t->rbuf + extent * t->seg_count,
                                                  NULL, tmp_count,
                                                  t->dtype, t->op, t->root_low_rank, t->low_comm,
                                                  t->low_comm->c_coll->coll_reduce_module);
+#else
+                t->low_comm->c_coll->coll_reduce((char *) t->rbuf + extent * t->seg_count,
+                                                 NULL, tmp_count,
+                                                 t->dtype, t->op, t->root_low_rank, t->low_comm,
+                                                 t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
 
             }
         } else {
+#ifndef ENABLE_ANALYSIS
             t->low_comm->c_coll->coll_reduce((char *) t->sbuf + extent * t->seg_count,
                                              (char *) t->rbuf + extent * t->seg_count, tmp_count,
                                              t->dtype, t->op, t->root_low_rank, t->low_comm,
                                              t->low_comm->c_coll->coll_reduce_module);
+#else
+            t->low_comm->c_coll->coll_reduce((char *) t->sbuf + extent * t->seg_count,
+                                             (char *) t->rbuf + extent * t->seg_count, tmp_count,
+                                             t->dtype, t->op, t->root_low_rank, t->low_comm,
+                                             t->low_comm->c_coll->coll_reduce_module, NULL);
+#endif
 	}
     }
     if (!t->noop) {
