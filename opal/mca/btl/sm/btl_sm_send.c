@@ -36,24 +36,8 @@
  * @param peer (IN)     BTL peer addressing
  */
 int mca_btl_sm_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
-                    struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
-#ifdef ENABLE_ANALYSIS
-                    , qentry **q
-#endif
-                    )
+                    struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag)
 {
-#ifdef ENABLE_ANALYSIS
-    qentry *item;
-    if(q!=NULL) {
-        if(*q!=NULL){
-            item = *q;
-            strcpy(item->usedBtl, "sm");
-        } else item = NULL;
-    }
-    else {
-        item = NULL;
-    }
-#endif
     mca_btl_sm_frag_t *frag = (mca_btl_sm_frag_t *) descriptor;
     const size_t total_size = frag->segments[0].seg_len;
 
@@ -87,9 +71,7 @@ int mca_btl_sm_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpo
         OPAL_THREAD_UNLOCK(&endpoint->pending_frags_lock);
         return OPAL_SUCCESS;
     }
-#ifdef ENABLE_ANALYSIS
-    if(item!=NULL) gettimeofday(&item->sent, NULL);
-#endif
+
     return OPAL_SUCCESS;
 
 #if 0

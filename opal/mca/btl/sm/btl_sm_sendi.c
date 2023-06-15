@@ -40,24 +40,8 @@
 int mca_btl_sm_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
                      struct opal_convertor_t *convertor, void *header, size_t header_size,
                      size_t payload_size, uint8_t order, uint32_t flags, mca_btl_base_tag_t tag,
-                     mca_btl_base_descriptor_t **descriptor
-#ifdef ENABLE_ANALYSIS
-                     , qentry **q
-#endif
-                     )
+                     mca_btl_base_descriptor_t **descriptor)
 {
-#ifdef ENABLE_ANALYSIS
-    qentry *item;
-    if(q!=NULL){ 
-        if(*q!=NULL){
-            item = *q;
-            strcpy(item->usedBtl, "sm");
-        } else item = NULL;
-    }
-    else {
-        item = NULL;
-    }
-#endif
     mca_btl_sm_frag_t *frag;
     void *data_ptr = NULL;
     size_t length;
@@ -126,11 +110,6 @@ int mca_btl_sm_sendi(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
         }
         return OPAL_ERR_OUT_OF_RESOURCE;
     }
-#ifdef ENABLE_ANALYSIS
-    if(item!=NULL){ 
-        gettimeofday(&item->sent, NULL);
-        item->immediate = 1;
-    }
-#endif
+
     return OPAL_SUCCESS;
 }

@@ -29,30 +29,10 @@
 #include "btl_portals4.h"
 #include "btl_portals4_frag.h"
 
-#ifdef ENABLE_ANALYSIS
-#	include "ompi/mpi/c/init.h"
-#endif
-
 int mca_btl_portals4_send(struct mca_btl_base_module_t *btl_base,
                           struct mca_btl_base_endpoint_t *endpoint,
-                          struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
-#ifdef ENABLE_ANALYSIS
-		        , qentry **q
-#endif
-                          )
+                          struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag)
 {
-#ifdef ENABLE_ANALYSIS
-    qentry *item;
-    if(q!=NULL) {
-    	if(*q!=NULL){
-        		item = *q;
-        		strcpy(item->usedBtl, "portals4");
-         } item = NULL;
-    }
-    else {
-        item = NULL;
-    }
-#endif
     struct mca_btl_portals4_module_t *portals4_btl = (struct mca_btl_portals4_module_t *) btl_base;
     mca_btl_portals4_frag_t *frag = (mca_btl_portals4_frag_t *) descriptor;
     ptl_match_bits_t match_bits, msglen_type;
@@ -104,9 +84,7 @@ int mca_btl_portals4_send(struct mca_btl_base_module_t *btl_base,
                          (void *) frag, endpoint->ptl_proc.rank, endpoint->ptl_proc.phys.pid, tag,
                          (void *) frag->segments[0].base.seg_addr.pval, put_length,
                          (uint64_t) match_bits));
-#ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->sent = time(NULL);
-#endif
+
     return OPAL_SUCCESS;
 }
 

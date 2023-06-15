@@ -8,10 +8,6 @@
  *
  * $HEADER$
  */
- 
-#ifdef ENABLE_ANALYSIS
-#   include "ompi/mpi/c/init.h"
-#endif
 
 #if !defined(MCA_BTL_OFI_FRAG_H)
 #    define MCA_BTL_OFI_FRAG_H
@@ -39,11 +35,7 @@ mca_btl_base_descriptor_t *mca_btl_ofi_alloc(mca_btl_base_module_t *btl,
 int mca_btl_ofi_free(mca_btl_base_module_t *btl, mca_btl_base_descriptor_t *des);
 
 int mca_btl_ofi_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoint,
-                     mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
-#ifdef ENABLE_ANALYSIS
-                     , qentry **q
-#endif
-                     );
+                     mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag);
 
 int mca_btl_ofi_recv_frag(mca_btl_ofi_module_t *ofi_btl, mca_btl_base_endpoint_t *endpoint,
                           mca_btl_ofi_context_t *context, mca_btl_ofi_base_frag_t *frag);

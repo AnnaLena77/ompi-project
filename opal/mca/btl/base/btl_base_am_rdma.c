@@ -419,18 +419,12 @@ static inline int am_rdma_advance(mca_btl_base_am_rdma_module_t *am_module,
     }
 
     if (send_descriptor) {
-
         assert(0 != (descriptor->des_flags & MCA_BTL_DES_SEND_ALWAYS_CALLBACK));
-#ifndef ENABLE_ANALYSIS
         ret = btl->btl_send(btl, endpoint, descriptor, am_rdma_tag(hdr->type));
-#else
-        ret = btl->btl_send(btl, endpoint, descriptor, am_rdma_tag(hdr->type), NULL);
-#endif
         if (ret == 1) {
             ret = OPAL_SUCCESS;
         }
         return ret;
-
     }
 
     /* queue for later to avoid btl_send in callback */
@@ -644,15 +638,10 @@ static int am_rdma_respond(mca_btl_base_module_t *btl,
 
     send_descriptor->des_cbfunc = NULL;
 
-
     /* There is no callback for the response descriptor, therefore it is
      * safe to treat 0 and 1 return codes the same
      */
-#ifndef ENABLE_ANALYSIS
     int ret = btl->btl_send(btl, endpoint, send_descriptor, am_rdma_resp_tag());
-#else
-    int ret = btl->btl_send(btl, endpoint, send_descriptor, am_rdma_resp_tag(), NULL);
-#endif
     if (ret == 1) {
         ret = OPAL_SUCCESS;
     }
@@ -824,9 +813,7 @@ static int am_rdma_progress(void)
         am_rdma_retry_operation(operation);                             \
     }
 
-
     OPAL_THREAD_SCOPED_LOCK(&default_component.mutex, ACTION1);
-#ifndef ENABLE_ANALYSIS
 
 #define ACTION2                                                         \
     am_rdma_queued_descriptor_t *descriptor, *next;                     \
@@ -846,26 +833,6 @@ static int am_rdma_progress(void)
                                   &descriptor->super);                  \
         }                                                               \
     }
-#else
-#define ACTION2                                                         \
-    am_rdma_queued_descriptor_t *descriptor, *next;                     \
-    OPAL_LIST_FOREACH_SAFE(descriptor, next,                            \
-                           &default_component.queued_initiator_descriptors, \
-                           am_rdma_queued_descriptor_t) {               \
-        am_rdma_context_t *context =                                    \
-            (am_rdma_context_t *) descriptor->descriptor->des_context;  \
-        mca_btl_base_module_t *btl = descriptor->am_module->btl;        \
-        assert(0 != (descriptor->descriptor->des_flags & MCA_BTL_DES_SEND_ALWAYS_CALLBACK)); \
-        int ret = btl->btl_send(btl,                                    \
-                                descriptor->endpoint,                   \
-                                descriptor->descriptor,                 \
-                                am_rdma_tag(context->type), NULL);            \
-        if (OPAL_SUCCESS == ret || 1 == ret) {                          \
-            opal_list_remove_item(&default_component.queued_initiator_descriptors, \
-                                  &descriptor->super);                  \
-        }                                                               \
-    }
-#endif
 
     OPAL_THREAD_SCOPED_LOCK(&default_component.mutex, ACTION2);
 

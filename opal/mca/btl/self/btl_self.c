@@ -198,25 +198,8 @@ static struct mca_btl_base_descriptor_t *mca_btl_self_prepare_src(
 
 static int mca_btl_self_send(struct mca_btl_base_module_t *btl,
                              struct mca_btl_base_endpoint_t *endpoint,
-                             struct mca_btl_base_descriptor_t *des, mca_btl_base_tag_t tag
-#ifdef ENABLE_ANALYSIS
-                             , qentry **q
-#endif
-                             )
+                             struct mca_btl_base_descriptor_t *des, mca_btl_base_tag_t tag)
 {
-#ifdef ENABLE_ANALYSIS
-    qentry *item;
-    if(q!=NULL){
-        if(*q!=NULL){
-            item = *q;
-            strcpy(item->usedBtl,"self");
-        }
-        else item = NULL;
-    }
-    else {
-        item = NULL;
-    }
-#endif    
     mca_btl_active_message_callback_t *reg = mca_btl_base_active_message_trigger + tag;
     mca_btl_base_receive_descriptor_t recv_desc = {.endpoint = endpoint,
                                                    .des_segments = des->des_segments,
@@ -232,9 +215,6 @@ static int mca_btl_self_send(struct mca_btl_base_module_t *btl,
     if (des->des_flags & MCA_BTL_DES_SEND_ALWAYS_CALLBACK) {
         des->des_cbfunc(btl, endpoint, des, OPAL_SUCCESS);
     }
-#ifdef ENABLE_ANALYSIS
-    if(item!=NULL) gettimeofday(&item->sent, NULL);
-#endif
     if (btl_ownership) {
         mca_btl_self_free(btl, des);
     }
@@ -245,24 +225,8 @@ static int mca_btl_self_sendi(struct mca_btl_base_module_t *btl,
                               struct mca_btl_base_endpoint_t *endpoint,
                               struct opal_convertor_t *convertor, void *header, size_t header_size,
                               size_t payload_size, uint8_t order, uint32_t flags,
-                              mca_btl_base_tag_t tag, mca_btl_base_descriptor_t **descriptor
-#ifdef ENABLE_ANALYSIS
-                              , qentry **q
-#endif
-                              )
+                              mca_btl_base_tag_t tag, mca_btl_base_descriptor_t **descriptor)
 {
-#ifdef ENABLE_ANALYSIS
-    qentry *item;
-    if(q!=NULL){
-        if (*q!=NULL){
-            item = *q;
-            strcpy(item->usedBtl, "self");
-        } else item = NULL;
-    }
-    else {
-        item = NULL;
-    }
-#endif
     mca_btl_base_descriptor_t *frag;
 
     if (!payload_size ||
@@ -278,12 +242,8 @@ static int mca_btl_self_sendi(struct mca_btl_base_module_t *btl,
         mca_btl_base_descriptor_t des = {.des_segments = segments,
                                          .des_segment_count = payload_size ? 2 : 1,
                                          .des_flags = 0};
-#ifndef ENABLE_ANALYSIS
+
         (void) mca_btl_self_send(btl, endpoint, &des, tag);
-#else
-        (void) mca_btl_self_send(btl, endpoint, &des, tag, &item);
-        if(item!=NULL) item->immediate = 1;
-#endif
         return OPAL_SUCCESS;
     }
 
@@ -297,12 +257,7 @@ static int mca_btl_self_sendi(struct mca_btl_base_module_t *btl,
     }
 
     memcpy(frag->des_segments[0].seg_addr.pval, header, header_size);
-#ifndef ENABLE_ANALYSIS
     (void) mca_btl_self_send(btl, endpoint, frag, tag);
-#else
-    (void) mca_btl_self_send(btl, endpoint, frag, tag, &item);
-    if(item!=NULL) item->immediate = 1;
-#endif
     return OPAL_SUCCESS;
 }
 

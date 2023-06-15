@@ -249,11 +249,7 @@ extern int mca_btl_tcp_del_procs(struct mca_btl_base_module_t *btl, size_t nproc
 
 extern int mca_btl_tcp_send(struct mca_btl_base_module_t *btl,
                             struct mca_btl_base_endpoint_t *btl_peer,
-                            struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
-#ifdef ENABLE_ANALYSIS
-                            , qentry **q
-#endif
-                            );
+                            struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag);
 
 /**
  * Initiate an asynchronous put.

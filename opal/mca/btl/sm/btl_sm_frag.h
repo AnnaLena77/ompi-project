@@ -126,11 +126,7 @@ static inline void mca_btl_sm_rdma_frag_advance(mca_btl_base_module_t *btl,
         frag->rdma.remaining -= packet_size;
 
         /* send is always successful */
-#ifndef ENABLE_ANALYSIS
         (void) mca_btl_sm_send(btl, endpoint, &frag->base, MCA_BTL_TAG_SM);
-#else
-        (void) mca_btl_sm_send(btl, endpoint, &frag->base, MCA_BTL_TAG_SM, NULL);
-#endif
         return;
     }
 
