@@ -1,32 +1,3 @@
-# Analysis of MPI programs
-
-The following operations will be analysed:
-
-Point-to-point-Communication:
-- send, isend
-- bsend, ibsend
-- rsend, irsend
-- ssend, issend
-- recv, irecv
-
-	basically integrated into the analysingsystem but not analysed and added into queue yet
-	- (mrecv, imrecv)
-	- (sendrecv)
-	- (sendrecv_replace)
-
-Collective-communication:
-- bcast, ibcast
-- gather, igather
-- gatherv, igatherv
-- scatter, iscatter
-- scatterv, iscatterv
-
-One-sided-communication:
-
-
-INFO BTLs:
-template-btl and btl-usnic are not implemented for the analysis.
-
 # Open MPI
 
 [The Open MPI Project](https://www.open-mpi.org/) is an open source
