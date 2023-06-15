@@ -702,14 +702,13 @@ static int count_providers(struct fi_info *provider_list)
     return num_provider;
 }
 
-/**
- * @brief the current process package rank.
+/* Calculate the current process package rank.
+ *     @param (IN) process_info     struct opal_process_info_t information
+ *                                  about the current process. used to get
+ *                                  num_local_peers, myprocid.rank, and
+ *                                  my_local_rank.
  *
- * @param[in]   process_info    struct opal_process_info_t information
- *                              about the current process. used to get
- *                              num_local_peers, myprocid.rank.
- *
- * @return package rank or myprocid.rank
+ *     @param (OUT)                 uint32_t package rank or myprocid.rank
  *
  * If successful, returns PMIX_PACKAGE_RANK, or an
  * equivalent calculated package rank.
@@ -769,9 +768,8 @@ static uint32_t get_package_rank(opal_process_info_t *process_info)
         relative_locality = opal_hwloc_compute_relative_locality(process_info->locality,
                                                                  locality_string);
         free(locality_string);
-        locality_string = NULL;
 
-        if ((uint16_t) pname.vpid == process_info->myprocid.rank) {
+        if ((uint16_t) pname.vpid == process_info->my_local_rank) {
             return ranks_on_package;
         }
 

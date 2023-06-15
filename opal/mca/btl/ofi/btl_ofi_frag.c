@@ -16,6 +16,7 @@
 #include "btl_ofi.h"
 #include "btl_ofi_endpoint.h"
 #include "btl_ofi_rdma.h"
+#include "ompi/mpi/c/init.h"
 
 static void mca_btl_ofi_base_frag_constructor(mca_btl_ofi_base_frag_t *frag)
 {
@@ -86,8 +87,24 @@ int mca_btl_ofi_free(mca_btl_base_module_t *btl, mca_btl_base_descriptor_t *des)
 }
 
 int mca_btl_ofi_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoint,
-                     mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag)
+                     mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                     , qentry **q
+#endif
+                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            strcpy(item->usedBtl, "ofi");
+        } else item = NULL;
+    }
+    else {
+        item = NULL;
+    }
+#endif
     int rc = 0;
     size_t msg_sz;
     mca_btl_ofi_context_t *context;
@@ -141,6 +158,9 @@ int mca_btl_ofi_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoi
     }
 
     MCA_BTL_OFI_NUM_SEND_INC(ofi_btl);
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) item->sent = time(NULL);
+#endif
     return OPAL_SUCCESS;
 }
 

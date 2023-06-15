@@ -41,6 +41,10 @@
 #include "opal/mca/common/sm/common_sm.h"
 #include "opal/util/bit_ops.h"
 
+#ifdef ENABLE_ANALYSIS
+#   include "ompi/mpi/c/init.h"
+#endif
+
 BEGIN_C_DECLS
 
 /*
@@ -430,7 +434,11 @@ extern int mca_btl_smcuda_sendi(struct mca_btl_base_module_t *btl,
                                 struct opal_convertor_t *convertor, void *header,
                                 size_t header_size, size_t payload_size, uint8_t order,
                                 uint32_t flags, mca_btl_base_tag_t tag,
-                                mca_btl_base_descriptor_t **descriptor);
+                                mca_btl_base_descriptor_t **descriptor
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+                                );
 
 /**
  * Initiate a send to the peer.
@@ -441,7 +449,11 @@ extern int mca_btl_smcuda_sendi(struct mca_btl_base_module_t *btl,
 extern int mca_btl_smcuda_send(struct mca_btl_base_module_t *btl,
                                struct mca_btl_base_endpoint_t *endpoint,
                                struct mca_btl_base_descriptor_t *descriptor,
-                               mca_btl_base_tag_t tag);
+                               mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                               , qentry **q
+#endif
+                               );
 
 
 /**

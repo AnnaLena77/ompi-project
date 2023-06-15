@@ -40,6 +40,7 @@
 #include "btl_tcp_frag.h"
 #include "btl_tcp_proc.h"
 
+
 static int mca_btl_tcp_register_error_cb(struct mca_btl_base_module_t *btl,
                                          mca_btl_base_module_error_cb_fn_t cbfunc);
 
@@ -300,8 +301,24 @@ mca_btl_base_descriptor_t *mca_btl_tcp_prepare_src(struct mca_btl_base_module_t 
  */
 
 int mca_btl_tcp_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *endpoint,
-                     struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag)
+                     struct mca_btl_base_descriptor_t *descriptor, mca_btl_base_tag_t tag
+#ifdef ENABLE_ANALYSIS
+                     , qentry **q
+#endif
+                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            strcpy(item->usedBtl, "tcp");
+        } else item = NULL;
+    }
+    else {
+        item = NULL;
+    }
+#endif
     mca_btl_tcp_module_t *tcp_btl = (mca_btl_tcp_module_t *) btl;
     mca_btl_tcp_frag_t *frag = (mca_btl_tcp_frag_t *) descriptor;
     int i;
@@ -327,7 +344,11 @@ int mca_btl_tcp_send(struct mca_btl_base_module_t *btl, struct mca_btl_base_endp
     if (endpoint->endpoint_nbo) {
         MCA_BTL_TCP_HDR_HTON(frag->hdr);
     }
+#ifndef ENABLE_ANALYSIS
     return mca_btl_tcp_endpoint_send(endpoint, frag);
+#else 
+    return mca_btl_tcp_endpoint_send(endpoint, frag, &item);
+#endif
 }
 
 static void fake_rdma_complete(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoint,
@@ -407,7 +428,11 @@ int mca_btl_tcp_put(mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *
     if (endpoint->endpoint_nbo) {
         MCA_BTL_TCP_HDR_HTON(frag->hdr);
     }
+#ifndef ENABLE_ANALYSIS
     return ((i = mca_btl_tcp_endpoint_send(endpoint, frag)) >= 0 ? OPAL_SUCCESS : i);
+#else
+    return ((i = mca_btl_tcp_endpoint_send(endpoint, frag, NULL)) >= 0 ? OPAL_SUCCESS : i);
+#endif
 }
 
 /**
@@ -472,7 +497,11 @@ int mca_btl_tcp_get(mca_btl_base_module_t *btl, struct mca_btl_base_endpoint_t *
     if (endpoint->endpoint_nbo) {
         MCA_BTL_TCP_HDR_HTON(frag->hdr);
     }
+#ifndef ENABLE_ANALYSIS
     return ((rc = mca_btl_tcp_endpoint_send(endpoint, frag)) >= 0 ? OPAL_SUCCESS : rc);
+#else
+    return ((rc = mca_btl_tcp_endpoint_send(endpoint, frag, NULL)) >= 0 ? OPAL_SUCCESS : rc);
+#endif
 }
 
 /*
