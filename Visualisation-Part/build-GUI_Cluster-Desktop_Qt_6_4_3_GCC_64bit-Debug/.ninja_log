@@ -1,7 +1,0 @@
-# ninja log v5
-1	40	1683748082362606417	.qt_plugins/Qt6_QmlPlugins_Imports_GUI_Cluster.cmake	8b47b876a6971b01
-1	40	1683748082362606417	/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug/.qt_plugins/Qt6_QmlPlugins_Imports_GUI_Cluster.cmake	8b47b876a6971b01
-2	262	1683748123682720118	GUI_Cluster_autogen/timestamp	75f68bc5f153da68
-2	262	1683748123682720118	GUI_Cluster_autogen/mocs_compilation.cpp	75f68bc5f153da68
-2	262	1683748123682720118	/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug/GUI_Cluster_autogen/timestamp	75f68bc5f153da68
-2	262	1683748123682720118	/home/anna-lena/Desktop/EduMPI/Visualisation-Part/build-GUI_Cluster-Desktop_Qt_6_4_3_GCC_64bit-Debug/GUI_Cluster_autogen/mocs_compilation.cpp	75f68bc5f153da68
