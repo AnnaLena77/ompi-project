@@ -1,11 +1,12 @@
-[submodule "prrte"]
-	path = 3rd-party/prrte
-	url = ../../openpmix/prrte
-	branch = master
-[submodule "openpmix"]
+[submodule "3rd-party/openpmix"]
 	path = 3rd-party/openpmix
-	url = ../../openpmix/openpmix.git
-	branch = master
+	url = https://github.com/openpmix/openpmix.git
+[submodule "3rd-party/prrte"]
+	path = 3rd-party/prrte
+	url = https://github.com/openpmix/prrte.git
+[submodule "config/--force"]
+	path = config/--force
+	url = https://github.com/open-mpi/oac.git
 [submodule "config/oac"]
 	path = config/oac
 	url = https://github.com/open-mpi/oac.git
