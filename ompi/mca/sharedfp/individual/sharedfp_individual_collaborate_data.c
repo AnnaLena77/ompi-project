@@ -86,6 +86,7 @@ int mca_sharedfp_individual_collaborate_data(struct mca_sharedfp_base_data_t *sh
 	goto exit;
     }
 
+#ifndef ENABLE_ANALYSIS
     ret = ompio_fh->f_comm->c_coll->coll_allgather ( &nodesoneachprocess, 
                                                      1, 
                                                      MPI_INT,
@@ -94,6 +95,16 @@ int mca_sharedfp_individual_collaborate_data(struct mca_sharedfp_base_data_t *sh
                                                      MPI_INT, 
                                                      ompio_fh->f_comm,
                                                      ompio_fh->f_comm->c_coll->coll_allgather_module );
+#else
+    ret = ompio_fh->f_comm->c_coll->coll_allgather ( &nodesoneachprocess, 
+                                                     1, 
+                                                     MPI_INT,
+                                                     countbuff, 
+                                                     1, 
+                                                     MPI_INT, 
+                                                     ompio_fh->f_comm,
+                                                     ompio_fh->f_comm->c_coll->coll_allgather_module, NULL);
+#endif
 
     if ( OMPI_SUCCESS != ret ) {
 	goto exit;
@@ -142,6 +153,7 @@ int mca_sharedfp_individual_collaborate_data(struct mca_sharedfp_base_data_t *sh
 	goto exit;
     }
 
+#ifndef ENABLE_ANALYSIS
     ret = ompio_fh->f_comm->c_coll->coll_allgatherv ( ind_ts, 
                                                       countbuff[ompio_fh->f_rank], 
                                                       MPI_DOUBLE,
@@ -151,10 +163,22 @@ int mca_sharedfp_individual_collaborate_data(struct mca_sharedfp_base_data_t *sh
                                                       MPI_DOUBLE,
                                                       ompio_fh->f_comm, 
                                                       ompio_fh->f_comm->c_coll->coll_allgatherv_module );
+#else
+    ret = ompio_fh->f_comm->c_coll->coll_allgatherv ( ind_ts, 
+                                                      countbuff[ompio_fh->f_rank], 
+                                                      MPI_DOUBLE,
+                                                      timestampbuff, 
+                                                      countbuff, 
+                                                      displ, 
+                                                      MPI_DOUBLE,
+                                                      ompio_fh->f_comm, 
+                                                      ompio_fh->f_comm->c_coll->coll_allgatherv_module, NULL);
+#endif
     if ( OMPI_SUCCESS != ret ) {
 	goto exit;
     }
 
+#ifndef ENABLE_ANALYSIS
     ret = ompio_fh->f_comm->c_coll->coll_allgatherv ( ind_recordlength, 
                                                       countbuff[ompio_fh->f_rank], 
                                                       OMPI_OFFSET_DATATYPE,
@@ -164,6 +188,17 @@ int mca_sharedfp_individual_collaborate_data(struct mca_sharedfp_base_data_t *sh
                                                       OMPI_OFFSET_DATATYPE,
                                                       ompio_fh->f_comm, 
                                                       ompio_fh->f_comm->c_coll->coll_allgatherv_module );
+#else
+    ret = ompio_fh->f_comm->c_coll->coll_allgatherv ( ind_recordlength, 
+                                                      countbuff[ompio_fh->f_rank], 
+                                                      OMPI_OFFSET_DATATYPE,
+                                                      offsetbuff, 
+                                                      countbuff, 
+                                                      displ, 
+                                                      OMPI_OFFSET_DATATYPE,
+                                                      ompio_fh->f_comm, 
+                                                      ompio_fh->f_comm->c_coll->coll_allgatherv_module, NULL );
+#endif
     if ( OMPI_SUCCESS != ret ) {
 	goto exit;
     }

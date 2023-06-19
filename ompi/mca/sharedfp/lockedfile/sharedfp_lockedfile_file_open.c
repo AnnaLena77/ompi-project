@@ -86,8 +86,13 @@ int mca_sharedfp_lockedfile_file_open (struct ompi_communicator_t *comm,
         ompi_proc_t *masterproc = ompi_group_peer_lookup(comm->c_local_group, 0 );
         masterjobid = OMPI_CAST_RTE_NAME(&masterproc->super.proc_name)->jobid;
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_bcast ( &masterjobid, 1, MPI_UNSIGNED, 0, comm, 
                                      comm->c_coll->coll_bcast_module );
+#else
+    err = comm->c_coll->coll_bcast ( &masterjobid, 1, MPI_UNSIGNED, 0, comm, 
+                                     comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != err ) {
         opal_output(0, "[%d]mca_sharedfp_lockedfile_file_open: Error in bcast operation\n", fh->f_rank);
 	free (sh);
@@ -99,7 +104,11 @@ int mca_sharedfp_lockedfile_file_open (struct ompi_communicator_t *comm,
         my_pid = getpid();
         int_pid = (int) my_pid;
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_bcast (&int_pid, 1, MPI_INT, 0, comm, comm->c_coll->coll_bcast_module );
+#else
+    err = comm->c_coll->coll_bcast (&int_pid, 1, MPI_INT, 0, comm, comm->c_coll->coll_bcast_module, NULL);
+#endif
     if ( OMPI_SUCCESS != err ) {
         opal_output(0, "[%d]mca_sharedfp_lockedfile_file_open: Error in bcast operation\n", fh->f_rank);
 	free (sh);
@@ -162,7 +171,11 @@ int mca_sharedfp_lockedfile_file_open (struct ompi_communicator_t *comm,
         }
 	close (handle);
     }
+#ifndef ENABLE_ANALYSIS
     err = comm->c_coll->coll_barrier ( comm, comm->c_coll->coll_barrier_module );
+#else
+    err = comm->c_coll->coll_barrier ( comm, comm->c_coll->coll_barrier_module, NULL);
+#endif
     if ( OMPI_SUCCESS != err ) {
         opal_output(0, "[%d]mca_sharedfp_lockedfile_file_open: Error in barrier operation\n", fh->f_rank);
 	free (sh);
@@ -187,8 +200,11 @@ int mca_sharedfp_lockedfile_file_open (struct ompi_communicator_t *comm,
     sh->selected_module_data   = module_data;
     /*remember the shared file handle*/
     fh->f_sharedfp_data = sh;
-
+#ifndef ENABLE_ANALYSIS
     return comm->c_coll->coll_barrier ( comm, comm->c_coll->coll_barrier_module );
+#else
+    return comm->c_coll->coll_barrier ( comm, comm->c_coll->coll_barrier_module, NULL);
+#endif
 }
 
 int mca_sharedfp_lockedfile_file_close (ompio_file_t *fh)
