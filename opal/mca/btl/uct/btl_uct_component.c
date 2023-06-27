@@ -596,8 +596,11 @@ static int mca_btl_uct_component_progress_pending(mca_btl_uct_module_t *uct_btl)
         }
 
         opal_list_remove_item(&uct_btl->pending_frags, (opal_list_item_t *) frag);
-
+#ifndef ENABLE_ANALYSIS
         if (OPAL_SUCCESS > mca_btl_uct_send_frag(uct_btl, frag, false)) {
+#else
+        if (OPAL_SUCCESS > mca_btl_uct_send_frag(uct_btl, frag, false, NULL)) {
+#endif
             opal_list_prepend(&uct_btl->pending_frags, (opal_list_item_t *) frag);
         } else {
             completed++;

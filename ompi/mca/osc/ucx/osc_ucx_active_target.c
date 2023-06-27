@@ -80,8 +80,13 @@ int ompi_osc_ucx_fence(int mpi_assert, struct ompi_win_t *win) {
         }
     }
 
+#ifndef ENABLE_ANALYSIS
     return module->comm->c_coll->coll_barrier(module->comm,
                                               module->comm->c_coll->coll_barrier_module);
+#else
+    return module->comm->c_coll->coll_barrier(module->comm,
+                                              module->comm->c_coll->coll_barrier_module, NULL);
+#endif
 }
 
 int ompi_osc_ucx_start(struct ompi_group_t *group, int mpi_assert, struct ompi_win_t *win) {

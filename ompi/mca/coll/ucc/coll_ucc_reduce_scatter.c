@@ -96,7 +96,11 @@ int mca_coll_ucc_ireduce_scatter(const void *sbuf, void *rbuf, const int *rcount
                                  struct ompi_op_t *op,
                                  struct ompi_communicator_t *comm,
                                  ompi_request_t** request,
-                                 mca_coll_base_module_t *module)
+                                 mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+			      , qentry **q
+#endif
+                                 )
 {
     mca_coll_ucc_module_t *ucc_module = (mca_coll_ucc_module_t*)module;
     ucc_coll_req_h         req;

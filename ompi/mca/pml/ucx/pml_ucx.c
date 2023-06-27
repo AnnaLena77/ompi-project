@@ -629,8 +629,22 @@ int mca_pml_ucx_irecv_init(void *buf, size_t count, ompi_datatype_t *datatype,
 
 int mca_pml_ucx_irecv(void *buf, size_t count, ompi_datatype_t *datatype,
                       int src, int tag, struct ompi_communicator_t* comm,
-                      struct ompi_request_t **request)
+                      struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+		    , qentry **q
+#endif
+                      )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
 #if HAVE_DECL_UCP_TAG_RECV_NBX
     pml_ucx_datatype_t *op_data = mca_pml_ucx_get_op_data(datatype);
     ucp_request_param_t *param  = &op_data->op_param.irecv;
@@ -666,8 +680,22 @@ int mca_pml_ucx_irecv(void *buf, size_t count, ompi_datatype_t *datatype,
 
 int mca_pml_ucx_recv(void *buf, size_t count, ompi_datatype_t *datatype, int src,
                      int tag, struct ompi_communicator_t* comm,
-                     ompi_status_public_t* mpi_status)
+                     ompi_status_public_t* mpi_status
+#ifdef ENABLE_ANALYSIS
+		   , qentry **q
+#endif
+                     )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     /* coverity[bad_alloc_arithmetic] */
     void *req = PML_UCX_REQ_ALLOCA();
 #if HAVE_DECL_UCP_TAG_RECV_NBX
@@ -778,8 +806,22 @@ int mca_pml_ucx_isend_init(const void *buf, size_t count, ompi_datatype_t *datat
 
 static ucs_status_ptr_t
 mca_pml_ucx_bsend(ucp_ep_h ep, const void *buf, size_t count,
-                  ompi_datatype_t *datatype, uint64_t pml_tag)
+                  ompi_datatype_t *datatype, uint64_t pml_tag
+#ifdef ENABLE_ANALYSIS
+		, qentry **q
+#endif
+                  )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ompi_request_t *req;
     void *packed_data;
     size_t packed_length;
@@ -846,7 +888,11 @@ static inline ucs_status_ptr_t mca_pml_ucx_common_send(ucp_ep_h ep, const void *
                                                        ucp_send_callback_t cb)
 {
     if (OPAL_UNLIKELY(MCA_PML_BASE_SEND_BUFFERED == mode)) {
-        return mca_pml_ucx_bsend(ep, buf, count, datatype, tag);
+#ifndef ENABLE_ANALYSIS
+            return mca_pml_ucx_bsend(ep, buf, count, datatype, tag);
+#else
+            return mca_pml_ucx_bsend(ep, buf, count, datatype, tag, NULL);
+#endif
     } else if (OPAL_UNLIKELY(MCA_PML_BASE_SEND_SYNCHRONOUS == mode)) {
         return ucp_tag_send_sync_nb(ep, buf, count, ucx_datatype, tag, cb);
     } else {
@@ -867,7 +913,11 @@ mca_pml_ucx_common_send_nbx(ucp_ep_h ep, const void *buf,
     pml_ucx_datatype_t *op_data = mca_pml_ucx_get_op_data(datatype);
 
     if (OPAL_UNLIKELY(MCA_PML_BASE_SEND_BUFFERED == mode)) {
+#ifndef ENABLE_ANALYSIS
         return mca_pml_ucx_bsend(ep, buf, count, datatype, tag);
+#else
+        return mca_pml_ucx_bsend(ep, buf, count, datatype, tag, NULL);
+#endif
     } else if (OPAL_UNLIKELY(MCA_PML_BASE_SEND_SYNCHRONOUS == mode)) {
         return ucp_tag_send_sync_nb(ep, buf, count,
                                     mca_pml_ucx_get_datatype(datatype), tag,
@@ -883,8 +933,22 @@ mca_pml_ucx_common_send_nbx(ucp_ep_h ep, const void *buf,
 int mca_pml_ucx_isend(const void *buf, size_t count, ompi_datatype_t *datatype,
                       int dst, int tag, mca_pml_base_send_mode_t mode,
                       struct ompi_communicator_t* comm,
-                      struct ompi_request_t **request)
+                      struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+		    , qentry **q
+#endif
+                      )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ompi_request_t *req;
     ucp_ep_h ep;
 
@@ -1000,8 +1064,22 @@ mca_pml_ucx_send_nbr(ucp_ep_h ep, const void *buf, size_t count,
 
 int mca_pml_ucx_send(const void *buf, size_t count, ompi_datatype_t *datatype, int dst,
                      int tag, mca_pml_base_send_mode_t mode,
-                     struct ompi_communicator_t* comm)
+                     struct ompi_communicator_t* comm
+#ifdef ENABLE_ANALYSIS
+	            , qentry **q
+#endif
+                     )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ucp_ep_h ep;
 
     PML_UCX_TRACE_SEND("%s", buf, count, datatype, dst, tag, mode, comm,
@@ -1131,8 +1209,22 @@ int mca_pml_ucx_mprobe(int src, int tag, struct ompi_communicator_t* comm,
 
 int mca_pml_ucx_imrecv(void *buf, size_t count, ompi_datatype_t *datatype,
                          struct ompi_message_t **message,
-                         struct ompi_request_t **request)
+                         struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ompi_request_t *req;
 
     PML_UCX_TRACE_MRECV("imrecv", buf, count, datatype, message);
@@ -1154,8 +1246,22 @@ int mca_pml_ucx_imrecv(void *buf, size_t count, ompi_datatype_t *datatype,
 
 int mca_pml_ucx_mrecv(void *buf, size_t count, ompi_datatype_t *datatype,
                         struct ompi_message_t **message,
-                        ompi_status_public_t* status)
+                        ompi_status_public_t* status
+#ifdef ENABLE_ANALYSIS
+		      , qentry **q
+#endif
+                        )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ompi_request_t *req;
 
     PML_UCX_TRACE_MRECV("mrecv", buf, count, datatype, message);

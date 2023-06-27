@@ -382,9 +382,15 @@ static int exchange_len_info(void *my_info, size_t my_info_len, char **recv_info
     int *lens = calloc(comm_size, sizeof(int));
     int total_len, i;
 
+#ifndef ENABLE_ANALYSIS
     ret = comm->c_coll->coll_allgather(&my_info_len, 1, MPI_INT,
                                        lens, 1, MPI_INT, comm,
                                        comm->c_coll->coll_allgather_module);
+#else
+    ret = comm->c_coll->coll_allgather(&my_info_len, 1, MPI_INT,
+                                       lens, 1, MPI_INT, comm,
+                                       comm->c_coll->coll_allgather_module, NULL);
+#endif
     if (OMPI_SUCCESS != ret) {
         free(lens);
         return ret;
@@ -398,9 +404,15 @@ static int exchange_len_info(void *my_info, size_t my_info_len, char **recv_info
     }
 
     (*recv_info_ptr) = (char *)calloc(total_len, sizeof(char));
+#ifndef ENABLE_ANALYSIS
     ret = comm->c_coll->coll_allgatherv(my_info, my_info_len, MPI_BYTE,
                                         (void *)(*recv_info_ptr), lens, (*disps_ptr), MPI_BYTE,
                                         comm, comm->c_coll->coll_allgatherv_module);
+#else
+    ret = comm->c_coll->coll_allgatherv(my_info, my_info_len, MPI_BYTE,
+                                        (void *)(*recv_info_ptr), lens, (*disps_ptr), MPI_BYTE,
+                                        comm, comm->c_coll->coll_allgatherv_module, NULL);
+#endif
     if (OMPI_SUCCESS != ret) {
         free(lens);
         return ret;
@@ -457,7 +469,11 @@ static const char* ompi_osc_ucx_set_no_lock_info(opal_infosubscriber_t *obj, con
         }
         win->w_flags &= ~OMPI_WIN_NO_LOCKS;
     }
+#ifndef ENABLE_ANALYSIS
     module->comm->c_coll->coll_barrier(module->comm, module->comm->c_coll->coll_barrier_module);
+#else
+    module->comm->c_coll->coll_barrier(module->comm, module->comm->c_coll->coll_barrier_module, NULL);
+#endif
     return module->no_locks ? "true" : "false";
 }
 
@@ -637,9 +653,15 @@ select_unlock:
     values[0] = disp_unit;
     values[1] = -disp_unit;
 
+#ifndef ENABLE_ANALYSIS
     ret = module->comm->c_coll->coll_allreduce(MPI_IN_PLACE, values, 2, MPI_LONG,
                                                MPI_MIN, module->comm,
                                                module->comm->c_coll->coll_allreduce_module);
+#else
+    ret = module->comm->c_coll->coll_allreduce(MPI_IN_PLACE, values, 2, MPI_LONG,
+                                               MPI_MIN, module->comm,
+                                               module->comm->c_coll->coll_allreduce_module, NULL);
+#endif
     if (OMPI_SUCCESS != ret) {
         goto error;
     }
@@ -654,10 +676,17 @@ select_unlock:
             goto error;
         }
 
+#ifndef ENABLE_ANALYSIS
         ret = module->comm->c_coll->coll_allgather(&disp_unit, 1, MPI_INT,
                                                    module->disp_units, 1, MPI_INT,
                                                    module->comm,
                                                    module->comm->c_coll->coll_allgather_module);
+#else
+        ret = module->comm->c_coll->coll_allgather(&disp_unit, 1, MPI_INT,
+                                                   module->disp_units, 1, MPI_INT,
+                                                   module->comm,
+                                                   module->comm->c_coll->coll_allgather_module, NULL);
+#endif
         if (OMPI_SUCCESS != ret) {
             goto error;
         }
@@ -702,10 +731,17 @@ select_unlock:
                                 "allocating window using contiguous strategy");
             total = size;
         }
+#ifndef ENABLE_ANALYSIS
         ret = module->comm->c_coll->coll_allgather(&total, 1, MPI_UNSIGNED_LONG,
                                                   rbuf, 1, MPI_UNSIGNED_LONG,
                                                   module->comm,
                                                   module->comm->c_coll->coll_allgather_module);
+#else
+        ret = module->comm->c_coll->coll_allgather(&total, 1, MPI_UNSIGNED_LONG,
+                                                  rbuf, 1, MPI_UNSIGNED_LONG,
+                                                  module->comm,
+                                                  module->comm->c_coll->coll_allgather_module, NULL);
+#endif
         if (OMPI_SUCCESS != ret) return ret;
 
         total = 0;
@@ -740,8 +776,13 @@ select_unlock:
                 unlink_needed = true;
             }
 
+#ifndef ENABLE_ANALYSIS
             ret = module->comm->c_coll->coll_bcast (&module->seg_ds, sizeof (module->seg_ds), MPI_BYTE, 0,
                                                     module->comm, module->comm->c_coll->coll_bcast_module);
+#else
+            ret = module->comm->c_coll->coll_bcast (&module->seg_ds, sizeof (module->seg_ds), MPI_BYTE, 0,
+                                                    module->comm, module->comm->c_coll->coll_bcast_module, NULL);
+#endif
             if (OMPI_SUCCESS != ret) {
                 free(rbuf);
                 goto error;
@@ -754,7 +795,11 @@ select_unlock:
             }
 
             /* wait for all processes to attach */
+#ifndef ENABLE_ANALYSIS
             ret = module->comm->c_coll->coll_barrier (module->comm, module->comm->c_coll->coll_barrier_module);
+#else
+            ret = module->comm->c_coll->coll_barrier (module->comm, module->comm->c_coll->coll_barrier_module, NULL);
+#endif
             if (OMPI_SUCCESS != ret) {
                 free(rbuf);
                 goto error;
@@ -866,9 +911,15 @@ select_unlock:
     my_info[2] = ompi_comm_rank(&ompi_mpi_comm_world.comm);
 
     recv_buf = (char *)calloc(comm_size, sizeof(my_info));
+#ifndef ENABLE_ANALYSIS
     ret = comm->c_coll->coll_allgather((void *)my_info, sizeof(my_info),
                                        MPI_BYTE, recv_buf, sizeof(my_info),
                                        MPI_BYTE, comm, comm->c_coll->coll_allgather_module);
+#else
+    ret = comm->c_coll->coll_allgather((void *)my_info, sizeof(my_info),
+                                       MPI_BYTE, recv_buf, sizeof(my_info),
+                                       MPI_BYTE, comm, comm->c_coll->coll_allgather_module, NULL);
+#endif
     if (ret != OMPI_SUCCESS) {
         goto error;
     }
@@ -924,8 +975,13 @@ select_unlock:
 
     /* sync with everyone */
 
+#ifndef ENABLE_ANALYSIS
     ret = module->comm->c_coll->coll_barrier(module->comm,
                                              module->comm->c_coll->coll_barrier_module);
+#else
+    ret = module->comm->c_coll->coll_barrier(module->comm,
+                                             module->comm->c_coll->coll_barrier_module, NULL);
+#endif
     if (ret != OMPI_SUCCESS) {
         goto error;
     }
@@ -1149,8 +1205,13 @@ int ompi_osc_ucx_free(struct ompi_win_t *win) {
         return ret;
     }
 
+#ifndef ENABLE_ANALYSIS
     ret = module->comm->c_coll->coll_barrier(module->comm,
                                              module->comm->c_coll->coll_barrier_module);
+#else
+    ret = module->comm->c_coll->coll_barrier(module->comm,
+                                             module->comm->c_coll->coll_barrier_module, NULL);
+#endif
     if (ret != OMPI_SUCCESS) {
         return ret;
     }

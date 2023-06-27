@@ -178,11 +178,19 @@ int mca_coll_ucc_ireduce(const void *sbuf, void* rbuf, int count,
                          );
 
 int mca_coll_ucc_barrier(struct ompi_communicator_t *comm,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         );
 
 int mca_coll_ucc_ibarrier(struct ompi_communicator_t *comm,
                           ompi_request_t** request,
-                          mca_coll_base_module_t *module);
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          );
 
 int mca_coll_ucc_bcast(void *buf, int count, struct ompi_datatype_t *dtype,
                        int root, struct ompi_communicator_t *comm,
@@ -286,59 +294,95 @@ int mca_coll_ucc_iallgatherv(const void *sbuf, int scount, struct ompi_datatype_
 int mca_coll_ucc_gather(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                         void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
                         int root, struct ompi_communicator_t *comm,
-                        mca_coll_base_module_t *module);
+                        mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                        , qentry **q
+#endif
+                        );
 
 int mca_coll_ucc_igather(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                          void *rbuf, int rcount, struct ompi_datatype_t *rdtype,
                          int root, struct ompi_communicator_t *comm,
                          ompi_request_t** request,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                         , qentry **q
+#endif
+                         );
 
 int mca_coll_ucc_gatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                          void *rbuf, const int *rcounts, const int *disps,
                          struct ompi_datatype_t *rdtype, int root,
                          struct ompi_communicator_t *comm,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif	
+                         );
 
 int mca_coll_ucc_igatherv(const void *sbuf, int scount, struct ompi_datatype_t *sdtype,
                           void *rbuf, const int *rcounts, const int *disps,
                           struct ompi_datatype_t *rdtype, int root,
                           struct ompi_communicator_t *comm,
                           ompi_request_t** request,
-                          mca_coll_base_module_t *module);
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+		        , qentry **q
+#endif
+                          );
 
 int mca_coll_ucc_reduce_scatter_block(const void *sbuf, void *rbuf, int rcount,
                                       struct ompi_datatype_t *dtype,
                                       struct ompi_op_t *op,
                                       struct ompi_communicator_t *comm,
-                                      mca_coll_base_module_t *module);
+                                      mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                      , qentry **q
+#endif
+                                      );
 
 int mca_coll_ucc_ireduce_scatter_block(const void *sbuf, void *rbuf, int rcount,
                                        struct ompi_datatype_t *dtype,
                                        struct ompi_op_t *op,
                                        struct ompi_communicator_t *comm,
                                        ompi_request_t** request,
-                                       mca_coll_base_module_t *module);
+                                       mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                       , qentry **q
+#endif
+                                       );
 
 int mca_coll_ucc_reduce_scatter(const void *sbuf, void *rbuf, const int *rcounts,
                                 struct ompi_datatype_t *dtype,
                                 struct ompi_op_t *op,
                                 struct ompi_communicator_t *comm,
-                                mca_coll_base_module_t *module);
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+                                );
 
 int mca_coll_ucc_ireduce_scatter(const void *sbuf, void *rbuf, const int *rcounts,
                                 struct ompi_datatype_t *dtype,
                                 struct ompi_op_t *op,
                                 struct ompi_communicator_t *comm,
                                 ompi_request_t** request,
-                                mca_coll_base_module_t *module);
+                                mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                                , qentry **q
+#endif
+                                );
 
 int mca_coll_ucc_scatterv(const void *sbuf, const int *scounts,
                           const int *disps, struct ompi_datatype_t *sdtype,
                           void *rbuf, int rcount,
                           struct ompi_datatype_t *rdtype, int root,
                           struct ompi_communicator_t *comm,
-                          mca_coll_base_module_t *module);
+                          mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                          , qentry **q
+#endif
+                          );
 
 int mca_coll_ucc_iscatterv(const void *sbuf, const int *scounts,
                            const int *disps, struct ompi_datatype_t *sdtype,
@@ -346,20 +390,32 @@ int mca_coll_ucc_iscatterv(const void *sbuf, const int *scounts,
                            struct ompi_datatype_t *rdtype, int root,
                            struct ompi_communicator_t *comm,
                            ompi_request_t** request,
-                           mca_coll_base_module_t *module);
+                           mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                           , qentry **q
+#endif
+                           );
 
 int mca_coll_ucc_scatter(const void *sbuf, int scount,
                          struct ompi_datatype_t *sdtype, void *rbuf, int rcount,
                          struct ompi_datatype_t *rdtype, int root,
                          struct ompi_communicator_t *comm,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                         , qentry **q
+#endif
+                         );
 
 int mca_coll_ucc_iscatter(const void *sbuf, int scount,
                          struct ompi_datatype_t *sdtype, void *rbuf, int rcount,
                          struct ompi_datatype_t *rdtype, int root,
                          struct ompi_communicator_t *comm,
                          ompi_request_t** request,
-                         mca_coll_base_module_t *module);
+                         mca_coll_base_module_t *module
+#ifdef ENABLE_ANALYSIS
+                         , qentry **q
+#endif
+                         );
 
 END_C_DECLS
 #endif

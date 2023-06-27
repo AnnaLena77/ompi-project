@@ -188,32 +188,83 @@ int ompi_osc_ucx_win_attach(struct ompi_win_t *win, void *base, size_t len);
 int ompi_osc_ucx_win_detach(struct ompi_win_t *win, const void *base);
 int ompi_osc_ucx_free(struct ompi_win_t *win);
 
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_put(const void *origin_addr, int origin_count,
                      struct ompi_datatype_t *origin_dt,
                      int target, ptrdiff_t target_disp, int target_count,
                      struct ompi_datatype_t *target_dt, struct ompi_win_t *win);
+#else
+int ompi_osc_ucx_put(const void *origin_addr, int origin_count,
+                     struct ompi_datatype_t *origin_dt,
+                     int target, ptrdiff_t target_disp, int target_count,
+                     struct ompi_datatype_t *target_dt, struct ompi_win_t *win, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_get(void *origin_addr, int origin_count,
                      struct ompi_datatype_t *origin_dt,
                      int target, ptrdiff_t target_disp, int target_count,
                      struct ompi_datatype_t *target_dt, struct ompi_win_t *win);
+#else
+int ompi_osc_ucx_get(void *origin_addr, int origin_count,
+                     struct ompi_datatype_t *origin_dt,
+                     int target, ptrdiff_t target_disp, int target_count,
+                     struct ompi_datatype_t *target_dt, struct ompi_win_t *win, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_accumulate(const void *origin_addr, int origin_count,
                             struct ompi_datatype_t *origin_dt,
                             int target, ptrdiff_t target_disp, int target_count,
                             struct ompi_datatype_t *target_dt,
                             struct ompi_op_t *op, struct ompi_win_t *win);
+#else
+int ompi_osc_ucx_accumulate(const void *origin_addr, int origin_count,
+                            struct ompi_datatype_t *origin_dt,
+                            int target, ptrdiff_t target_disp, int target_count,
+                            struct ompi_datatype_t *target_dt,
+                            struct ompi_op_t *op, struct ompi_win_t *win, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_accumulate_nb(const void *origin_addr, int origin_count,
                             struct ompi_datatype_t *origin_dt,
                             int target, ptrdiff_t target_disp, int target_count,
                             struct ompi_datatype_t *target_dt,
                             struct ompi_op_t *op, struct ompi_win_t *win);
+#else
+int ompi_osc_ucx_accumulate_nb(const void *origin_addr, int origin_count,
+                            struct ompi_datatype_t *origin_dt,
+                            int target, ptrdiff_t target_disp, int target_count,
+                            struct ompi_datatype_t *target_dt,
+                            struct ompi_op_t *op, struct ompi_win_t *win, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_compare_and_swap(const void *origin_addr, const void *compare_addr,
                                   void *result_addr, struct ompi_datatype_t *dt,
                                   int target, ptrdiff_t target_disp,
                                   struct ompi_win_t *win);
+#else
+int ompi_osc_ucx_compare_and_swap(const void *origin_addr, const void *compare_addr,
+                                  void *result_addr, struct ompi_datatype_t *dt,
+                                  int target, ptrdiff_t target_disp,
+                                  struct ompi_win_t *win, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_fetch_and_op(const void *origin_addr, void *result_addr,
                               struct ompi_datatype_t *dt, int target,
                               ptrdiff_t target_disp, struct ompi_op_t *op,
                               struct ompi_win_t *win);
+#else
+int ompi_osc_ucx_fetch_and_op(const void *origin_addr, void *result_addr,
+                              struct ompi_datatype_t *dt, int target,
+                              ptrdiff_t target_disp, struct ompi_op_t *op,
+                              struct ompi_win_t *win, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_get_accumulate(const void *origin_addr, int origin_count,
                                 struct ompi_datatype_t *origin_datatype,
                                 void *result_addr, int result_count,
@@ -221,6 +272,17 @@ int ompi_osc_ucx_get_accumulate(const void *origin_addr, int origin_count,
                                 int target_rank, ptrdiff_t target_disp,
                                 int target_count, struct ompi_datatype_t *target_datatype,
                                 struct ompi_op_t *op, struct ompi_win_t *win);
+#else
+int ompi_osc_ucx_get_accumulate(const void *origin_addr, int origin_count,
+                                struct ompi_datatype_t *origin_datatype,
+                                void *result_addr, int result_count,
+                                struct ompi_datatype_t *result_datatype,
+                                int target_rank, ptrdiff_t target_disp,
+                                int target_count, struct ompi_datatype_t *target_datatype,
+                                struct ompi_op_t *op, struct ompi_win_t *win, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS                              
 int ompi_osc_ucx_get_accumulate_nb(const void *origin_addr, int origin_count,
                                 struct ompi_datatype_t *origin_datatype,
                                 void *result_addr, int result_count,
@@ -228,21 +290,59 @@ int ompi_osc_ucx_get_accumulate_nb(const void *origin_addr, int origin_count,
                                 int target_rank, ptrdiff_t target_disp,
                                 int target_count, struct ompi_datatype_t *target_datatype,
                                 struct ompi_op_t *op, struct ompi_win_t *win);
+#else
+int ompi_osc_ucx_get_accumulate_nb(const void *origin_addr, int origin_count,
+                                struct ompi_datatype_t *origin_datatype,
+                                void *result_addr, int result_count,
+                                struct ompi_datatype_t *result_datatype,
+                                int target_rank, ptrdiff_t target_disp,
+                                int target_count, struct ompi_datatype_t *target_datatype,
+                                struct ompi_op_t *op, struct ompi_win_t *win, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_rput(const void *origin_addr, int origin_count,
                       struct ompi_datatype_t *origin_dt,
                       int target, ptrdiff_t target_disp, int target_count,
                       struct ompi_datatype_t *target_dt,
                       struct ompi_win_t *win, struct ompi_request_t **request);
+#else
+int ompi_osc_ucx_rput(const void *origin_addr, int origin_count,
+                      struct ompi_datatype_t *origin_dt,
+                      int target, ptrdiff_t target_disp, int target_count,
+                      struct ompi_datatype_t *target_dt,
+                      struct ompi_win_t *win, struct ompi_request_t **request, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_rget(void *origin_addr, int origin_count,
                       struct ompi_datatype_t *origin_dt,
                       int target, ptrdiff_t target_disp, int target_count,
                       struct ompi_datatype_t *target_dt, struct ompi_win_t *win,
                       struct ompi_request_t **request);
+#else
+int ompi_osc_ucx_rget(void *origin_addr, int origin_count,
+                      struct ompi_datatype_t *origin_dt,
+                      int target, ptrdiff_t target_disp, int target_count,
+                      struct ompi_datatype_t *target_dt, struct ompi_win_t *win,
+                      struct ompi_request_t **request, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_raccumulate(const void *origin_addr, int origin_count,
                              struct ompi_datatype_t *origin_dt,
                              int target, ptrdiff_t target_disp, int target_count,
                              struct ompi_datatype_t *target_dt, struct ompi_op_t *op,
                              struct ompi_win_t *win, struct ompi_request_t **request);
+#else
+int ompi_osc_ucx_raccumulate(const void *origin_addr, int origin_count,
+                             struct ompi_datatype_t *origin_dt,
+                             int target, ptrdiff_t target_disp, int target_count,
+                             struct ompi_datatype_t *target_dt, struct ompi_op_t *op,
+                             struct ompi_win_t *win, struct ompi_request_t **request, qentry **q);
+#endif
+
+#ifndef ENABLE_ANALYSIS
 int ompi_osc_ucx_rget_accumulate(const void *origin_addr, int origin_count,
                                  struct ompi_datatype_t *origin_datatype,
                                  void *result_addr, int result_count,
@@ -251,6 +351,16 @@ int ompi_osc_ucx_rget_accumulate(const void *origin_addr, int origin_count,
                                  struct ompi_datatype_t *target_datatype,
                                  struct ompi_op_t *op, struct ompi_win_t *win,
                                  struct ompi_request_t **request);
+#else
+int ompi_osc_ucx_rget_accumulate(const void *origin_addr, int origin_count,
+                                 struct ompi_datatype_t *origin_datatype,
+                                 void *result_addr, int result_count,
+                                 struct ompi_datatype_t *result_datatype,
+                                 int target_rank, ptrdiff_t target_disp, int target_count,
+                                 struct ompi_datatype_t *target_datatype,
+                                 struct ompi_op_t *op, struct ompi_win_t *win,
+                                 struct ompi_request_t **request, qentry **q);
+#endif
 
 int ompi_osc_ucx_fence(int mpi_assert, struct ompi_win_t *win);
 int ompi_osc_ucx_start(struct ompi_group_t *group, int mpi_assert, struct ompi_win_t *win);

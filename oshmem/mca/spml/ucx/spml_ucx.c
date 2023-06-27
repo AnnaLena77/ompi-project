@@ -1336,6 +1336,7 @@ int mca_spml_ucx_recv(void* buf, size_t size, int src)
 {
     int rc = OSHMEM_SUCCESS;
 
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(recv(buf,
                 size,
                 &(ompi_mpi_unsigned_char.dt),
@@ -1343,6 +1344,15 @@ int mca_spml_ucx_recv(void* buf, size_t size, int src)
                 0,
                 &(ompi_mpi_comm_world.comm),
                 NULL));
+#else
+    rc = MCA_PML_CALL(recv(buf,
+                size,
+                &(ompi_mpi_unsigned_char.dt),
+                src,
+                0,
+                &(ompi_mpi_comm_world.comm),
+                NULL, NULL));
+#endif
 
     return rc;
 }
@@ -1354,7 +1364,7 @@ int mca_spml_ucx_send(void* buf,
                         mca_spml_base_put_mode_t mode)
 {
     int rc = OSHMEM_SUCCESS;
-
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(send(buf,
                 size,
                 &(ompi_mpi_unsigned_char.dt),
@@ -1362,6 +1372,15 @@ int mca_spml_ucx_send(void* buf,
                 0,
                 (mca_pml_base_send_mode_t)mode,
                 &(ompi_mpi_comm_world.comm)));
+#else
+    rc = MCA_PML_CALL(send(buf,
+                size,
+                &(ompi_mpi_unsigned_char.dt),
+                dst,
+                0,
+                (mca_pml_base_send_mode_t)mode,
+                &(ompi_mpi_comm_world.comm), NULL));
+#endif
 
     return rc;
 }
