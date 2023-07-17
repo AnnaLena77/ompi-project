@@ -1071,7 +1071,7 @@ int mca_pml_ucx_send(const void *buf, size_t count, ompi_datatype_t *datatype, i
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
-            printf("UXC_SEND Kommt von: %s\n" item->communicationType);
+            printf("UXC_SEND Kommt von: %s\n", item->communicationType);
         } else item = NULL;
     } else item = NULL;
 #endif
