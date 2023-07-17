@@ -635,7 +635,6 @@ int mca_pml_ucx_irecv(void *buf, size_t count, ompi_datatype_t *datatype,
 #endif
                       )
 {
-printf("Funktion: UCX_irecv\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -686,7 +685,6 @@ int mca_pml_ucx_recv(void *buf, size_t count, ompi_datatype_t *datatype, int src
 #endif
                      )
 {
-printf("Funktion: UCX_Recv\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -939,8 +937,6 @@ int mca_pml_ucx_isend(const void *buf, size_t count, ompi_datatype_t *datatype,
 #endif
                       )
 {
-printf("Funktion: UCX_isend\n");
-
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -949,7 +945,6 @@ printf("Funktion: UCX_isend\n");
         } else item = NULL;
     } else item = NULL;
 #endif
-
     ompi_request_t *req;
     ucp_ep_h ep;
 
@@ -1071,12 +1066,12 @@ int mca_pml_ucx_send(const void *buf, size_t count, ompi_datatype_t *datatype, i
 #endif
                      )
 {
-printf("Funktion: UCX_send\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
+            printf("UXC_SEND Kommt von: %s\n" item->communicationType);
         } else item = NULL;
     } else item = NULL;
 #endif
@@ -1216,7 +1211,6 @@ int mca_pml_ucx_imrecv(void *buf, size_t count, ompi_datatype_t *datatype,
 #endif
                          )
 {
-
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
