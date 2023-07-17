@@ -52,6 +52,7 @@ mca_coll_basic_allgather_inter(const void *sbuf, int scount,
 #endif
                                )
 {
+printf("Hello aus basic_allgather_inter\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){

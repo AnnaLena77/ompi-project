@@ -635,7 +635,7 @@ int mca_pml_ucx_irecv(void *buf, size_t count, ompi_datatype_t *datatype,
 #endif
                       )
 {
-
+printf("Funktion: UCX_irecv\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -686,7 +686,7 @@ int mca_pml_ucx_recv(void *buf, size_t count, ompi_datatype_t *datatype, int src
 #endif
                      )
 {
-
+printf("Funktion: UCX_Recv\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -939,6 +939,7 @@ int mca_pml_ucx_isend(const void *buf, size_t count, ompi_datatype_t *datatype,
 #endif
                       )
 {
+printf("Funktion: UCX_isend\n");
 
 #ifdef ENABLE_ANALYSIS
     qentry *item;
@@ -1070,7 +1071,7 @@ int mca_pml_ucx_send(const void *buf, size_t count, ompi_datatype_t *datatype, i
 #endif
                      )
 {
-
+printf("Funktion: UCX_send\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
