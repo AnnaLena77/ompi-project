@@ -166,7 +166,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
     PGresult *res;
     int i;
     int totalWritten = 0;
-    printf("Funktionsaufruf writeToPostgres, NumberOfEntries: %d\n", numberofEntries);
+    printf("Funktionsaufruf writeToPostgres, NumberOfEntries: %d\n", numberOfEntries);
 
     // Erzeuge den COPY-Befehl
     const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
