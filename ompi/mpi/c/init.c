@@ -166,31 +166,31 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
     PGresult *res;
     int i;
     int totalWritten = 0;
-    printf("Funktionsaufruf writeToPostgres, NumberOfEntries: %d\n", numberOfEntries);
+    printf("Funktionsaufruf Test writeToPostgres, NumberOfEntries: %d\n", numberOfEntries);
 
     // Erzeuge den COPY-Befehl
-    const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
+    /*const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
     res = PQexec(conn, copyQuery);
     if (PQresultStatus(res) != PGRES_COPY_IN) {
         printf("Fehler beim Starten des COPY-Befehls: %s\n", PQresultErrorMessage(res));
         PQclear(res);
         return;
     }
-    PQclear(res);
+    PQclear(res);*/
 
     // Schreibe die Daten in das COPY-Stream
     for (i = 0; i < numberOfEntries; i++) {
         //printf("DEQUEUE\n");
         qentry *q = dequeue();
         //printf("DEQUEUE FERTIG\n");
-        char buffer[1000]; // Puffer für den Text        
+        /*char buffer[1000]; // Puffer für den Text        
         char buffer2[30];
         createTimeString(q->start, buffer2);
         snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\tNOW()\n",
                  q->function, q->communicationType, q->count, q->datasize, q->communicationArea,
                  q->processorname, q->processrank, q->partnerrank, buffer2);
         //printf("%s\n", buffer);
-        //PQputCopyData(conn, buffer, strlen(buffer));
+        PQputCopyData(conn, buffer, strlen(buffer));*/
     }
     // Beende den COPY-Befehl
     //PQputCopyEnd(conn, NULL);
