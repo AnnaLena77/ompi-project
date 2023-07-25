@@ -190,11 +190,11 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
                  q->function, q->communicationType, q->count, q->datasize, q->communicationArea,
                  q->processorname, q->processrank, q->partnerrank, buffer2);
         //printf("%s\n", buffer);
-        PQputCopyData(conn, buffer, strlen(buffer));
+        //PQputCopyData(conn, buffer, strlen(buffer));
     }
     // Beende den COPY-Befehl
-    PQputCopyEnd(conn, NULL);
-    PQflush(conn);
+    //PQputCopyEnd(conn, NULL);
+    //PQflush(conn);
 
     // Warte auf das Ergebnis der COPY-Operation
     /*PGresult *copyResult = NULL;
