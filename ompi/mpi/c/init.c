@@ -34,7 +34,7 @@
 #include <sys/time.h>
 
 #ifdef ENABLE_ANALYSIS
-#include <postgresql/libpq-fe.h>
+#include <libpq-fe.h>
 #endif
 
 #include "opal/util/show_help.h"
