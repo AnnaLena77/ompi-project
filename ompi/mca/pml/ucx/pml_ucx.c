@@ -944,7 +944,7 @@ int mca_pml_ucx_isend(const void *buf, size_t count, ompi_datatype_t *datatype,
             item = *q;
             int ranki;
             MPI_Comm_rank(comm, &ranki);
-            printf("UXC_ISEND Kommt von: %s\n Rank %d sendet an Rank %d\n", item->function, ranki, dst);
+            //printf("UXC_ISEND Kommt von: %s\n Rank %d sendet an Rank %d\n", item->function, ranki, dst);
         } else item = NULL;
     } else item = NULL;
 #endif
@@ -1076,7 +1076,7 @@ int mca_pml_ucx_send(const void *buf, size_t count, ompi_datatype_t *datatype, i
             item = *q;
             int ranki;
             MPI_Comm_rank(comm, &ranki);
-            printf("UXC_SEND Kommt von: %s\n Rank %d sendet an Rank %d\n", item->function, ranki, dst);
+            //printf("UXC_SEND Kommt von: %s\n Rank %d sendet an Rank %d\n", item->function, ranki, dst);
         } else item = NULL;
     } else item = NULL;
 #endif

@@ -67,7 +67,7 @@ int mca_coll_ucc_allreduce(const void *sbuf, void *rbuf, int count,
 #endif
                            )
 {
-printf("Funktion coll_ucc_allreduce\n");
+//printf("Funktion coll_ucc_allreduce\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -106,7 +106,7 @@ int mca_coll_ucc_iallreduce(const void *sbuf, void *rbuf, int count,
 #endif
                             )
 {
-printf("Funktion coll_ucc_iallreduce\n");
+//printf("Funktion coll_ucc_iallreduce\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){

@@ -132,7 +132,7 @@ int ompi_coll_tuned_allreduce_intra_do_this(const void *sbuf, void *rbuf, int co
 #endif
                                             )
 {
-printf("coll_tuned_allreduce_intra_do_this\n");
+//printf("coll_tuned_allreduce_intra_do_this\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){

@@ -73,7 +73,7 @@ nix-shell -p autoconf automake libtool
 nix-shell -p stdenv flex_2_5_35 pandoc git postgresql.lib python3
 nix-shell -p postgresql postgresql.lib pkg-config
 
-nix-shell -p autoconf automake perl gnumake stdenv zlib python3 libtool flex hwloc munge numactl libbfd libiberty postgresql postgresql.lib pkg-config
+nix-shell -p autoconf automake perl gnumake stdenv zlib python3 libtool flex hwloc munge numactl libbfd libiberty postgresql postgresql.lib pkg-config ucx
 
 
 
