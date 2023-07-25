@@ -166,6 +166,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
     PGresult *res;
     int i;
     int totalWritten = 0;
+    printf("Funktionsaufruf writeToPostgres, NumberOfEntries: %d\n", numberofEntries);
 
     // Erzeuge den COPY-Befehl
     const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
@@ -332,7 +333,6 @@ int MPI_Init(int *argc, char ***argv)
 {
     #ifdef ENABLE_ANALYSIS
     gettimeofday(&start, NULL);
-    //printf("Test 1\n");
     #endif
     int err;
     int provided;
