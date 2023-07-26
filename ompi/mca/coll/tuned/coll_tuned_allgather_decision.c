@@ -135,7 +135,7 @@ int ompi_coll_tuned_allgather_intra_do_this(const void *sbuf, int scount,
 #endif
                                             )
 {
-printf("Hello aus coll_tuned_allgather_intra_do_this\n");
+//printf("Hello aus coll_tuned_allgather_intra_do_this\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
