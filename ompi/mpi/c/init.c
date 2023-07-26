@@ -169,21 +169,21 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
     //printf("Funktionsaufruf Test writeToPostgres, NumberOfEntries: %d\n", numberOfEntries);
 
     // Erzeuge den COPY-Befehl
-    /*const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
+    const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
     res = PQexec(conn, copyQuery);
     if (PQresultStatus(res) != PGRES_COPY_IN) {
         printf("Fehler beim Starten des COPY-Befehls: %s\n", PQresultErrorMessage(res));
         PQclear(res);
         return;
     }
-    PQclear(res);*/
+    PQclear(res);
 
     // Schreibe die Daten in das COPY-Stream
     for (i = 0; i < numberOfEntries; i++) {
         //printf("DEQUEUE\n");
         qentry *q = dequeue();
         //printf("DEQUEUE FERTIG\n");
-        /*char buffer[1000]; // Puffer für den Text        
+        char buffer[1000]; // Puffer für den Text        
         char buffer2[30];
         createTimeString(q->start, buffer2);
         snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\tNOW()\n",
@@ -193,11 +193,11 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
         PQputCopyData(conn, buffer, strlen(buffer));*/
     }
     // Beende den COPY-Befehl
-    //PQputCopyEnd(conn, NULL);
-    //PQflush(conn);
+    PQputCopyEnd(conn, NULL);
+    PQflush(conn);
 
     // Warte auf das Ergebnis der COPY-Operation
-    /*PGresult *copyResult = NULL;
+    PGresult *copyResult = NULL;
     while ((copyResult = PQgetResult(conn)) != NULL) {
         ExecStatusType status = PQresultStatus(copyResult);
         if (status == PGRES_COMMAND_OK) {
@@ -208,7 +208,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
             printf("Fehler beim Schreiben der Daten in die Datenbank: %s\n", PQresultErrorMessage(copyResult));
         }
     PQclear(copyResult);
-    }*/
+    }
 }
 
 //Monitor-Function for SQL-Connection
