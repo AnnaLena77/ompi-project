@@ -48,7 +48,7 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
 #endif
                                      )
 {
-printf("Hello from ompi_coll_base_bcast_intra_generic\n");
+//printf("Hello from ompi_coll_base_bcast_intra_generic\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -421,7 +421,7 @@ ompi_coll_base_bcast_intra_chain( void* buffer,
 #endif
                                    )
 {
-printf("Hello from coll_base_bcast_inra_chain\n");
+//printf("Hello from coll_base_bcast_inra_chain\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){

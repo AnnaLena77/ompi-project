@@ -248,7 +248,7 @@ static void* SQLMonitorFunc(void* _arg){
     while(queueiteration != NULL){
         gettimeofday(&now, NULL);
         //printf("in der Queueiteration-While\n");
-        if(timeDifference(now, start_timestamp)>0.5){
+        if(timeDifference(now, start_timestamp)>1){
     	     qentry *first = queueiteration;
     	     qentry *last = TAILQ_LAST(&head, tailhead);
     	     //printf("First ID: %d\n", first->id);
