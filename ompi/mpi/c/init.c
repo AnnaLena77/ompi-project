@@ -324,7 +324,7 @@ void initializeSQL()
         }*/
     }  
     TAILQ_INIT(&head);
-    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, (void*)conn);
+    //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, (void*)conn);
 }
 
 #endif
