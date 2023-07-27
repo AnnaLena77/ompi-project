@@ -166,7 +166,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
     PGresult *res;
     int i;
     int totalWritten = 0;
-    printf("Funktionsaufruf Test writeToPostgres, NumberOfEntries: %d\n", numberOfEntries);
+    //printf("Funktionsaufruf Test writeToPostgres, NumberOfEntries: %d\n", numberOfEntries);
 
     // Erzeuge den COPY-Befehl
     const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
@@ -324,7 +324,7 @@ void initializeSQL()
         }*/
     }  
     TAILQ_INIT(&head);
-    //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, (void*)conn);
+    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, (void*)conn);
 }
 
 #endif

@@ -57,7 +57,7 @@ int MPI_Finalize(void)
 #ifdef ENABLE_ANALYSIS
     //printf("run_thread wird 0\n");
     run_thread = 0;
-    //pthread_join(MONITOR_THREAD, NULL);
+    pthread_join(MONITOR_THREAD, NULL);
 #endif
     return ompi_mpi_finalize();
 }
