@@ -380,7 +380,7 @@ int MPI_Init(int *argc, char ***argv)
                                       err, FUNC_NAME);
     }
     #ifdef ENABLE_ANALYSIS
-    	initializeSQL();
+    	initializeQueue();
     #endif
     //printf("hier gehts weiter\n");
     SPC_INIT();
