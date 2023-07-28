@@ -56,6 +56,8 @@
 
 #ifdef ENABLE_ANALYSIS
 static struct timeval start;
+static struct timeval init_sql_finished;
+static struct timeval init_sql_start;
 
 static ID=0;
 static count_q_entry = 0;
@@ -304,6 +306,7 @@ static void* SQLMonitorFunc(void* _arg){
 
 void initializeSQL()
 {
+    gettimeofday(&init_sql_start, NULL);
     char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
     PGconn *conn = PQconnectdb(conninfo);
     if (PQstatus(conn) != CONNECTION_OK){
@@ -325,6 +328,9 @@ void initializeSQL()
     }  
     TAILQ_INIT(&head);
     pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, (void*)conn);
+    gettimeofday(&init_sql_finished, NULL);
+    float dif = timeDifference(init_sql_finished, init_sql_start);
+    printf("Lost time for initializing sql: %f\n", dif);
 }
 
 #endif
