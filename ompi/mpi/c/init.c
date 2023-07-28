@@ -322,11 +322,11 @@ static void* SQLMonitorFunc(void* _arg){
 }
 
 
-void initializeSQL()
+void initializeQueue()
 { 
     gettimeofday(&init_sql_start, NULL);
     TAILQ_INIT(&head);
-    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
+    //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     gettimeofday(&init_sql_finished, NULL);
     float dif = timeDifference(init_sql_finished, init_sql_start);
     printf("Lost time for initializing sql: %f\n", dif);
