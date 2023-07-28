@@ -216,7 +216,25 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
 //Monitor-Function for SQL-Connection
 static void* SQLMonitorFunc(void* _arg){
     //Batchstring für den ersten Eintrag vorbereiten
-    PGconn *conn = (PGconn*)_arg;
+    char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
+    PGconn *conn = PQconnectdb(conninfo);
+    if (PQstatus(conn) != CONNECTION_OK){
+        fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
+        PQfinish(conn);
+        exit(1);
+    } else {
+        //printf("Database connected\n");
+        if(!PQexec(conn, "DELETE FROM MPI_Information")){
+            fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
+            //PQfinish(conn);
+            //exit(1);
+        }
+        /*if(PQexec(conn, "ALTER TABLE MPI_Information AUTO_INCREMENT=1")){
+            fprintf(stderr, "Auto-Inocrement failed: %s\n", PQerrorMessage(conn));
+            //PQfinish(conn);
+            //exit(1);
+        }*/
+    } 
     
     qentry *item;
     int finish = 0;
@@ -305,29 +323,10 @@ static void* SQLMonitorFunc(void* _arg){
 
 
 void initializeSQL()
-{
+{ 
     gettimeofday(&init_sql_start, NULL);
-    char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
-    PGconn *conn = PQconnectdb(conninfo);
-    if (PQstatus(conn) != CONNECTION_OK){
-        fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
-        PQfinish(conn);
-        exit(1);
-    } else {
-        //printf("Database connected\n");
-        if(!PQexec(conn, "DELETE FROM MPI_Information")){
-            fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
-            //PQfinish(conn);
-            //exit(1);
-        }
-        /*if(PQexec(conn, "ALTER TABLE MPI_Information AUTO_INCREMENT=1")){
-            fprintf(stderr, "Auto-Inocrement failed: %s\n", PQerrorMessage(conn));
-            //PQfinish(conn);
-            //exit(1);
-        }*/
-    }  
     TAILQ_INIT(&head);
-    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, (void*)conn);
+    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     gettimeofday(&init_sql_finished, NULL);
     float dif = timeDifference(init_sql_finished, init_sql_start);
     printf("Lost time for initializing sql: %f\n", dif);
