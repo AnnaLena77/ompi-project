@@ -329,7 +329,7 @@ void initializeQueue()
     TAILQ_INIT(&head);
     pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     //gettimeofday(&init_sql_finished, NULL);
-    float dif = timeDifference(init_sql_finished, init_sql_start);
+    //float dif = timeDifference(init_sql_finished, init_sql_start);
     //printf("Lost time for initializing sql: %f\n", dif);
 }
 
@@ -337,7 +337,7 @@ void initializeQueue()
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
-    printf("Test without Queue\n");
+    printf("Test with thread\n");
     #ifdef ENABLE_ANALYSIS
     gettimeofday(&start, NULL);
     #endif
