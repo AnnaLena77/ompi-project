@@ -48,7 +48,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     //item->start
-    /*gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);
     //item->operation
     strcpy(item->function, "MPI_Recv");
     strcpy(item->communicationType, "p2p");
@@ -79,7 +79,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     int proc_name_length;
     MPI_Get_processor_name(proc_name, &proc_name_length);
     strcpy(item->processorname, proc_name);
-    free(proc_name);*/
+    free(proc_name);
     
     #endif
     int rc = MPI_SUCCESS;
