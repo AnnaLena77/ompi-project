@@ -51,7 +51,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     //item->start
-    gettimeofday(&item->start, NULL);
+    /*gettimeofday(&item->start, NULL);
     //item->operation
     strcpy(item->function, "MPI_Send");
     strcpy(item->communicationType, "p2p");
@@ -81,7 +81,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     int proc_name_length;
     MPI_Get_processor_name(proc_name, &proc_name_length);
     strcpy(item->processorname, proc_name);
-    free(proc_name);
+    free(proc_name);*/
     #endif
     
     int rc = MPI_SUCCESS;
@@ -119,6 +119,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm));
     #else
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm, &item));
+    free(item);
     //qentryIntoQueue(&item);
     #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);

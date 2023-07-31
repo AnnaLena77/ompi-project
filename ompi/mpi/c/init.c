@@ -337,6 +337,7 @@ void initializeQueue()
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
+    printf("Test without Queue\n");
     #ifdef ENABLE_ANALYSIS
     gettimeofday(&start, NULL);
     #endif
