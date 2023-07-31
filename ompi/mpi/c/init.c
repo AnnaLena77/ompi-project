@@ -193,6 +193,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
                  q->processorname, q->processrank, q->partnerrank, buffer2);
         //printf("%s\n", buffer);
         PQputCopyData(conn, buffer, strlen(buffer));
+        free(q);
     }
     // Beende den COPY-Befehl
     PQputCopyEnd(conn, NULL);
@@ -324,12 +325,12 @@ static void* SQLMonitorFunc(void* _arg){
 
 void initializeQueue()
 { 
-    gettimeofday(&init_sql_start, NULL);
+    //gettimeofday(&init_sql_start, NULL);
     TAILQ_INIT(&head);
     //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
-    gettimeofday(&init_sql_finished, NULL);
+    //gettimeofday(&init_sql_finished, NULL);
     float dif = timeDifference(init_sql_finished, init_sql_start);
-    printf("Lost time for initializing sql: %f\n", dif);
+    //printf("Lost time for initializing sql: %f\n", dif);
 }
 
 #endif
