@@ -292,14 +292,14 @@ static void* SQLMonitorFunc(void* _arg){
     	    //printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
     	    int length = last->id-first->id;
     	    //printf("Length: %d\n", length);
-    	    if(length<500000){
+    	    if(length<100000){
     	        writeToPostgres(conn, length);
     		gettimeofday(&start_timestamp, NULL);
     		
             } else {
-                while(length>500000){
-                    length = length-500000;
-                    writeToPostgres(conn, 500000);
+                while(length>100000){
+                    length = length-100000;
+                    writeToPostgres(conn, 100000);
                     gettimeofday(&start_timestamp, NULL);
                 }
                 writeToPostgres(conn, length);
