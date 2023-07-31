@@ -76,7 +76,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     //item->partnerrank
     item->partnerrank = dest;
     //item->processorname
-    char proc_name = [MPI_MAX_PROCESSOR_NAME];
+    char proc_name[MPI_MAX_PROCESSOR_NAME];
     int proc_name_length;
     MPI_Get_processor_name(proc_name, &proc_name_length);
     strcpy(item->processorname, proc_name);
