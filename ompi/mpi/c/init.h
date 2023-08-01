@@ -3,7 +3,6 @@
 #include <sys/time.h>
 
 extern void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime);
-extern void writeIntoFile(qentry **q);
 extern void initializeMongoDB(void);
 extern void closeMongoDB(void);
 extern pthread_t MONITOR_THREAD;
@@ -63,7 +62,7 @@ typedef struct {
 
 extern void qentryIntoQueue(qentry **q);
 extern void initQentry(qentry **q);
-
+extern void writeIntoFile(qentry **q);
 
 
 
