@@ -130,7 +130,7 @@ void qentryIntoQueue(qentry **q){
     //printf("Echtes Samplerandom: %d\n",samplerandom);
     //if(time(NULL)-counter_time>0.1){ }
     qentry *item = *q;
-    //gettimeofday(&item->intoQueue, NULL);
+    gettimeofday(&item->intoQueue, NULL);
     item->id = ++ID;
     //printf("intoqueue: %d \n", item->id);
     if(item->id==2) lock = 1;
