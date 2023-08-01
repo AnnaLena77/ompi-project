@@ -67,6 +67,10 @@ static int queue_length=0;
 static int lock = 0;
 //sem_t ENSURE_INIT;
 
+static int size, processrank;
+static FILE *file;
+static char filename[20];
+
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
     float microseconds = (a.tv_usec-b.tv_usec)*0.000001;
@@ -322,11 +326,27 @@ static void* SQLMonitorFunc(void* _arg){
    // printf("Length: %d\n", queue_length);
 }
 
+void writeIntoFile(qentry **q);
+    if(q==NULL || *q==NULL){
+    	return;
+    } else {
+        qentry *item = *q;
+        file = fopen(filename, "w");
+        fprintf(file, "test\n");
+        fclose(file);
+}
 
 void initializeQueue()
 { 
     //gettimeofday(&init_sql_start, NULL);
     TAILQ_INIT(&head);
+    
+    MPI_Comm comm = MPI_COMM_WORLD;
+    MPI_Comm_size(comm, &size);
+    MPI_Comm_rank(comm, &processrank);
+    sprintf(filename, "data/data_rank_%d.txt", processrank);
+    file = fopen(filename, "w");
+    fclose(file);
     //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     //gettimeofday(&init_sql_finished, NULL);
     //float dif = timeDifference(init_sql_finished, init_sql_start);

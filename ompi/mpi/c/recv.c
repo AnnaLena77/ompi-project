@@ -119,6 +119,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
 #else
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
     free(item);
+    writeIntoFile(&item);
     //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
