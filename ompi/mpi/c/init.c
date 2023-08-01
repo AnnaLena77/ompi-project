@@ -334,6 +334,7 @@ void writeIntoFile(qentry **q);
         file = fopen(filename, "w");
         fprintf(file, "test\n");
         fclose(file);
+    }
 }
 
 void initializeQueue()
