@@ -48,7 +48,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     //item->start
-    gettimeofday(&item->start, NULL);
+    //gettimeofday(&item->start, NULL);
     //item->operation
     strcpy(item->function, "MPI_Recv");
     strcpy(item->communicationType, "p2p");
@@ -118,8 +118,8 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
 #else
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
-    //free(item);
-    qentryIntoQueue(&item);
+    free(item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
