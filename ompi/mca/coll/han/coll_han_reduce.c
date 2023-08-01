@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2018-2020 The University of Tennessee and The University
+ * Copyright (c) 2018-2023 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2020      Bull S.A.S. All rights reserved.
+ * Copyright (c) 2022      IBM Corporation. All rights reserved
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -51,7 +52,7 @@ mca_coll_han_set_reduce_args(mca_coll_han_reduce_args_t * args, mca_coll_task_t 
 }
 
 /*
- * Each segment of the messsage needs to go though 2 steps to perform MPI_Reduce:
+ * Each segment of the message needs to go though 2 steps to perform MPI_Reduce:
  *     lb: low level (shared-memory or intra-node) reduce.
  *     ub: upper level (inter-node) reduce
  * Hence, in each iteration, there is a combination of collective operations which is called a task.
@@ -103,13 +104,15 @@ mca_coll_han_reduce_intra(const void *sbuf,
                              "han cannot handle reduce with this communicator. Drop HAN support in this communicator and fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all modules */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
-                                         comm, comm->c_coll->coll_reduce_module);
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                          comm, han_module->previous_reduce_module);
 #else
-        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
-                                         comm, comm->c_coll->coll_reduce_module, &item);
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                          comm, han_module->previous_reduce_module, &item);
 #endif
+
     }
 
     /* Topo must be initialized to know rank distribution which then is used to
@@ -122,13 +125,15 @@ mca_coll_han_reduce_intra(const void *sbuf,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, reduce);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
-                                         comm, comm->c_coll->coll_reduce_module);
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                          comm, han_module->previous_reduce_module);
 #else
-        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
-                                         comm, comm->c_coll->coll_reduce_module, &item);
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                          comm, han_module->previous_reduce_module, &item);
 #endif
+
     }
 
     ompi_datatype_get_extent(dtype, &lb, &extent);
@@ -364,13 +369,15 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
                              "han cannot handle reduce with this communicator. Drop HAN support in this communicator and fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
-                                         comm, comm->c_coll->coll_reduce_module);
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                          comm, han_module->previous_reduce_module);
 #else
-        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
-                                         comm, comm->c_coll->coll_reduce_module, &item);
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                          comm, han_module->previous_reduce_module, &item);
 #endif
+
     }
 
     /* Topo must be initialized to know rank distribution which then is used to
@@ -383,13 +390,15 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, reduce);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
-                                         comm, comm->c_coll->coll_reduce_module);
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                          comm, han_module->previous_reduce_module);
 #else
-        return comm->c_coll->coll_reduce(sbuf, rbuf, count, dtype, op, root,
-                                         comm, comm->c_coll->coll_reduce_module, &item);
+        return han_module->previous_reduce(sbuf, rbuf, count, dtype, op, root,
+                                          comm, han_module->previous_reduce_module, &item);
 #endif
+
     }
 
     ompi_communicator_t *low_comm =
@@ -455,6 +464,7 @@ mca_coll_han_reduce_intra_simple(const void *sbuf,
         } else {
             /* Take advantage of any optimisation made for IN_PLACE
              * communcations */
+             
 #ifndef ENABLE_ANALYSIS
             ret = up_comm->c_coll->coll_reduce(MPI_IN_PLACE, (char *)tmp_buf,
                         count, dtype, op, root_up_rank,
@@ -515,7 +525,7 @@ mca_coll_han_reduce_reproducible_decision(struct ompi_communicator_t *comm,
                 opal_output_verbose(30, mca_coll_han_component.han_output,
                                     "coll:han:reduce_reproducible: "
                                     "fallback on %s\n",
-                                    available_components[fallback].component_name);
+                                    ompi_coll_han_available_components[fallback].component_name);
             }
             han_module->reproducible_reduce_module = fallback_module;
             han_module->reproducible_reduce = fallback_module->coll_reduce;

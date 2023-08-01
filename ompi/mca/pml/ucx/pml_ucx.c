@@ -5,8 +5,10 @@
  *                         reserved.
  * Copyright (c) 2018-2019 Research Organization for Information Science
  *                         and Technology (RIST).  All rights reserved.
- * Copyright (c) 2018 IBM Corporation. All rights reserved.
+ * Copyright (c) 2018-2022 IBM Corporation.  All rights reserved.
  * Copyright (c) 2019      Intel, Inc.  All rights reserved.
+ * Copyright (c) 2022      Amazon.com, Inc. or its affiliates.
+ *                         All Rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -23,63 +25,68 @@
 #include "ompi/runtime/ompi_spc.h"
 #include "ompi/mca/pml/base/pml_base_bsend.h"
 #include "opal/mca/common/ucx/common_ucx.h"
-#if OPAL_CUDA_SUPPORT
-#include "opal/mca/common/cuda/common_cuda.h"
-#endif /* OPAL_CUDA_SUPPORT */
 #include "pml_ucx_request.h"
 
 #include <inttypes.h>
 
+/*
+ * Maximum number of transport entries that we can expect from UCX
+ */
+#define PML_UCX_MAX_TRANSPORT_ENTRIES 100
 
 #define PML_UCX_TRACE_SEND(_msg, _buf, _count, _datatype, _dst, _tag, _mode, _comm, ...) \
     PML_UCX_VERBOSE(8, _msg " buf %p count %zu type '%s' dst %d tag %d mode %s comm %d '%s'", \
                     __VA_ARGS__, \
                     (_buf), (_count), (_datatype)->name, (_dst), (_tag), \
-                    mca_pml_ucx_send_mode_name(_mode), (_comm)->c_contextid, \
+                    mca_pml_ucx_send_mode_name(_mode), (_comm)->c_index, \
                     (_comm)->c_name);
 
 #define PML_UCX_TRACE_RECV(_msg, _buf, _count, _datatype, _src, _tag, _comm, ...) \
     PML_UCX_VERBOSE(8, _msg " buf %p count %zu type '%s' src %d tag %d comm %d '%s'", \
                     __VA_ARGS__, \
                     (_buf), (_count), (_datatype)->name, (_src), (_tag), \
-                    (_comm)->c_contextid, (_comm)->c_name);
+                    (_comm)->c_index, (_comm)->c_name);
 
 #define PML_UCX_TRACE_PROBE(_msg, _src, _tag, _comm) \
     PML_UCX_VERBOSE(8, _msg " src %d tag %d comm %d '%s'", \
-                    _src, (_tag), (_comm)->c_contextid, (_comm)->c_name);
+                    _src, (_tag), (_comm)->c_index, (_comm)->c_name);
 
 #define PML_UCX_TRACE_MRECV(_msg, _buf, _count, _datatype, _message) \
     PML_UCX_VERBOSE(8, _msg " buf %p count %zu type '%s' msg *%p=%p (%p)", \
                     (_buf), (_count), (_datatype)->name, (void*)(_message), \
                     (void*)*(_message), (*(_message))->req_ptr);
 
+mca_pml_transports_t *mca_pml_ucx_get_transports(ompi_communicator_t *comm,
+                                                 int rank);
+
 #define MODEX_KEY "pml-ucx"
 
 mca_pml_ucx_module_t ompi_pml_ucx = {
     .super = {
-        .pml_add_procs     = mca_pml_ucx_add_procs,
-        .pml_del_procs     = mca_pml_ucx_del_procs,
-        .pml_enable        = mca_pml_ucx_enable,
-        .pml_progress      = NULL,
-        .pml_add_comm      = mca_pml_ucx_add_comm,
-        .pml_del_comm      = mca_pml_ucx_del_comm,
-        .pml_irecv_init    = mca_pml_ucx_irecv_init,
-        .pml_irecv         = mca_pml_ucx_irecv,
-        .pml_recv          = mca_pml_ucx_recv,
-        .pml_isend_init    = mca_pml_ucx_isend_init,
-        .pml_isend         = mca_pml_ucx_isend,
-        .pml_send          = mca_pml_ucx_send,
-        .pml_iprobe        = mca_pml_ucx_iprobe,
-        .pml_probe         = mca_pml_ucx_probe,
-        .pml_start         = mca_pml_ucx_start,
-        .pml_improbe       = mca_pml_ucx_improbe,
-        .pml_mprobe        = mca_pml_ucx_mprobe,
-        .pml_imrecv        = mca_pml_ucx_imrecv,
-        .pml_mrecv         = mca_pml_ucx_mrecv,
-        .pml_dump          = mca_pml_ucx_dump,
-        .pml_max_contextid = (1ul << (PML_UCX_CONTEXT_BITS)) - 1,
-        .pml_max_tag       = (1ul << (PML_UCX_TAG_BITS - 1)) - 1,
-        .pml_flags         = 0 /* flags */
+        .pml_add_procs      = mca_pml_ucx_add_procs,
+        .pml_del_procs      = mca_pml_ucx_del_procs,
+        .pml_enable         = mca_pml_ucx_enable,
+        .pml_progress       = NULL,
+        .pml_add_comm       = mca_pml_ucx_add_comm,
+        .pml_del_comm       = mca_pml_ucx_del_comm,
+        .pml_irecv_init     = mca_pml_ucx_irecv_init,
+        .pml_irecv          = mca_pml_ucx_irecv,
+        .pml_recv           = mca_pml_ucx_recv,
+        .pml_isend_init     = mca_pml_ucx_isend_init,
+        .pml_isend          = mca_pml_ucx_isend,
+        .pml_send           = mca_pml_ucx_send,
+        .pml_iprobe         = mca_pml_ucx_iprobe,
+        .pml_probe          = mca_pml_ucx_probe,
+        .pml_start          = mca_pml_ucx_start,
+        .pml_improbe        = mca_pml_ucx_improbe,
+        .pml_mprobe         = mca_pml_ucx_mprobe,
+        .pml_imrecv         = mca_pml_ucx_imrecv,
+        .pml_mrecv          = mca_pml_ucx_mrecv,
+        .pml_dump           = mca_pml_ucx_dump,
+        .pml_max_contextid  = (1ul << (PML_UCX_CONTEXT_BITS)) - 1,
+        .pml_max_tag        = (1ul << (PML_UCX_TAG_BITS - 1)) - 1,
+        .pml_flags          = 0, /* flags */
+        .pml_get_transports = mca_pml_ucx_get_transports
     },
     .ucp_context           = NULL,
     .ucp_worker            = NULL
@@ -207,6 +214,12 @@ int mca_pml_ucx_open(void)
         return OMPI_ERROR;
     }
 
+    if ((major_version == 1) && (minor_version < 9)) {
+        /* show warning due to issue #8549 */
+        PML_UCX_WARN("UCX version %u.%u.%u is too old, please install 1.9.x or "
+                     "newer", major_version, minor_version, release_number);
+    }
+
     /* Read options */
     status = ucp_config_read("MPI", NULL, &config);
     if (UCS_OK != status) {
@@ -255,14 +268,7 @@ int mca_pml_ucx_open(void)
     }
 
     ompi_pml_ucx.request_size     = attr.request_size;
-    ompi_pml_ucx.cuda_initialized = false;
 
-#if HAVE_UCP_ATTR_MEMORY_TYPES && OPAL_CUDA_SUPPORT
-    if (attr.memory_types & UCS_BIT(UCS_MEMORY_TYPE_CUDA)) {
-        mca_common_cuda_stage_one_init();
-        ompi_pml_ucx.cuda_initialized = true;
-    }
-#endif
     return OMPI_SUCCESS;
 }
 
@@ -270,11 +276,6 @@ int mca_pml_ucx_close(void)
 {
     PML_UCX_VERBOSE(1, "mca_pml_ucx_close");
 
-#if OPAL_CUDA_SUPPORT
-    if (ompi_pml_ucx.cuda_initialized) {
-        mca_common_cuda_fini();
-    }
-#endif
     if (ompi_pml_ucx.ucp_context != NULL) {
         ucp_cleanup(ompi_pml_ucx.ucp_context);
         ompi_pml_ucx.ucp_context = NULL;
@@ -348,6 +349,9 @@ int mca_pml_ucx_init(int enable_mpi_threads)
     /* Create a completed request to be returned from isend */
     OBJ_CONSTRUCT(&ompi_pml_ucx.completed_send_req, ompi_request_t);
     mca_pml_ucx_completed_request_init(&ompi_pml_ucx.completed_send_req);
+#if MPI_VERSION >= 4
+    ompi_pml_ucx.completed_send_req.req_cancel = mca_pml_cancel_send_callback;
+#endif
 
     opal_progress_register(mca_pml_ucx_progress);
 
@@ -406,6 +410,11 @@ static ucp_ep_h mca_pml_ucx_add_proc_common(ompi_proc_t *proc)
     ucp_ep_h ep;
     int ret;
 
+    /* Do not add a new endpoint if we already created one */
+    if (NULL != proc->proc_endpoints[OMPI_PROC_ENDPOINT_TAG_PML]) {
+        return proc->proc_endpoints[OMPI_PROC_ENDPOINT_TAG_PML];
+    }
+
     ret = mca_pml_ucx_recv_worker_address(proc, &address, &addrlen);
     if (ret < 0) {
         return NULL;
@@ -445,6 +454,65 @@ int mca_pml_ucx_add_procs(struct ompi_proc_t **procs, size_t nprocs)
 
     opal_common_ucx_mca_proc_added();
     return OMPI_SUCCESS;
+}
+
+mca_pml_transports_t *mca_pml_ucx_get_transports(struct ompi_communicator_t *comm,
+                                                 int rank)
+{
+#if HAVE_DECL_UCP_EP_ATTR_FIELD_TRANSPORTS
+    mca_pml_transports_t *transports;
+    unsigned i;
+    ucs_status_t status;
+    ucp_ep_attr_t ep_attrs;
+    ompi_proc_t *proc = ompi_comm_peer_lookup(comm, rank);
+
+    if (NULL == proc) {
+        return NULL;
+    }
+    if (NULL == proc->proc_endpoints[OMPI_PROC_ENDPOINT_TAG_PML]) {
+        return NULL;
+    }
+
+    ep_attrs.field_mask = UCP_EP_ATTR_FIELD_TRANSPORTS;
+    ep_attrs.transports.num_entries = PML_UCX_MAX_TRANSPORT_ENTRIES;
+    ep_attrs.transports.entry_size = sizeof(ucp_transport_entry_t);
+    ep_attrs.transports.entries = (ucp_transport_entry_t *) malloc(
+             sizeof(ucp_transport_entry_t) * ep_attrs.transports.num_entries);
+    if (NULL == ep_attrs.transports.entries) {
+        return NULL;
+    }
+
+    status = ucp_ep_query(proc->proc_endpoints[OMPI_PROC_ENDPOINT_TAG_PML],
+                          &ep_attrs);
+    if (UCS_OK != status) {
+        return NULL;
+    }
+
+    transports = (mca_pml_transports_t *) malloc(sizeof(mca_pml_transports_t));
+    if (NULL == transports) {
+        return NULL;
+    }
+
+    transports->entries = (mca_pml_transport_entry_t *) malloc(
+        ep_attrs.transports.num_entries * sizeof(mca_pml_transport_entry_t));
+    if (NULL == transports->entries) {
+        free(transports);
+        return NULL;
+    }
+
+    for (i = 0; i < ep_attrs.transports.num_entries; i++) {
+        transports->entries[i].transport_name =
+                ep_attrs.transports.entries[i].transport_name;
+        transports->entries[i].device_name = 
+                ep_attrs.transports.entries[i].device_name;
+    }
+    transports->count = ep_attrs.transports.num_entries;
+
+    free(ep_attrs.transports.entries);
+    return transports;
+#else
+    return NULL;
+#endif
 }
 
 __opal_attribute_always_inline__
@@ -496,8 +564,7 @@ int mca_pml_ucx_enable(bool enable)
     int ret;
 
     /* Create a key for adding custom attributes to datatypes */
-    copy_fn.attr_datatype_copy_fn  =
-                    (MPI_Type_internal_copy_attr_function*)MPI_TYPE_NULL_COPY_FN;
+    copy_fn.attr_datatype_copy_fn  = MPI_TYPE_NULL_COPY_FN;
     del_fn.attr_datatype_delete_fn = mca_pml_ucx_datatype_attr_del_fn;
     ret = ompi_attr_create_keyval(TYPE_ATTR, copy_fn, del_fn,
                                   &ompi_pml_ucx.datatype_attr_keyval, NULL, 0,
@@ -562,8 +629,21 @@ int mca_pml_ucx_irecv_init(void *buf, size_t count, ompi_datatype_t *datatype,
 
 int mca_pml_ucx_irecv(void *buf, size_t count, ompi_datatype_t *datatype,
                       int src, int tag, struct ompi_communicator_t* comm,
-                      struct ompi_request_t **request)
+                      struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+		    , qentry **q
+#endif
+                      )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
 #if HAVE_DECL_UCP_TAG_RECV_NBX
     pml_ucx_datatype_t *op_data = mca_pml_ucx_get_op_data(datatype);
     ucp_request_param_t *param  = &op_data->op_param.irecv;
@@ -599,8 +679,21 @@ int mca_pml_ucx_irecv(void *buf, size_t count, ompi_datatype_t *datatype,
 
 int mca_pml_ucx_recv(void *buf, size_t count, ompi_datatype_t *datatype, int src,
                      int tag, struct ompi_communicator_t* comm,
-                     ompi_status_public_t* mpi_status)
+                     ompi_status_public_t* mpi_status
+#ifdef ENABLE_ANALYSIS
+		   , qentry **q
+#endif
+                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     /* coverity[bad_alloc_arithmetic] */
     void *req = PML_UCX_REQ_ALLOCA();
 #if HAVE_DECL_UCP_TAG_RECV_NBX
@@ -700,7 +793,7 @@ int mca_pml_ucx_isend_init(const void *buf, size_t count, ompi_datatype_t *datat
     OMPI_DATATYPE_RETAIN(datatype);
 
     if (MCA_PML_BASE_SEND_BUFFERED == mode) {
-        req->datatype = NULL;
+        req->datatype = (ucp_datatype_t)NULL;
     } else {
         req->datatype = mca_pml_ucx_get_datatype(datatype);
     }
@@ -711,8 +804,22 @@ int mca_pml_ucx_isend_init(const void *buf, size_t count, ompi_datatype_t *datat
 
 static ucs_status_ptr_t
 mca_pml_ucx_bsend(ucp_ep_h ep, const void *buf, size_t count,
-                  ompi_datatype_t *datatype, uint64_t pml_tag)
+                  ompi_datatype_t *datatype, uint64_t pml_tag
+#ifdef ENABLE_ANALYSIS
+		, qentry **q
+#endif
+                  )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ompi_request_t *req;
     void *packed_data;
     size_t packed_length;
@@ -779,7 +886,11 @@ static inline ucs_status_ptr_t mca_pml_ucx_common_send(ucp_ep_h ep, const void *
                                                        ucp_send_callback_t cb)
 {
     if (OPAL_UNLIKELY(MCA_PML_BASE_SEND_BUFFERED == mode)) {
-        return mca_pml_ucx_bsend(ep, buf, count, datatype, tag);
+#ifndef ENABLE_ANALYSIS
+            return mca_pml_ucx_bsend(ep, buf, count, datatype, tag);
+#else
+            return mca_pml_ucx_bsend(ep, buf, count, datatype, tag, NULL);
+#endif
     } else if (OPAL_UNLIKELY(MCA_PML_BASE_SEND_SYNCHRONOUS == mode)) {
         return ucp_tag_send_sync_nb(ep, buf, count, ucx_datatype, tag, cb);
     } else {
@@ -800,7 +911,11 @@ mca_pml_ucx_common_send_nbx(ucp_ep_h ep, const void *buf,
     pml_ucx_datatype_t *op_data = mca_pml_ucx_get_op_data(datatype);
 
     if (OPAL_UNLIKELY(MCA_PML_BASE_SEND_BUFFERED == mode)) {
+#ifndef ENABLE_ANALYSIS
         return mca_pml_ucx_bsend(ep, buf, count, datatype, tag);
+#else
+        return mca_pml_ucx_bsend(ep, buf, count, datatype, tag, NULL);
+#endif
     } else if (OPAL_UNLIKELY(MCA_PML_BASE_SEND_SYNCHRONOUS == mode)) {
         return ucp_tag_send_sync_nb(ep, buf, count,
                                     mca_pml_ucx_get_datatype(datatype), tag,
@@ -816,8 +931,23 @@ mca_pml_ucx_common_send_nbx(ucp_ep_h ep, const void *buf,
 int mca_pml_ucx_isend(const void *buf, size_t count, ompi_datatype_t *datatype,
                       int dst, int tag, mca_pml_base_send_mode_t mode,
                       struct ompi_communicator_t* comm,
-                      struct ompi_request_t **request)
+                      struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+		    , qentry **q
+#endif
+                      )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            int ranki;
+            MPI_Comm_rank(comm, &ranki);
+            //printf("UXC_ISEND Kommt von: %s\n Rank %d sendet an Rank %d\n", item->function, ranki, dst);
+        } else item = NULL;
+    } else item = NULL;
+#endif
     ompi_request_t *req;
     ucp_ep_h ep;
 
@@ -856,6 +986,11 @@ int mca_pml_ucx_isend(const void *buf, size_t count, ompi_datatype_t *datatype,
     } else if (!UCS_PTR_IS_ERR(req)) {
         PML_UCX_VERBOSE(8, "got request %p", (void*)req);
         req->req_mpi_object.comm = comm;
+#if MPI_VERSION >= 4
+        if (OPAL_LIKELY(mca_pml_ucx_request_cancel == req->req_cancel)) {
+            req->req_cancel      = mca_pml_ucx_request_cancel_send;
+        }
+#endif
         *request                 = req;
         return OMPI_SUCCESS;
     } else {
@@ -928,8 +1063,24 @@ mca_pml_ucx_send_nbr(ucp_ep_h ep, const void *buf, size_t count,
 
 int mca_pml_ucx_send(const void *buf, size_t count, ompi_datatype_t *datatype, int dst,
                      int tag, mca_pml_base_send_mode_t mode,
-                     struct ompi_communicator_t* comm)
+                     struct ompi_communicator_t* comm
+#ifdef ENABLE_ANALYSIS
+	            , qentry **q
+#endif
+                     )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            int ranki;
+            MPI_Comm_rank(comm, &ranki);
+            //printf("UXC_SEND Kommt von: %s\n Rank %d sendet an Rank %d\n", item->function, ranki, dst);
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ucp_ep_h ep;
 
     PML_UCX_TRACE_SEND("%s", buf, count, datatype, dst, tag, mode, comm,
@@ -979,7 +1130,7 @@ int mca_pml_ucx_iprobe(int src, int tag, struct ompi_communicator_t* comm,
         mca_pml_ucx_set_recv_status_public(mpi_status, UCS_OK, &info);
     } else  {
         (++progress_count % opal_common_ucx.progress_iterations) ?
-            (void)ucp_worker_progress(ompi_pml_ucx.ucp_worker) : opal_progress();
+            (int)ucp_worker_progress(ompi_pml_ucx.ucp_worker) : opal_progress();
         *matched = 0;
     }
     return OMPI_SUCCESS;
@@ -1028,7 +1179,7 @@ int mca_pml_ucx_improbe(int src, int tag, struct ompi_communicator_t* comm,
         mca_pml_ucx_set_recv_status_public(mpi_status, UCS_OK, &info);
     } else  {
         (++progress_count % opal_common_ucx.progress_iterations) ?
-            (void)ucp_worker_progress(ompi_pml_ucx.ucp_worker) : opal_progress();
+            (int)ucp_worker_progress(ompi_pml_ucx.ucp_worker) : opal_progress();
         *matched = 0;
     }
     return OMPI_SUCCESS;
@@ -1059,8 +1210,21 @@ int mca_pml_ucx_mprobe(int src, int tag, struct ompi_communicator_t* comm,
 
 int mca_pml_ucx_imrecv(void *buf, size_t count, ompi_datatype_t *datatype,
                          struct ompi_message_t **message,
-                         struct ompi_request_t **request)
+                         struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+		       , qentry **q
+#endif
+                         )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ompi_request_t *req;
 
     PML_UCX_TRACE_MRECV("imrecv", buf, count, datatype, message);
@@ -1082,8 +1246,22 @@ int mca_pml_ucx_imrecv(void *buf, size_t count, ompi_datatype_t *datatype,
 
 int mca_pml_ucx_mrecv(void *buf, size_t count, ompi_datatype_t *datatype,
                         struct ompi_message_t **message,
-                        ompi_status_public_t* status)
+                        ompi_status_public_t* status
+#ifdef ENABLE_ANALYSIS
+		      , qentry **q
+#endif
+                        )
 {
+
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
+
     ompi_request_t *req;
 
     PML_UCX_TRACE_MRECV("mrecv", buf, count, datatype, message);

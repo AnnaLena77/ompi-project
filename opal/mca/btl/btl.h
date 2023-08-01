@@ -44,7 +44,7 @@
  * transport are not available.
  *
  * The mca_btl_base_component_init_fn_t() is then called for each of the
- * components that are succesfully opened. The component init function may
+ * components that are successfully opened. The component init function may
  * return either:
  *
  * (1) a NULL list of BTL modules if the transport is not available,
@@ -198,7 +198,7 @@ typedef uint8_t mca_btl_base_tag_t;
 #define MCA_BTL_TAG_SMCUDA (MCA_BTL_TAG_BTL + 2)
 #define MCA_BTL_TAG_SM     (MCA_BTL_TAG_BTL + 3)
 
-/* prefered protocol */
+/* preferred protocol */
 #define MCA_BTL_FLAGS_SEND 0x0001
 #define MCA_BTL_FLAGS_PUT  0x0002
 #define MCA_BTL_FLAGS_GET  0x0004
@@ -226,11 +226,11 @@ typedef uint8_t mca_btl_base_tag_t;
 /* btl can support failover if enabled */
 #define MCA_BTL_FLAGS_FAILOVER_SUPPORT 0x0200
 
-#define MCA_BTL_FLAGS_CUDA_PUT             0x0400
-#define MCA_BTL_FLAGS_CUDA_GET             0x0800
-#define MCA_BTL_FLAGS_CUDA_RDMA            (MCA_BTL_FLAGS_CUDA_GET | MCA_BTL_FLAGS_CUDA_PUT)
-#define MCA_BTL_FLAGS_CUDA_COPY_ASYNC_SEND 0x1000
-#define MCA_BTL_FLAGS_CUDA_COPY_ASYNC_RECV 0x2000
+#define MCA_BTL_FLAGS_ACCELERATOR_PUT             0x0400
+#define MCA_BTL_FLAGS_ACCELERATOR_GET             0x0800
+#define MCA_BTL_FLAGS_ACCELERATOR_RDMA            (MCA_BTL_FLAGS_ACCELERATOR_GET | MCA_BTL_FLAGS_ACCELERATOR_PUT)
+#define MCA_BTL_FLAGS_ACCELERATOR_COPY_ASYNC_SEND 0x1000
+#define MCA_BTL_FLAGS_ACCELERATOR_COPY_ASYNC_RECV 0x2000
 
 /* btl can support signaled operations. BTLs that support this flag are
  * expected to provide a mechanism for asynchronous progress on descriptors
@@ -264,9 +264,9 @@ typedef uint8_t mca_btl_base_tag_t;
 /* The BTL has active-message based atomics */
 #define MCA_BTL_FLAGS_ATOMIC_AM_FOP 0x400000
 
-/** Ths BTL's RDMA/atomics operation supports remote completion.
+/** The BTL's RDMA/atomics operation supports remote completion.
  * When the BTL reported the completion of a RDMA/atomic operation
- * on the initator side, the operation also finished on the target side.
+ * on the initiator side, the operation also finished on the target side.
  *
  * Note, this flag is for put and atomic write operations. Operations
  * like get, atomic fetch and atomic swap support remote
@@ -282,7 +282,7 @@ typedef uint8_t mca_btl_base_tag_t;
 /* error callback flags */
 #define MCA_BTL_ERROR_FLAGS_FATAL        0x1
 #define MCA_BTL_ERROR_FLAGS_NONFATAL     0x2
-#define MCA_BTL_ERROR_FLAGS_ADD_CUDA_IPC 0x4
+#define MCA_BTL_ERROR_FLAGS_ADD_ACCELERATOR_IPC 0x4
 
 /** registration flags. the access flags are a 1-1 mapping with the mpool
  * access flags. */
@@ -499,13 +499,13 @@ OPAL_DECLSPEC OBJ_CLASS_DECLARATION(mca_btl_base_descriptor_t);
  */
 #define MCA_BTL_DES_FLAGS_BTL_OWNERSHIP 0x0002
 /* Allow the BTL to avoid calling the descriptor callback
- * if the send succeded in the btl_send (i.e in the fast path).
+ * if the send succeeded in the btl_send (i.e in the fast path).
  */
 #define MCA_BTL_DES_SEND_ALWAYS_CALLBACK 0x0004
 
 /* Tell the PML that the copy is being done asynchronously
  */
-#define MCA_BTL_DES_FLAGS_CUDA_COPY_ASYNC 0x0008
+#define MCA_BTL_DES_FLAGS_ACCELERATOR_COPY_ASYNC 0x0008
 
 /* Ask the BTL to wake the remote process (send/sendi) or local process
  * (put/get) to handle this message. The BTL may ignore this flag if
@@ -880,7 +880,7 @@ typedef int (*mca_btl_base_module_deregister_mem_fn_t)(
  *
  * @param[IN] btl          BTL module
  * @param[IN] endpoint     BTL addressing information
- * @param[IN] descriptor   Description of the data to be transfered
+ * @param[IN] descriptor   Description of the data to be transferred
  * @param[IN] tag          The tag value used to notify the peer.
  *
  * @retval 1               The descriptor was successfully sent (see
@@ -1080,7 +1080,7 @@ typedef int (*mca_btl_base_module_atomic_op64_fn_t)(
  * @param[IN] btl             BTL module
  * @param[IN] endpoint        BTL addressing information
  * @param[IN] local_address (OUT) Local address to store the result in
- * @param[IN] remote_address  Remote address perfom operation on to (registered remotely)
+ * @param[IN] remote_address  Remote address perform operation on to (registered remotely)
  * @param[IN] local_handle    Local registration handle for region containing
  *                            (local_address, local_address + 8)
  * @param[IN] remote_handle   Remote registration handle for region containing
@@ -1127,7 +1127,7 @@ typedef int (*mca_btl_base_module_atomic_fop64_fn_t)(
  * @param[IN] btl             BTL module
  * @param[IN] endpoint        BTL addressing information
  * @param[OUT] local_address  Local address to store the result in
- * @param[IN] remote_address  Remote address perfom operation on to (registered remotely)
+ * @param[IN] remote_address  Remote address perform operation on to (registered remotely)
  * @param[IN] local_handle    Local registration handle for region containing
  *                            (local_address, local_address + 8)
  * @param[IN] remote_handle   Remote registration handle for region containing
@@ -1246,17 +1246,22 @@ struct mca_btl_base_module_t {
     /** register a default error handler */
     mca_btl_base_module_register_error_fn_t btl_register_error;
 #if OPAL_CUDA_GDR_SUPPORT
-    size_t btl_cuda_eager_limit; /**< switch from eager to RDMA */
-    size_t btl_cuda_rdma_limit;  /**< switch from RDMA to rndv pipeline */
+    size_t btl_accelerator_eager_limit; /**< switch from eager to RDMA */
+    size_t btl_accelerator_rdma_limit;  /**< switch from RDMA to rndv pipeline */
 #endif /* OPAL_CUDA_GDR_SUPPORT */
-#if OPAL_CUDA_SUPPORT
-    size_t btl_cuda_max_send_size; /**< set if CUDA max send_size is different from host max send
+    size_t btl_accelerator_max_send_size; /**< set if CUDA max send_size is different from host max send
                                       size */
-#endif /* OPAL_CUDA_SUPPORT */
 
     mca_btl_base_module_flush_fn_t btl_flush; /**< flush all previous operations on an endpoint */
 
-    unsigned char padding[256]; /**< padding to future-proof the btl module */
+
+    union {
+        struct {
+            void *btl_am_data;
+        };
+        unsigned char padding[256]; /**< padding to future-proof the
+                                       btl module */
+    };
 };
 typedef struct mca_btl_base_module_t mca_btl_base_module_t;
 

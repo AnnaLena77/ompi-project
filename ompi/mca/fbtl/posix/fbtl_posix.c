@@ -13,6 +13,7 @@
  * Copyright (c) 2018      Cisco Systems, Inc.  All rights reserved
  * Copyright (c) 2018      Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
+ * Copyright (c) 2022      IBM Corporation. All rights reserved
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -35,7 +36,7 @@
 #include <aio.h>
 #endif
 
-int fbtl_posix_max_aio_active_reqs=2048;
+int ompi_fbtl_posix_max_aio_active_reqs=2048;
 
 #include "ompi/mca/fbtl/fbtl.h"
 #include "ompi/mca/fbtl/posix/fbtl_posix.h"
@@ -46,7 +47,7 @@ int fbtl_posix_max_aio_active_reqs=2048;
  * *******************************************************************
  */
 static mca_fbtl_base_module_1_0_0_t posix =  {
-    mca_fbtl_posix_module_init,     /* initalise after being selected */
+    mca_fbtl_posix_module_init,     /* initialise after being selected */
     mca_fbtl_posix_module_finalize, /* close a module on a communicator */
     mca_fbtl_posix_preadv,          /* blocking read */
 #if defined (FBTL_POSIX_HAVE_AIO)
@@ -105,7 +106,7 @@ int mca_fbtl_posix_module_init (ompio_file_t *file) {
 #if defined (FBTL_POSIX_HAVE_AIO)
     long val = sysconf(_SC_AIO_MAX);
     if ( -1 != val ) {
-	fbtl_posix_max_aio_active_reqs = (int)val;
+	ompi_fbtl_posix_max_aio_active_reqs = (int)val;
     }
 #endif
     return OMPI_SUCCESS;
@@ -189,7 +190,7 @@ bool mca_fbtl_posix_progress ( mca_ompio_request_t *req)
 		continue;
 	    }
 	    else {
-		/* an error occured. Mark the request done, but
+		/* an error occurred. Mark the request done, but
 		   set an error code in the status */
 		req->req_ompi.req_status.MPI_ERROR = OMPI_ERROR;
 		req->req_ompi.req_status._ucount = data->aio_total_len;

@@ -34,7 +34,7 @@
 #include <sys/time.h>
 
 #ifdef ENABLE_ANALYSIS
-#include <postgresql/libpq-fe.h>
+#include <libpq-fe.h>
 #endif
 
 #include "opal/util/show_help.h"
@@ -56,6 +56,8 @@
 
 #ifdef ENABLE_ANALYSIS
 static struct timeval start;
+static struct timeval init_sql_finished;
+static struct timeval init_sql_start;
 
 static ID=0;
 static count_q_entry = 0;
@@ -166,6 +168,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
     PGresult *res;
     int i;
     int totalWritten = 0;
+    printf("Funktionsaufruf Test writeToPostgres, NumberOfEntries: %d\n", numberOfEntries);
 
     // Erzeuge den COPY-Befehl
     const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
@@ -190,6 +193,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
                  q->processorname, q->processrank, q->partnerrank, buffer2);
         //printf("%s\n", buffer);
         PQputCopyData(conn, buffer, strlen(buffer));
+        free(q);
     }
     // Beende den COPY-Befehl
     PQputCopyEnd(conn, NULL);
@@ -213,7 +217,25 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
 //Monitor-Function for SQL-Connection
 static void* SQLMonitorFunc(void* _arg){
     //Batchstring für den ersten Eintrag vorbereiten
-    PGconn *conn = (PGconn*)_arg;
+    char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
+    PGconn *conn = PQconnectdb(conninfo);
+    if (PQstatus(conn) != CONNECTION_OK){
+        fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
+        PQfinish(conn);
+        exit(1);
+    } else {
+        //printf("Database connected\n");
+        if(!PQexec(conn, "DELETE FROM MPI_Information")){
+            fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
+            //PQfinish(conn);
+            //exit(1);
+        }
+        /*if(PQexec(conn, "ALTER TABLE MPI_Information AUTO_INCREMENT=1")){
+            fprintf(stderr, "Auto-Inocrement failed: %s\n", PQerrorMessage(conn));
+            //PQfinish(conn);
+            //exit(1);
+        }*/
+    } 
     
     qentry *item;
     int finish = 0;
@@ -247,7 +269,7 @@ static void* SQLMonitorFunc(void* _arg){
     while(queueiteration != NULL){
         gettimeofday(&now, NULL);
         //printf("in der Queueiteration-While\n");
-        if(timeDifference(now, start_timestamp)>0.5){
+        if(timeDifference(now, start_timestamp)>1){
     	     qentry *first = queueiteration;
     	     qentry *last = TAILQ_LAST(&head, tailhead);
     	     //printf("First ID: %d\n", first->id);
@@ -270,14 +292,14 @@ static void* SQLMonitorFunc(void* _arg){
     	    //printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
     	    int length = last->id-first->id;
     	    //printf("Length: %d\n", length);
-    	    if(length<500000){
+    	    if(length<100000){
     	        writeToPostgres(conn, length);
     		gettimeofday(&start_timestamp, NULL);
     		
             } else {
-                while(length>500000){
-                    length = length-500000;
-                    writeToPostgres(conn, 500000);
+                while(length>100000){
+                    length = length-100000;
+                    writeToPostgres(conn, 100000);
                     gettimeofday(&start_timestamp, NULL);
                 }
                 writeToPostgres(conn, length);
@@ -301,38 +323,23 @@ static void* SQLMonitorFunc(void* _arg){
 }
 
 
-void initializeSQL()
-{
-    char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
-    PGconn *conn = PQconnectdb(conninfo);
-    if (PQstatus(conn) != CONNECTION_OK){
-        fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
-        PQfinish(conn);
-        exit(1);
-    } else {
-        //printf("Database connected\n");
-        if(!PQexec(conn, "DELETE FROM MPI_Information")){
-            fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
-            //PQfinish(conn);
-            //exit(1);
-        }
-        /*if(PQexec(conn, "ALTER TABLE MPI_Information AUTO_INCREMENT=1")){
-            fprintf(stderr, "Auto-Inocrement failed: %s\n", PQerrorMessage(conn));
-            //PQfinish(conn);
-            //exit(1);
-        }*/
-    }  
+void initializeQueue()
+{ 
+    //gettimeofday(&init_sql_start, NULL);
     TAILQ_INIT(&head);
-    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, (void*)conn);
+    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
+    //gettimeofday(&init_sql_finished, NULL);
+    //float dif = timeDifference(init_sql_finished, init_sql_start);
+    //printf("Lost time for initializing sql: %f\n", dif);
 }
 
 #endif
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
+    printf("Test with thread\n");
     #ifdef ENABLE_ANALYSIS
     gettimeofday(&start, NULL);
-    //printf("Test 1\n");
     #endif
     int err;
     int provided;
@@ -375,7 +382,7 @@ int MPI_Init(int *argc, char ***argv)
                                       err, FUNC_NAME);
     }
     #ifdef ENABLE_ANALYSIS
-    	initializeSQL();
+    	initializeQueue();
     #endif
     //printf("hier gehts weiter\n");
     SPC_INIT();

@@ -57,7 +57,6 @@ struct mca_pml_ucx_module {
     mca_pml_ucx_freelist_t    convs;
 
     int                       priority;
-    bool                      cuda_initialized;
     bool                      request_leak_check;
     uint32_t                  op_attr_nonblocking;
 };
@@ -85,11 +84,19 @@ int mca_pml_ucx_irecv_init(void *buf, size_t count, ompi_datatype_t *datatype,
 
 int mca_pml_ucx_irecv(void *buf, size_t count, ompi_datatype_t *datatype,
                         int src, int tag, struct ompi_communicator_t* comm,
-                        struct ompi_request_t **request);
+                        struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                        , qentry **q
+#endif
+                        );
 
 int mca_pml_ucx_recv(void *buf, size_t count, ompi_datatype_t *datatype, int src,
                        int tag, struct ompi_communicator_t* comm,
-                       ompi_status_public_t* status);
+                       ompi_status_public_t* status
+#ifdef ENABLE_ANALYSIS
+                       , qentry **q
+#endif
+                       );
 
 int mca_pml_ucx_isend_init(const void *buf, size_t count, ompi_datatype_t *datatype,
                              int dst, int tag, mca_pml_base_send_mode_t mode,
@@ -99,11 +106,19 @@ int mca_pml_ucx_isend_init(const void *buf, size_t count, ompi_datatype_t *datat
 int mca_pml_ucx_isend(const void *buf, size_t count, ompi_datatype_t *datatype,
                         int dst, int tag, mca_pml_base_send_mode_t mode,
                         struct ompi_communicator_t* comm,
-                        struct ompi_request_t **request);
+                        struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                        , qentry **q
+#endif
+                        );
 
 int mca_pml_ucx_send(const void *buf, size_t count, ompi_datatype_t *datatype, int dst,
                        int tag, mca_pml_base_send_mode_t mode,
-                       struct ompi_communicator_t* comm);
+                       struct ompi_communicator_t* comm
+#ifdef ENABLE_ANALYSIS
+	              , qentry **q
+#endif
+                       );
 
 int mca_pml_ucx_iprobe(int src, int tag, struct ompi_communicator_t* comm,
                          int *matched, ompi_status_public_t* status);
@@ -121,11 +136,19 @@ int mca_pml_ucx_mprobe(int src, int tag, struct ompi_communicator_t* comm,
 
 int mca_pml_ucx_imrecv(void *buf, size_t count, ompi_datatype_t *datatype,
                          struct ompi_message_t **message,
-                         struct ompi_request_t **request);
+                         struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                         , qentry **q
+#endif
+                         );
 
 int mca_pml_ucx_mrecv(void *buf, size_t count, ompi_datatype_t *datatype,
                         struct ompi_message_t **message,
-                        ompi_status_public_t* status);
+                        ompi_status_public_t* status
+#ifdef ENABLE_ANALYSIS
+                        , qentry **q
+#endif
+                        );
 
 int mca_pml_ucx_start(size_t count, ompi_request_t** requests);
 

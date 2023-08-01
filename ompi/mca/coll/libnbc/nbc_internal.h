@@ -5,17 +5,19 @@
  *                    Corporation.  All rights reserved.
  * Copyright (c) 2006 The Technical University of Chemnitz. All
  *                    rights reserved.
+ * Copyright (c) 2022 IBM Corporation. All rights reserved
  *
  * Author(s): Torsten Hoefler <htor@cs.indiana.edu>
  *
  * Copyright (c) 2012      Oracle and/or its affiliates.  All rights reserved.
  * Copyright (c) 2014      NVIDIA Corporation.  All rights reserved.
- * Copyright (c) 2015-2018 Research Organization for Information Science
+ * Copyright (c) 2015-2021 Research Organization for Information Science
  *                         and Technology (RIST).  All rights reserved.
  * Copyright (c) 2015      Los Alamos National Security, LLC. All rights
  *                         reserved.
  * Copyright (c) 2018      FUJITSU LIMITED.  All rights reserved.
  * Copyright (c) 2021      IBM Corporation.  All rights reserved.
+ * Copyright (c) 2022      Amazon.com, Inc. or its affiliates.  All Rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -30,10 +32,7 @@
 #include "mpi.h"
 
 #include "coll_libnbc.h"
-#if OPAL_CUDA_SUPPORT
-#include "opal/datatype/opal_convertor.h"
-#include "opal/mca/common/cuda/common_cuda.h"
-#endif /* OPAL_CUDA_SUPPORT */
+#include "opal/mca/accelerator/accelerator.h"
 #include "ompi/include/ompi/constants.h"
 #include "ompi/request/request.h"
 #include "ompi/datatype/ompi_datatype.h"
@@ -51,8 +50,15 @@
 extern "C" {
 #endif
 
-/* log(2) */
-#define LOG2 0.69314718055994530941
+/* Dividing very close floats may lead to unexpected roundings */
+static inline int
+ceil_of_log2 (int val) {
+    int ret = 0;
+    while (1 << ret < val) {
+        ret ++;
+    }
+    return ret;
+}
 
 /* true/false */
 #define true 1
@@ -516,17 +522,26 @@ static inline int NBC_Unpack(void *src, int srccount, MPI_Datatype srctype, void
   MPI_Aint size, pos;
   int res;
   ptrdiff_t ext, lb;
+  uint64_t flags;
+  int is_accel_buf1, is_accel_buf2;
+  int dev_id;
 
   res = ompi_datatype_pack_external_size("external32", srccount, srctype, &size);
   if (OMPI_SUCCESS != res) {
     NBC_Error ("MPI Error in ompi_datatype_pack_external_size() (%i)", res);
     return res;
   }
-#if OPAL_CUDA_SUPPORT
-  if(NBC_Type_intrinsic(srctype) && !(opal_cuda_check_bufs((char *)tgt, (char *)src))) {
-#else
-  if(NBC_Type_intrinsic(srctype)) {
-#endif /* OPAL_CUDA_SUPPORT */
+
+  is_accel_buf1 = opal_accelerator.check_addr(tgt, &dev_id, &flags);
+  is_accel_buf2 = opal_accelerator.check_addr(src, &dev_id, &flags);
+  if (is_accel_buf1 < 0) {
+    return is_accel_buf1;
+  } else if (is_accel_buf2 < 0) {
+    return is_accel_buf2;
+  }
+  if(NBC_Type_intrinsic(srctype) &&
+     is_accel_buf1 == 0 &&
+     is_accel_buf2 == 0) {
     /* if we have the same types and they are contiguous (intrinsic
      * types are contiguous), we can just use a single memcpy */
     res = ompi_datatype_get_extent (srctype, &lb, &ext);
@@ -554,18 +569,18 @@ static inline int NBC_Unpack(void *src, int srccount, MPI_Datatype srctype, void
 static inline void NBC_SchedCache_dictwipe(hb_tree *dict_in, int *size) {
   hb_itor *itor;
 
-  itor = hb_itor_new(dict_in);
-  for (; hb_itor_valid(itor) && (*size>NBC_SCHED_DICT_LOWER); hb_itor_next(itor)) {
-    hb_tree_remove(dict_in, hb_itor_key(itor), 0);
+  itor = ompi_coll_libnbc_hb_itor_new(dict_in);
+  for (; ompi_coll_libnbc_hb_itor_valid(itor) && (*size>NBC_SCHED_DICT_LOWER); ompi_coll_libnbc_hb_itor_next(itor)) {
+    ompi_coll_libnbc_hb_tree_remove(dict_in, ompi_coll_libnbc_hb_itor_key(itor), 0);
     *size = *size-1;
   }
-  hb_itor_destroy(itor);
+  ompi_coll_libnbc_hb_itor_destroy(itor);
 }
 
 #define NBC_IN_PLACE(sendbuf, recvbuf, inplace) \
 { \
   inplace = 0; \
-  if(recvbuf == sendbuf) { \
+  if(recvbuf == sendbuf && MPI_BOTTOM != sendbuf) { \
     inplace = 1; \
   } else \
   if(sendbuf == MPI_IN_PLACE) { \

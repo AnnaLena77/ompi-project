@@ -49,7 +49,9 @@ mca_pml_base_component_2_1_0_t mca_pml_ucx_component = {
 
 static int mca_pml_ucx_component_register(void)
 {
+#if HAVE_DECL_UCP_OP_ATTR_FLAG_MULTI_SEND
     int multi_send_op_attr_enable;
+#endif
 
     ompi_pml_ucx.priority = 51;
     (void) mca_base_component_var_register(&mca_pml_ucx_component.pmlm_version, "priority",
@@ -83,7 +85,7 @@ static int mca_pml_ucx_component_register(void)
 
     ompi_pml_ucx.op_attr_nonblocking = 0;
 #if HAVE_DECL_UCP_OP_ATTR_FLAG_MULTI_SEND
-    multi_send_op_attr_enable        = 0;
+    multi_send_op_attr_enable        = 1;
     (void) mca_base_component_var_register(&mca_pml_ucx_component.pmlm_version, "multi_send_nb",
                                            "Enable passing multi-send optimization flag for nonblocking operations",
                                            MCA_BASE_VAR_TYPE_BOOL, NULL, 0, 0,

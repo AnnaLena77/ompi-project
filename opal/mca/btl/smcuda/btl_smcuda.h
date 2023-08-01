@@ -107,7 +107,7 @@ struct sm_fifo_t {
 typedef struct sm_fifo_t sm_fifo_t;
 
 /*
- * Shared Memory resource managment
+ * Shared Memory resource management
  */
 
 #if OPAL_ENABLE_PROGRESS_THREADS == 1
@@ -134,7 +134,7 @@ struct mca_btl_smcuda_component_t {
     mca_mpool_base_module_t *sm_mpool;   /**< mpool on local node */
     void *sm_mpool_base;                 /**< base address of shared memory pool */
     size_t eager_limit;                  /**< first fragment size */
-    size_t max_frag_size;                /**< maximum (second and beyone) fragment size */
+    size_t max_frag_size;                /**< maximum (second and beyond) fragment size */
     opal_mutex_t sm_lock;
     mca_common_sm_module_t *sm_seg;  /**< description of shared memory segment */
     volatile sm_fifo_t **shm_fifo;   /**< pointer to fifo 2D array in shared memory */
@@ -151,7 +151,7 @@ struct mca_btl_smcuda_component_t {
     int nfifos;                      /**< number of FIFOs per receiver */
     int32_t num_smp_procs;           /**< current number of smp procs on this host */
     int32_t my_smp_rank;             /**< My SMP process rank.  Used for accessing
-                                      *   SMP specfic data structures. */
+                                      *   SMP specific data structures. */
     opal_free_list_t sm_frags_eager; /**< free list of sm first */
     opal_free_list_t sm_frags_max;   /**< free list of sm second */
     opal_free_list_t sm_frags_user;
@@ -202,17 +202,17 @@ struct mca_btl_smcuda_component_t {
     char *sm_mpool_rndv_file_name;
     char *sm_ctl_file_name;
     char *sm_rndv_file_name;
-#if OPAL_CUDA_SUPPORT
+
     int cuda_ipc_verbose;
     int cuda_ipc_output;
     int use_cuda_ipc;
     int use_cuda_ipc_same_gpu;
-#endif /* OPAL_CUDA_SUPPORT */
+
     unsigned long mpool_min_size;
     char *allocator;
 };
 typedef struct mca_btl_smcuda_component_t mca_btl_smcuda_component_t;
-OPAL_MODULE_DECLSPEC extern mca_btl_smcuda_component_t mca_btl_smcuda_component;
+OPAL_DECLSPEC extern mca_btl_smcuda_component_t mca_btl_smcuda_component;
 
 /**
  * SM BTL Interface
@@ -224,7 +224,7 @@ struct mca_btl_smcuda_t {
     mca_rcache_base_module_t *rcache;
 };
 typedef struct mca_btl_smcuda_t mca_btl_smcuda_t;
-OPAL_MODULE_DECLSPEC extern mca_btl_smcuda_t mca_btl_smcuda;
+OPAL_DECLSPEC extern mca_btl_smcuda_t mca_btl_smcuda;
 
 struct btl_smcuda_pending_send_item_t {
     opal_free_list_item_t super;
@@ -455,7 +455,7 @@ extern int mca_btl_smcuda_send(struct mca_btl_base_module_t *btl,
 #endif
                                );
 
-#if OPAL_CUDA_SUPPORT
+
 /**
  * Remote get using device memory.
  */
@@ -481,8 +481,6 @@ typedef struct ctrlhdr_st {
 
 /* State of setting up CUDA IPC on an endpoint */
 enum ipcState { IPC_INIT = 1, IPC_SENT, IPC_ACKING, IPC_ACKED, IPC_OK, IPC_BAD };
-
-#endif /* OPAL_CUDA_SUPPORT */
 
 extern void mca_btl_smcuda_dump(struct mca_btl_base_module_t *btl,
                                 struct mca_btl_base_endpoint_t *endpoint, int verbose);

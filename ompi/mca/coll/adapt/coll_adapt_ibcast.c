@@ -2,6 +2,7 @@
  * Copyright (c) 2014-2020 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
+ * Copyright (c) 2022      IBM Corporation. All rights reserved
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -379,13 +380,9 @@ int ompi_coll_adapt_ibcast(void *buff, int count, struct ompi_datatype_t *dataty
     }
 
 #ifndef ENABLE_ANALYSIS
-    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module,
-                                          adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm),
-                                          mca_coll_adapt_component.adapt_ibcast_segment_size);
+    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module, ompi_coll_adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm), mca_coll_adapt_component.adapt_ibcast_segment_size);
 #else
-    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module,
-                                          adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm),
-                                          mca_coll_adapt_component.adapt_ibcast_segment_size, &item);
+    return ompi_coll_adapt_ibcast_generic(buff, count, datatype, root, comm, request, module, ompi_coll_adapt_module_cached_topology(module, comm, root, mca_coll_adapt_component.adapt_ibcast_algorithm), mca_coll_adapt_component.adapt_ibcast_segment_size, &item);
 #endif
 }
 
@@ -482,7 +479,7 @@ int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t
     num_segs = (count + seg_count - 1) / seg_count;
     real_seg_size = (ptrdiff_t) seg_count *extent;
 
-    /* Set memory for recv_array and send_array, created on heap becasue they are needed to be accessed by other functions (callback functions) */
+    /* Set memory for recv_array and send_array, created on heap because they are needed to be accessed by other functions (callback functions) */
     if (num_segs != 0) {
         recv_array = (int *) malloc(sizeof(int) * num_segs);
     }
@@ -553,7 +550,7 @@ int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t
                 context->frag_id = i;
                 /* The id of peer in in children_list */
                 context->child_id = j;
-                /* Actural rank of the peer */
+                /* Actual rank of the peer */
                 context->peer = tree->tree_next[j];
                 context->con = con;
                 OBJ_RETAIN(con);
@@ -640,11 +637,11 @@ int ompi_coll_adapt_ibcast_generic(void *buff, int count, struct ompi_datatype_t
                              (recv_buff, recv_count, datatype, context->peer,
                               con->ibcast_tag - i, comm, &recv_req, &item));
 #endif
+            /* Set receive callback */
+            OPAL_THREAD_UNLOCK(mutex);
             if (MPI_SUCCESS != err) {
                 return err;
             }
-            /* Set receive callback */
-            OPAL_THREAD_UNLOCK(mutex);
             ompi_request_set_callback(recv_req, recv_cb, context);
             OPAL_THREAD_LOCK(mutex);
         }

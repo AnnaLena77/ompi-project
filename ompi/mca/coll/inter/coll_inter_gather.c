@@ -12,6 +12,7 @@
  * Copyright (c) 2006-2007 University of Houston. All rights reserved.
  * Copyright (c) 2015-2016 Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
+ * Copyright (c) 2022      IBM Corporation.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -97,12 +98,14 @@ mca_coll_inter_gather_inter(const void *sbuf, int scount,
 #endif
 	if (0 == rank) {
 	    /* First process sends data to the root */
+
 #ifndef ENABLE_ANALYSIS
-	    err = MCA_PML_CALL(send(ptmp, scount*size_local, sdtype, root,
+
+	    err = MCA_PML_CALL(send(ptmp, scount*(size_t)size_local, sdtype, root,
 				    MCA_COLL_BASE_TAG_GATHER,
 				    MCA_PML_BASE_SEND_STANDARD, comm));
 #else
-	    err = MCA_PML_CALL(send(ptmp, scount*size_local, sdtype, root,
+	    err = MCA_PML_CALL(send(ptmp, scount*(size_t)size_local, sdtype, root,
 				    MCA_COLL_BASE_TAG_GATHER,
 				    MCA_PML_BASE_SEND_STANDARD, comm, &item));
 #endif
@@ -113,12 +116,13 @@ mca_coll_inter_gather_inter(const void *sbuf, int scount,
         free(ptmp_free);
     } else {
         /* I am the root, loop receiving the data. */
+
 #ifndef ENABLE_ANALYSIS
-	err = MCA_PML_CALL(recv(rbuf, rcount*size, rdtype, 0,
+	err = MCA_PML_CALL(recv(rbuf, rcount*(size_t)size, rdtype, 0,
 				MCA_COLL_BASE_TAG_GATHER,
 				comm, MPI_STATUS_IGNORE));
 #else 
-	err = MCA_PML_CALL(recv(rbuf, rcount*size, rdtype, 0,
+	err = MCA_PML_CALL(recv(rbuf, rcount*(size_t)size, rdtype, 0,
 				MCA_COLL_BASE_TAG_GATHER,
 				comm, MPI_STATUS_IGNORE, &item));
 #endif

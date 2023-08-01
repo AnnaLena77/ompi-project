@@ -68,6 +68,7 @@ int mca_coll_ucc_allgather(const void *sbuf, int scount, struct ompi_datatype_t 
 #endif
                            )
 {
+printf("Hello aus ucc_allgather\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){

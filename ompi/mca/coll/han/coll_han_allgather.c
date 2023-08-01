@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2018-2020 The University of Tennessee and The University
+ * Copyright (c) 2018-2023 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2020      Bull S.A.S. All rights reserved.
+ * Copyright (c) 2022      IBM Corporation. All rights reserved
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -94,13 +95,15 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
                              "han cannot handle allgather within this communicator. Fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
-                                            comm, comm->c_coll->coll_allgather_module);
+        return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                              comm, han_module->previous_allgather_module);
 #else
-        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
-                                            comm, comm->c_coll->coll_allgather_module, &item);
+        return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                              comm, han_module->previous_allgather_module, &item);
 #endif
+
     }
     ompi_communicator_t *low_comm = han_module->sub_comm[INTRA_NODE];
     ompi_communicator_t *up_comm = han_module->sub_comm[INTER_NODE];
@@ -115,11 +118,11 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
                              "han cannot handle allgather with this communicator (imbalance). Fall back on another component\n"));
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, allgather);
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
-                                            comm, comm->c_coll->coll_allgather_module);
+        return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                              comm, han_module->previous_allgather_module);
 #else
-        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
-                                            comm, comm->c_coll->coll_allgather_module, &item);
+        return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                              comm, han_module->previous_allgather_module, &item);
 #endif
     }
 
@@ -128,7 +131,7 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
     temp_request = OBJ_NEW(ompi_request_t);
     temp_request->req_state = OMPI_REQUEST_ACTIVE;
     temp_request->req_type = OMPI_REQUEST_COLL;
-    temp_request->req_free = han_request_free;
+    temp_request->req_free = ompi_coll_han_request_free;
     temp_request->req_status = (ompi_status_public_t){0};
     temp_request->req_complete = REQUEST_PENDING;
 
@@ -370,12 +373,13 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
                              "han cannot handle allgather within this communicator. Fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
-                                            comm, comm->c_coll->coll_allgather_module);
+        return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                              comm, han_module->previous_allgather_module);
 #else
-        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
-                                            comm, comm->c_coll->coll_allgather_module, &item);
+        return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                              comm, han_module->previous_allgather_module, &item);
 #endif
     }
     /* discovery topology */
@@ -389,12 +393,13 @@ mca_coll_han_allgather_intra_simple(const void *sbuf, int scount,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, allgather);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
-                                            comm, comm->c_coll->coll_allgather_module);
+        return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                              comm, han_module->previous_allgather_module);
 #else
-        return comm->c_coll->coll_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
-                                            comm, comm->c_coll->coll_allgather_module, &item);
+        return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
+                                              comm, han_module->previous_allgather_module, &item);
 #endif
     }
 

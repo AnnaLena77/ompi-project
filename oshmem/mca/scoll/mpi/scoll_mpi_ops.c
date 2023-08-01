@@ -22,7 +22,11 @@ int mca_scoll_mpi_barrier(struct oshmem_group_t *group, long *pSync, int alg)
     MPI_COLL_VERBOSE(20,"RUNNING MPI BARRIER");
     mpi_module = (mca_scoll_mpi_module_t *) group->g_scoll.scoll_barrier_module;
 
+#ifndef ENABLE_ANALYSIS
     rc = mpi_module->comm->c_coll->coll_barrier(mpi_module->comm, mpi_module->comm->c_coll->coll_barrier_module);
+#else
+    rc = mpi_module->comm->c_coll->coll_barrier(mpi_module->comm, mpi_module->comm->c_coll->coll_barrier_module, NULL);
+#endif
     if (OMPI_SUCCESS != rc){
         MPI_COLL_VERBOSE(20,"RUNNING FALLBACK BARRIER");
         PREVIOUS_SCOLL_FN(mpi_module, barrier, group,
@@ -84,7 +88,11 @@ int mca_scoll_mpi_broadcast(struct oshmem_group_t *group,
         return OSHMEM_SUCCESS;
     }
 
+#ifndef ENABLE_ANALYSIS
     rc = mpi_module->comm->c_coll->coll_bcast(buf, nlong, dtype, root, mpi_module->comm, mpi_module->comm->c_coll->coll_bcast_module);
+#else
+    rc = mpi_module->comm->c_coll->coll_bcast(buf, nlong, dtype, root, mpi_module->comm, mpi_module->comm->c_coll->coll_bcast_module, NULL);
+#endif
     if (OMPI_SUCCESS != rc){
         MPI_COLL_VERBOSE(20,"RUNNING FALLBACK BCAST");
         PREVIOUS_SCOLL_FN(mpi_module, broadcast, group,
@@ -144,9 +152,17 @@ int mca_scoll_mpi_collect(struct oshmem_group_t *group,
                     SCOLL_DEFAULT_ALG);
             return rc;
         }
+        #ifndef ENABLE_ANALYSIS
         rc = mpi_module->comm->c_coll->coll_allgather(sbuf, (int)nlong, stype, rbuf, (int)nlong, rtype, mpi_module->comm, mpi_module->comm->c_coll->coll_allgather_module);
+        #else
+        rc = mpi_module->comm->c_coll->coll_allgather(sbuf, (int)nlong, stype, rbuf, (int)nlong, rtype, mpi_module->comm, mpi_module->comm->c_coll->coll_allgather_module, NULL);
+        #endif
 #else
+        #ifndef ENABLE_ANALYSIS
         rc = mpi_module->comm->c_coll->coll_allgather(sbuf, nlong, stype, rbuf, nlong, rtype, mpi_module->comm, mpi_module->comm->c_coll->coll_allgather_module);
+        #else
+        rc = mpi_module->comm->c_coll->coll_allgather(sbuf, nlong, stype, rbuf, nlong, rtype, mpi_module->comm, mpi_module->comm->c_coll->coll_allgather_module, NULL);
+        #endif
 #endif
         if (OMPI_SUCCESS != rc){
             MPI_COLL_VERBOSE(20,"RUNNING FALLBACK FCOLLECT");
@@ -184,9 +200,15 @@ int mca_scoll_mpi_collect(struct oshmem_group_t *group,
             goto failed_mem;
         }
 
+#ifndef ENABLE_ANALYSIS
         rc = mpi_module->comm->c_coll->coll_allgather(&len, sizeof(len), stype, recvcounts,
                                                       sizeof(len), rtype, mpi_module->comm,
                                                       mpi_module->comm->c_coll->coll_allgather_module);
+#else
+        rc = mpi_module->comm->c_coll->coll_allgather(&len, sizeof(len), stype, recvcounts,
+                                                      sizeof(len), rtype, mpi_module->comm,
+                                                      mpi_module->comm->c_coll->coll_allgather_module, NULL);
+#endif
         if (rc != OSHMEM_SUCCESS) {
             goto failed_allgather;
         }
@@ -196,9 +218,16 @@ int mca_scoll_mpi_collect(struct oshmem_group_t *group,
             disps[i] = disps[i - 1] + recvcounts[i - 1];
         }
 
+#ifndef ENABLE_ANALYSIS
         rc = mpi_module->comm->c_coll->coll_allgatherv(source, nlong, stype, target, recvcounts,
                                                        disps, rtype, mpi_module->comm,
                                                        mpi_module->comm->c_coll->coll_allgatherv_module);
+#else
+        rc = mpi_module->comm->c_coll->coll_allgatherv(source, nlong, stype, target, recvcounts,
+                                                       disps, rtype, mpi_module->comm,
+                                                       mpi_module->comm->c_coll->coll_allgatherv_module, NULL);
+#endif
+
 failed_allgather:
         free(recvcounts);
 failed_mem:
@@ -256,9 +285,17 @@ int mca_scoll_mpi_reduce(struct oshmem_group_t *group,
                 SCOLL_DEFAULT_ALG);
         return rc;
     }
+    #ifndef ENABLE_ANALYSIS
     rc = mpi_module->comm->c_coll->coll_allreduce(sbuf, rbuf, (int)count, dtype, h_op, mpi_module->comm, mpi_module->comm->c_coll->coll_allreduce_module);
+    #else
+    rc = mpi_module->comm->c_coll->coll_allreduce(sbuf, rbuf, (int)count, dtype, h_op, mpi_module->comm, mpi_module->comm->c_coll->coll_allreduce_module, NULL);
+    #endif
 #else
+    #ifndef ENABLE_ANALYSIS
     rc = mpi_module->comm->c_coll->coll_allreduce(sbuf, rbuf, count, dtype, h_op, mpi_module->comm, mpi_module->comm->c_coll->coll_allreduce_module);
+    #else
+    rc = mpi_module->comm->c_coll->coll_allreduce(sbuf, rbuf, count, dtype, h_op, mpi_module->comm, mpi_module->comm->c_coll->coll_allreduce_module, NULL);
+    #endif
 #endif
     if (OMPI_SUCCESS != rc){
         MPI_COLL_VERBOSE(20,"RUNNING FALLBACK REDUCE");

@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2018-2020 The University of Tennessee and The University
+ * Copyright (c) 2018-2023 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2020      Bull S.A.S. All rights reserved.
  * Copyright (c) 2020      Cisco Systems, Inc.  All rights reserved.
+ * Copyright (c) 2022      IBM Corporation. All rights reserved
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -105,14 +106,13 @@ mca_coll_han_gather_intra(const void *sbuf, int scount,
                              "han cannot handle gather with this communicator. Fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_gather(sbuf, scount, sdtype, rbuf,
-                                         rcount, rdtype, root,
-                                         comm, comm->c_coll->coll_gather_module);
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, han_module->previous_gather_module);
 #else
-        return comm->c_coll->coll_gather(sbuf, scount, sdtype, rbuf,
-                                         rcount, rdtype, root,
-                                         comm, comm->c_coll->coll_gather_module, &item);
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, han_module->previous_gather_module, &item);
 #endif
     }
 
@@ -126,15 +126,15 @@ mca_coll_han_gather_intra(const void *sbuf, int scount,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, gather);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_gather(sbuf, scount, sdtype, rbuf,
-                                         rcount, rdtype, root,
-                                         comm, comm->c_coll->coll_gather_module);
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, han_module->previous_gather_module);
 #else
-        return comm->c_coll->coll_gather(sbuf, scount, sdtype, rbuf,
-                                         rcount, rdtype, root,
-                                         comm, comm->c_coll->coll_gather_module, &item);
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, han_module->previous_gather_module, &item);
 #endif
+
     }
 
     w_rank = ompi_comm_rank(comm);
@@ -144,7 +144,7 @@ mca_coll_han_gather_intra(const void *sbuf, int scount,
     temp_request = OBJ_NEW(ompi_request_t);
     temp_request->req_state = OMPI_REQUEST_ACTIVE;
     temp_request->req_type = OMPI_REQUEST_COLL;
-    temp_request->req_free = han_request_free;
+    temp_request->req_free = ompi_coll_han_request_free;
     temp_request->req_status = (ompi_status_public_t){0};
     temp_request->req_complete = REQUEST_PENDING;
 
@@ -277,18 +277,16 @@ int mca_coll_han_gather_lg_task(void *task_args)
                                    &rgap);
         tmp_buf = (char *) malloc(rsize);
         tmp_rbuf = tmp_buf - rgap;
-        if (t->w_rank == t->root) {
-            if (MPI_IN_PLACE == t->sbuf) {
-                ptrdiff_t rextent;
-                ompi_datatype_type_extent(dtype, &rextent);
-                ptrdiff_t block_size = rextent * (ptrdiff_t)count;
-                ptrdiff_t src_shift = block_size * t->w_rank;
-                ptrdiff_t dest_shift = block_size * low_rank;
-                ompi_datatype_copy_content_same_ddt(dtype,
-                                                    (ptrdiff_t)count,
-                                                    tmp_rbuf + dest_shift,
-                                                    (char *)t->rbuf + src_shift);
-            }
+        if (t->w_rank == t->root && MPI_IN_PLACE == t->sbuf) {
+            ptrdiff_t rextent;
+            ompi_datatype_type_extent(dtype, &rextent);
+            ptrdiff_t block_size = rextent * (ptrdiff_t)count;
+            ptrdiff_t src_shift = block_size * t->w_rank;
+            ptrdiff_t dest_shift = block_size * low_rank;
+            ompi_datatype_copy_content_same_ddt(dtype,
+                                                (ptrdiff_t)count,
+                                                tmp_rbuf + dest_shift,
+                                                (char *)t->rbuf + src_shift);
         }
     }
 
@@ -421,15 +419,15 @@ mca_coll_han_gather_intra_simple(const void *sbuf, int scount,
                              "han cannot handle gather with this communicator. Fall back on another component\n"));
         /* HAN cannot work with this communicator so fallback on all collectives */
         HAN_LOAD_FALLBACK_COLLECTIVES(han_module, comm);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_gather(sbuf, scount, sdtype, rbuf,
-                                         rcount, rdtype, root,
-                                         comm, comm->c_coll->coll_gather_module);
-#else
-        return comm->c_coll->coll_gather(sbuf, scount, sdtype, rbuf,
-                                         rcount, rdtype, root,
-                                         comm, comm->c_coll->coll_gather_module, &item);
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, han_module->previous_gather_module);
+#else 
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, han_module->previous_gather_module, &item);
 #endif
+
     }
 
     /* Topo must be initialized to know rank distribution which then is used to
@@ -442,15 +440,15 @@ mca_coll_han_gather_intra_simple(const void *sbuf, int scount,
          * future calls will then be automatically redirected.
          */
         HAN_LOAD_FALLBACK_COLLECTIVE(han_module, comm, gather);
+
 #ifndef ENABLE_ANALYSIS
-        return comm->c_coll->coll_gather(sbuf, scount, sdtype, rbuf,
-                                         rcount, rdtype, root,
-                                         comm, comm->c_coll->coll_gather_module);
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, han_module->previous_gather_module);
 #else
-        return comm->c_coll->coll_gather(sbuf, scount, sdtype, rbuf,
-                                         rcount, rdtype, root,
-                                         comm, comm->c_coll->coll_gather_module, &item);
+        return han_module->previous_gather(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
+                                          comm, han_module->previous_gather_module, &item);
 #endif
+
     }
 
     ompi_communicator_t *low_comm = han_module->sub_comm[INTRA_NODE];
@@ -483,6 +481,11 @@ mca_coll_han_gather_intra_simple(const void *sbuf, int scount,
     char *reorder_buf = NULL;  // allocated memory
     char *reorder_buf_start = NULL; // start of the data
     if (w_rank == root) {
+	if (MPI_IN_PLACE == sbuf) {
+            ptrdiff_t rextent;
+            ompi_datatype_type_extent(rdtype, &rextent);
+            sbuf = rbuf + rextent * (ptrdiff_t)rcount * w_rank;
+        }
         if (han_module->is_mapbycore) {
             reorder_buf_start = (char *)rbuf;
         } else {

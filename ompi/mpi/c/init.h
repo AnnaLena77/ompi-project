@@ -43,8 +43,21 @@ typedef struct qentry {
     struct timeval sent;//later
     struct timeval bufferFree; //later
     struct timeval intoQueue;
+    //struct collective_p2p collectives;
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
+#endif
+
+#ifndef collective_p2p_H
+#define collective_p2p_H
+typedef struct {
+    char function[30];
+    int count;
+    int datasize;
+    int processrank;
+    int partnerrank;
+    struct timeval start;
+} collective_p2p;
 #endif
 
 extern void qentryIntoQueue(qentry **q);

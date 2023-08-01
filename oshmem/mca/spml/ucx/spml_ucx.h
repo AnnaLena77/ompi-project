@@ -244,9 +244,9 @@ extern size_t mca_spml_ucx_test_some(void *ivars, int cmp, void *cmp_value,
         size_t nelems, size_t *indices, const int *status, int datatype);
 extern int mca_spml_ucx_test_all_vector(void *ivars, int cmp, void
         *cmp_values, size_t nelems, const int *status, int datatype);
-extern size_t mca_spml_ucx_test_any_vector(void *ivars, int cmp, void
+extern int mca_spml_ucx_test_any_vector(void *ivars, int cmp, void
         *cmp_values, size_t nelems, const int *status, int datatype);
-extern size_t mca_spml_ucx_test_some_vector(void *ivars, int cmp, void
+extern int mca_spml_ucx_test_some_vector(void *ivars, int cmp, void
         *cmp_values, size_t nelems, size_t *indices, const int *status, int
         datatype);
 extern int mca_spml_ucx_team_sync(shmem_team_t team);
@@ -285,10 +285,9 @@ static inline int
 mca_spml_ucx_peer_mkey_get(ucp_peer_t *ucp_peer, int index, spml_ucx_cached_mkey_t **out_rmkey)
 {
     *out_rmkey = NULL;
-    if (OPAL_UNLIKELY((index >= (int)ucp_peer->mkeys_cnt) ||
-                      (MCA_MEMHEAP_MAX_SEGMENTS <= index) || (0 > index))) {
-        SPML_UCX_ERROR("Failed to get mkey for segment: bad index = %d, MAX = %d, cached mkeys count: %zu",
-                        index, MCA_MEMHEAP_MAX_SEGMENTS, ucp_peer->mkeys_cnt);
+    if (OPAL_UNLIKELY((index >= (int)ucp_peer->mkeys_cnt) || (0 > index))) {
+        SPML_UCX_ERROR("Failed to get mkey for segment: bad index = %d, cached mkeys count: %zu",
+                       index, ucp_peer->mkeys_cnt);
         return OSHMEM_ERR_BAD_PARAM;
     }
     *out_rmkey = ucp_peer->mkeys[index];

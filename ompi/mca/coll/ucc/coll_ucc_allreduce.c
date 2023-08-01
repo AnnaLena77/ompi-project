@@ -32,7 +32,7 @@ static inline ucc_status_t mca_coll_ucc_allreduce_init(const void *sbuf, void *r
         goto fallback;
     }
     ucc_coll_args_t coll = {
-        .mask = UCC_COLL_ARGS_FIELD_PREDEFINED_REDUCTIONS,
+        .mask      = 0,
         .coll_type = UCC_COLL_TYPE_ALLREDUCE,
         .src.info = {
             .buffer   = (void*)sbuf,
@@ -46,9 +46,7 @@ static inline ucc_status_t mca_coll_ucc_allreduce_init(const void *sbuf, void *r
             .datatype = ucc_dt,
             .mem_type = UCC_MEMORY_TYPE_UNKNOWN
         },
-        .reduce = {
-            .predefined_op = ucc_op,
-        },
+        .op = ucc_op,
     };
     if (MPI_IN_PLACE == sbuf) {
         coll.mask |= UCC_COLL_ARGS_FIELD_FLAGS;
@@ -69,6 +67,7 @@ int mca_coll_ucc_allreduce(const void *sbuf, void *rbuf, int count,
 #endif
                            )
 {
+//printf("Funktion coll_ucc_allreduce\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -107,6 +106,7 @@ int mca_coll_ucc_iallreduce(const void *sbuf, void *rbuf, int count,
 #endif
                             )
 {
+//printf("Funktion coll_ucc_iallreduce\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){

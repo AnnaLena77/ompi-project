@@ -59,7 +59,7 @@ int mca_sharedfp_lockedfile_read ( ompio_file_t *fh,
 
     /*Request the offset to write bytesRequested bytes*/
     ret = mca_sharedfp_lockedfile_request_position(sh,bytesRequested,&offset);
-    offset /= fh->f_etype_size;
+    offset /= fh->f_fview.f_etype_size;
 
     if (-1 != ret )  {
 	if ( mca_sharedfp_lockedfile_verbose ) {
@@ -114,6 +114,7 @@ int mca_sharedfp_lockedfile_read_ordered (ompio_file_t *fh,
         if ( NULL == buff )
             return OMPI_ERR_OUT_OF_RESOURCE;
     }
+
 #ifndef ENABLE_ANALYSIS
     ret = fh->f_comm->c_coll->coll_gather ( &sendBuff, sendcnt, OMPI_OFFSET_DATATYPE,
                                             buff, recvcnt, OMPI_OFFSET_DATATYPE, 0,
@@ -168,12 +169,12 @@ int mca_sharedfp_lockedfile_read_ordered (ompio_file_t *fh,
 #else
     ret = fh->f_comm->c_coll->coll_scatter ( buff, sendcnt, OMPI_OFFSET_DATATYPE,
                                              &offsetBuff, recvcnt, OMPI_OFFSET_DATATYPE, 0,
-                                             fh->f_comm, fh->f_comm->c_coll->coll_scatter_module, NULL );
+                                             fh->f_comm, fh->f_comm->c_coll->coll_scatter_module, NULL);
 #endif
 
     /*Each process now has its own individual offset in recvBUFF*/
     offset = offsetBuff - sendBuff;
-    offset /= fh->f_etype_size;
+    offset /= fh->f_fview.f_etype_size;
 
     if ( mca_sharedfp_lockedfile_verbose ) {
         opal_output(ompi_sharedfp_base_framework.framework_output,

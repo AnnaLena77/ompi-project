@@ -12,8 +12,11 @@
 #include "btl_uct_am.h"
 #include "btl_uct_device_context.h"
 #include "btl_uct_rdma.h"
+
+
 #ifdef ENABLE_ANALYSIS
-#   include "ompi/mpi/c/init.h"
+#include "ompi/mpi/c/init.h"
+#include <time.h>
 #endif
 
 /**
@@ -223,7 +226,7 @@ int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t
                     /* send is complete */
                     mca_btl_uct_frag_complete(frag, OPAL_SUCCESS);
 #ifdef ENABLE_ANALYSIS
-                    if(item!=NULL) item->sent = time(NULL);
+                    if(item!=NULL) gettimeofday(&item->sent, NULL);
 #endif
                     return 1;
                 }
@@ -237,7 +240,7 @@ int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t
                 /* send is complete */
                 mca_btl_uct_frag_complete(frag, OPAL_SUCCESS);
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->sent = time(NULL);
+    if(item!=NULL) gettimeofday(&item->sent, NULL);
 #endif
                 return 1;
             }
@@ -343,7 +346,7 @@ int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpo
                       mca_btl_base_descriptor_t **descriptor
 #ifdef ENABLE_ANALYSIS
                       ,qentry **q
-#else
+#endif
                       )
 {
 #ifdef ENABLE_ANALYSIS
@@ -416,7 +419,7 @@ int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpo
     }
 #ifdef ENABLE_ANALYSIS
     if(item!=NULL){
-        item->sent = time(NULL);
+        gettimeofday(&item->sent, NULL);
         item->immediate = 1;
     }
 #endif

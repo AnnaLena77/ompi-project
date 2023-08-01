@@ -1,8 +1,0 @@
-module GUI_Cluster
-typeinfo GUI_Cluster.qmltypes
-prefer :/GUI_Cluster/
-Cores2D 1.0 Cores2D.qml
-Cores3D 1.0 Cores3D.qml
-Sidebar 1.0 Sidebar.qml
-Lights 1.0 3D-Scene/Lights.qml
-

@@ -48,7 +48,7 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
 #endif
                                      )
 {
-
+//printf("Hello from ompi_coll_base_bcast_intra_generic\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -421,6 +421,7 @@ ompi_coll_base_bcast_intra_chain( void* buffer,
 #endif
                                    )
 {
+//printf("Hello from coll_base_bcast_inra_chain\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -529,7 +530,7 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
     int err=0, line, rank, size, segindex, i, lr, pair;
     uint32_t counts[2];
     int segcount[2];       /* Number of elements sent with each segment */
-    int num_segments[2];   /* Number of segmenets */
+    int num_segments[2];   /* Number of segments */
     int sendcount[2];      /* the same like segcount, except for the last segment */
     size_t realsegsize[2], type_size;
     char *tmpbuf[2];
@@ -697,7 +698,7 @@ ompi_coll_base_bcast_intra_split_bintree ( void* buffer,
                 if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
             } /* end of for each child */
 
-            /* upate the base request */
+            /* update the base request */
             base_req = new_req;
             /* go to the next buffer (ie. the one corresponding to the next recv) */
             tmpbuf[lr] += realsegsize[lr];

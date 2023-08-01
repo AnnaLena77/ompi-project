@@ -12,6 +12,7 @@
  * Copyright (c) 2006-2010 University of Houston. All rights reserved.
  * Copyright (c) 2015-2017 Research Organization for Information Science
  *                         and Technology (RIST). All rights reserved.
+ * Copyright (c) 2022      IBM Corporation.  All rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -51,6 +52,7 @@ mca_coll_inter_allgatherv_inter(const void *sbuf, int scount,
 #endif
                                )
 {
+
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -59,7 +61,10 @@ mca_coll_inter_allgatherv_inter(const void *sbuf, int scount,
         } else item = NULL;
     } else item = NULL;
 #endif
-    int i, rank, size, size_local, total=0, err;
+
+    int i, rank, size, size_local, err;
+    size_t total = 0;
+
     int *count=NULL,*displace=NULL;
     char *ptmp_free=NULL, *ptmp=NULL;
     ompi_datatype_t *ndtype = NULL;

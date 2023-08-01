@@ -14,7 +14,7 @@ Configure MPI:
 $ sudo apt-get install flex
 $ sudo apt-get install pandoc
 
-$ git clone https://github.com/AnnaLena77/ompi-project.git --recurse-submodules
+$ git clone https://github.com/AnnaLena77/EduMPI.git --recurse-submodules
 
 Needed packages for autogen:
 $ sudo apt install autoconf
@@ -22,8 +22,9 @@ $ sudo apt install libtool
 
 $ ./autogen.pl
 //Cofigure with Analysis, if you want to use the original Open_MPI, don't use the CFLAGS-Parameter!
-$ ./configure --prefix=/home/anna-lena/sharefolder/mpi LIBS="-lmongoc-1.0 -lmysqlclient" --with-pmix=internal CFLAGS="-DENABLE_ANALYSIS=1 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0"
+$ ./configure --prefix=/home/anna-lena/sharefolder/mpi LIBS="-lmongoc-1.0 -lmysqlclient -lpq" --with-pmix=internal CFLAGS="-DENABLE_ANALYSIS=1 -I/usr/local/include/libmongoc-1.0 -I/usr/local/include/libbson-1.0"
 
+./configure --prefix=/home/anna-lena/Desktop/Edu_install --with-pmix=internal --with-libdev=internal --with-hwloc=internal --with-prrte=internal LIBS="-lpq" CFLAGS="-DENABLE_ANALYSIS=1"
 
 
 Make MPI:
@@ -67,4 +68,12 @@ sudo apt get install clang
 -----------------PostgresSQL / TimescaleDB --------------------
 
 sudo apt-get install libpq-dev
+
+nix-shell -p autoconf automake libtool
+nix-shell -p stdenv flex_2_5_35 pandoc git postgresql.lib python3
+nix-shell -p postgresql postgresql.lib pkg-config
+
+nix-shell -p autoconf automake perl gnumake stdenv zlib python3 libtool flex hwloc munge numactl libbfd libiberty postgresql postgresql.lib pkg-config ucx
+
+
 

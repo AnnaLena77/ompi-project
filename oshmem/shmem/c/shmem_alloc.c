@@ -26,7 +26,7 @@
 #pragma weak shmalloc                = pshmalloc
 #pragma weak shmem_malloc_with_hints = pshmem_malloc_with_hints
 
-#include "oshmem/shmem/c/profile/defines.h"
+#include "oshmem/shmem/c/profile-defines.h"
 #endif
 
 static inline void* _shmalloc(size_t size);
@@ -39,6 +39,7 @@ void* shmem_malloc(size_t size)
 void* shmem_calloc(size_t count, size_t size)
 {
     size_t req_sz = count * size;
+    if (!req_sz) return NULL;
     void *ptr = _shmalloc(req_sz);
     if (ptr) {
         memset(ptr, 0, req_sz);

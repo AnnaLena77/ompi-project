@@ -85,6 +85,7 @@ int mca_sharedfp_individual_collaborate_data(struct mca_sharedfp_base_data_t *sh
     if ( OMPI_SUCCESS != ret ) {
 	goto exit;
     }
+
 #ifndef ENABLE_ANALYSIS
     ret = ompio_fh->f_comm->c_coll->coll_allgather ( &nodesoneachprocess, 
                                                      1, 
@@ -176,6 +177,7 @@ int mca_sharedfp_individual_collaborate_data(struct mca_sharedfp_base_data_t *sh
     if ( OMPI_SUCCESS != ret ) {
 	goto exit;
     }
+
 #ifndef ENABLE_ANALYSIS
     ret = ompio_fh->f_comm->c_coll->coll_allgatherv ( ind_recordlength, 
                                                       countbuff[ompio_fh->f_rank], 
@@ -195,7 +197,7 @@ int mca_sharedfp_individual_collaborate_data(struct mca_sharedfp_base_data_t *sh
                                                       displ, 
                                                       OMPI_OFFSET_DATATYPE,
                                                       ompio_fh->f_comm, 
-                                                      ompio_fh->f_comm->c_coll->coll_allgatherv_module, NULL);
+                                                      ompio_fh->f_comm->c_coll->coll_allgatherv_module, NULL );
 #endif
     if ( OMPI_SUCCESS != ret ) {
 	goto exit;
