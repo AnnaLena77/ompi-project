@@ -326,7 +326,7 @@ static void* SQLMonitorFunc(void* _arg){
    // printf("Length: %d\n", queue_length);
 }
 
-void writeIntoFile(qentry **q);
+void writeIntoFile(qentry **q){
     if(q==NULL || *q==NULL){
     	return;
     } else {
