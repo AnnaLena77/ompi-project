@@ -130,7 +130,7 @@ void qentryIntoQueue(qentry **q){
     //printf("Echtes Samplerandom: %d\n",samplerandom);
     //if(time(NULL)-counter_time>0.1){ }
     qentry *item = *q;
-    gettimeofday(&item->intoQueue, NULL);
+    //gettimeofday(&item->intoQueue, NULL);
     item->id = ++ID;
     //printf("intoqueue: %d \n", item->id);
     if(item->id==2) lock = 1;
@@ -294,7 +294,7 @@ static void* SQLMonitorFunc(void* _arg){
     	    //printf("Length: %d\n", length);
     	    if(length<100000){
     	        writeToPostgres(conn, length);
-    		gettimeofday(&start_timestamp, NULL);
+    	        gettimeofday(&start_timestamp, NULL);
     		
             } else {
                 while(length>100000){
@@ -327,7 +327,7 @@ void initializeQueue()
 { 
     //gettimeofday(&init_sql_start, NULL);
     TAILQ_INIT(&head);
-    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
+    //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     //gettimeofday(&init_sql_finished, NULL);
     //float dif = timeDifference(init_sql_finished, init_sql_start);
     //printf("Lost time for initializing sql: %f\n", dif);
@@ -337,7 +337,7 @@ void initializeQueue()
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
-    printf("Test with thread\n");
+    printf("Test without thread\n");
     #ifdef ENABLE_ANALYSIS
     gettimeofday(&start, NULL);
     #endif

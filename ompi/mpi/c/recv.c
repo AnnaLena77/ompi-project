@@ -48,7 +48,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     //item->start
-    gettimeofday(&item->start, NULL);
+    //gettimeofday(&item->start, NULL);
     //item->operation
     strcpy(item->function, "MPI_Recv");
     strcpy(item->communicationType, "p2p");
