@@ -345,8 +345,12 @@ void initializeQueue()
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Comm_size(comm, &size);
     MPI_Comm_rank(comm, &processrank);
-    sprintf(filename, "data/data_rank_%d.txt", processrank);
+    sprintf(filename, "data_rank_%d.txt", processrank);
     file = fopen(filename, "w");
+    if(file == NULL) {
+        printf("Error, the file can't be opened\n");
+        return 1;
+    }
     fclose(file);
     //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     //gettimeofday(&init_sql_finished, NULL);
