@@ -345,7 +345,7 @@ void initializeQueue()
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Comm_size(comm, &size);
     MPI_Comm_rank(comm, &processrank);
-    sprintf(filename, "data_rank_%d.txt", processrank);
+    sprintf(filename, "./data_rank_%d.txt", processrank);
     file = fopen(filename, "w");
     if(file == NULL) {
         printf("Error, the file can't be opened\n");
