@@ -370,7 +370,7 @@ void initializeQueue()
     MPI_Comm_rank(comm, &processrank);
     sprintf(filename, "./data_rank_%d.txt", processrank);
     
-    fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     //O_CREAT: Datei wird erstellt, wenn nicht vorhanden
     //O_WRONLY: Es darf nur in die Datei geschrieben werden
     //S_IRUSR | S_IWUSR: Eigentümer darf Datei lesen und schreiben (Permissions)
