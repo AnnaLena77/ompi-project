@@ -360,11 +360,6 @@ void initializeQueue()
     	exit(EXIT_FAILURE);
     }
     
-    if(file == NULL) {
-        printf("Error, the file can't be opened\n");
-        return 1;
-    }
-    
     //fclose(file);
     //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     //gettimeofday(&init_sql_finished, NULL);
