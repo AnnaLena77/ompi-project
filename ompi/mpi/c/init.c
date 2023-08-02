@@ -337,8 +337,8 @@ void writeIntoFile(qentry **q){
     	return;
     } else {
         qentry *item = *q;
-        const char* test;
-        sprintf(test, "test %d\n", illi);
+        char* test;
+        sprintf(test, "test %d\n", illi++);
         
         write(mapped_data, test, strlen(test));
     }
