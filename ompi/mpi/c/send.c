@@ -117,7 +117,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm));
     #else
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm, &item));
-    //writeIntoFile(&item);
+    writeIntoFile(&item);
     free(item);
     //qentryIntoQueue(&item);
     #endif
