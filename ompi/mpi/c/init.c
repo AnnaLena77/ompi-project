@@ -73,6 +73,7 @@ static int size, processrank;
 static FILE *file;
 static char filename[20];
 static int fd;
+static char* mapped_data
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
@@ -336,8 +337,26 @@ void writeIntoFile(qentry **q){
         qentry *item = *q;
         char* test = "test\n";
         
-        write(fd, test, strlen(test));
+        strncpy(fd, test, strlen(test));
     }
+}
+
+void closeFile(){
+    // Synchronisiere die Daten auf die Festplatte
+    if (msync(mapped_data, file_size, MS_SYNC) == -1) {
+        perror("msync");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    // Schließe die Abbildung und die Datei
+    if (munmap(mapped_data, file_size) == -1) {
+        perror("munmap");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    close(fd);
 }
 
 void initializeQueue()
@@ -358,6 +377,21 @@ void initializeQueue()
     if(fd == -1){
     	perror("open");
     	exit(EXIT_FAILURE);
+    }
+    
+    const int file_size = 4096; // Größe der Datei (kann angepasst werden)
+    // Ändere die Größe der Datei auf file_size Bytes
+    if (ftruncate(fd, file_size) == -1) {
+        perror("ftruncate");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+    
+    mapped_data = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (mapped_data == MAP_FAILED) {
+        perror("mmap");
+        close(fd);
+        exit(EXIT_FAILURE);
     }
     
     //fclose(file);
