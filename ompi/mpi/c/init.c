@@ -338,7 +338,7 @@ void writeIntoFile(qentry **q){
         qentry *item = *q;
         const char* test = "test\n";
         
-        strncpy(fd, test, strlen(test));
+        write(fd, test, strlen(test));
     }
 }
 
