@@ -75,6 +75,7 @@ static char filename[20];
 static int fd;
 static char* mapped_data;
 static int file_size;
+static int illi=0;
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
@@ -336,7 +337,8 @@ void writeIntoFile(qentry **q){
     	return;
     } else {
         qentry *item = *q;
-        const char* test = "test\n";
+        const char* test;
+        sprintf(test, "test %d\n", illi);
         
         write(mapped_data, test, strlen(test));
     }
