@@ -73,7 +73,8 @@ static int size, processrank;
 static FILE *file;
 static char filename[20];
 static int fd;
-static char* mapped_data
+static char* mapped_data;
+const int file_size;
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
@@ -379,7 +380,7 @@ void initializeQueue()
     	exit(EXIT_FAILURE);
     }
     
-    const int file_size = 4096; // Größe der Datei (kann angepasst werden)
+    file_size = 4096; // Größe der Datei (kann angepasst werden)
     // Ändere die Größe der Datei auf file_size Bytes
     if (ftruncate(fd, file_size) == -1) {
         perror("ftruncate");
