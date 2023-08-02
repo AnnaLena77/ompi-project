@@ -43,6 +43,7 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
+#include <sys/mman.h>
 //#include "ompi/mpi/c/init.h"
 
 
@@ -70,6 +71,7 @@ static int lock = 0;
 static int size, processrank;
 static FILE *file;
 static char filename[20];
+static int fd;
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
@@ -331,10 +333,9 @@ void writeIntoFile(qentry **q){
     	return;
     } else {
         qentry *item = *q;
-        file = fopen(filename, "w");
-        fprintf(file, "test\n");
-        fclose(file);
-        printf("wrote into file\n");
+        char* test = "test\n";
+        
+        write(fd, test, strlen(test));
     }
 }
 
@@ -347,12 +348,23 @@ void initializeQueue()
     MPI_Comm_size(comm, &size);
     MPI_Comm_rank(comm, &processrank);
     sprintf(filename, "./data_rank_%d.txt", processrank);
-    file = fopen(filename, "w");
+    
+    fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR)
+    //O_CREAT: Datei wird erstellt, wenn nicht vorhanden
+    //O_WRONLY: Es darf nur in die Datei geschrieben werden
+    //S_IRUSR | S_IWUSR: Eigentümer darf Datei lesen und schreiben (Permissions)
+    
+    if(fd == -1){
+    	perror("open");
+    	exit(EXIT_FAILURE);
+    }
+    
     if(file == NULL) {
         printf("Error, the file can't be opened\n");
         return 1;
     }
-    fclose(file);
+    
+    //fclose(file);
     //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     //gettimeofday(&init_sql_finished, NULL);
     //float dif = timeDifference(init_sql_finished, init_sql_start);
