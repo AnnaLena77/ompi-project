@@ -32,6 +32,8 @@
 #include <math.h>
 #include <sys/queue.h>
 #include <sys/time.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 
 #ifdef ENABLE_ANALYSIS
 #include <libpq-fe.h>
@@ -43,7 +45,6 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
-#include <sys/mman.h>
 //#include "ompi/mpi/c/init.h"
 
 
@@ -349,7 +350,7 @@ void initializeQueue()
     MPI_Comm_rank(comm, &processrank);
     sprintf(filename, "./data_rank_%d.txt", processrank);
     
-    fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR)
+    fd = open(filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     //O_CREAT: Datei wird erstellt, wenn nicht vorhanden
     //O_WRONLY: Es darf nur in die Datei geschrieben werden
     //S_IRUSR | S_IWUSR: Eigentümer darf Datei lesen und schreiben (Permissions)
