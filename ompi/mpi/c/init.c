@@ -419,7 +419,7 @@ int MPI_Init(int *argc, char ***argv)
 
     /* check for environment overrides for required thread level.  If
        there is, check to see that it is a valid/supported thread level.
-       If not, default to MPI_THREAD_MULTIPLE. */
+       If not, default to MPI_THREAD_MULTIPLE. mmap example c*/
 
     if (NULL != (env = getenv("OMPI_MPI_THREAD_LEVEL"))) {
         required = atoi(env);
