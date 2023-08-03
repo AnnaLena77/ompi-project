@@ -75,7 +75,7 @@ static char filename[20];
 static int fd;
 static char* mapped_data;
 static int file_size;
-static int illi=0;
+static int illi=1;
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
