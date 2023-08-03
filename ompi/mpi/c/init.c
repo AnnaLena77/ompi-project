@@ -382,7 +382,7 @@ void initializeQueue()
     	exit(EXIT_FAILURE);
     }
     
-    file_size = 6*200000; // Größe der Datei (kann angepasst werden)
+    file_size = 6*2000000000; // Größe der Datei (kann angepasst werden)
     
     // Ändere die Größe der Datei auf file_size Bytes
     if (ftruncate(fd, file_size) == -1) {
