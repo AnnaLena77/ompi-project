@@ -340,6 +340,7 @@ void writeIntoFile(qentry **q){
         char test[30];
         sprintf(test, "test %d\n", illi++);
         strncpy(mapped_data, test, strlen(test));
+        mapped_data += strlen(test) + 1;
     }
 }
 
