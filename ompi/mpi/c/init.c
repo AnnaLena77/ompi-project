@@ -339,7 +339,8 @@ void writeIntoFile(qentry **q){
         qentry *item = *q;
         char test[30];
         sprintf(test, "test %d\n", illi++);
-        strncat(mapped_data, test, strlen(test));
+        memcpy(mapped_data, test, strlen(test));
+        mapped_data += strlen(test);
     }
 }
 
