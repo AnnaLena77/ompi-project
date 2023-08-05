@@ -339,8 +339,9 @@ void writeIntoFile(qentry **q){
         qentry *item = *q;
         char test[30];
         sprintf(test, "test %d\n", illi++);
-        memcpy(mapped_data, test, strlen(test));
-        mapped_data += strlen(test);
+        //memcpy(mapped_data, test, strlen(test));
+        //mapped_data += strlen(test);
+        fwrite(test, sizeof(char), stlen(test), fd);
     }
 }
 
@@ -382,7 +383,7 @@ void initializeQueue()
     	exit(EXIT_FAILURE);
     }
     
-    file_size = 6*2000000000; // Größe der Datei (kann angepasst werden)
+    file_size = 6*20000000; // Größe der Datei (kann angepasst werden)
     
     // Ändere die Größe der Datei auf file_size Bytes
     if (ftruncate(fd, file_size) == -1) {
