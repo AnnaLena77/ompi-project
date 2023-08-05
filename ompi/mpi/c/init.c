@@ -77,6 +77,8 @@ static char* mapped_data;
 static int file_size;
 static int illi=1;
 
+static qentry *q_qentry;
+
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
     float microseconds = (a.tv_usec-b.tv_usec)*0.000001;
@@ -413,6 +415,7 @@ void initializeQueue()
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
+    q_qentry = (qentry*)malloc(sizeof(qentry));
     printf("Test without thread\n");
     #ifdef ENABLE_ANALYSIS
     gettimeofday(&start, NULL);

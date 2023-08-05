@@ -44,8 +44,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
     #ifdef ENABLE_ANALYSIS
-    qentry *item = NULL;
-    item = (qentry*)malloc(sizeof(qentry));
+    qentry *item = q_qentry;
     initQentry(&item);
     //item->start
     //gettimeofday(&item->start, NULL);
@@ -119,7 +118,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
 #else
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
     writeIntoFile(&item);
-    free(item);
+    //free(item);
     //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);

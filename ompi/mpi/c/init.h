@@ -64,6 +64,8 @@ extern void qentryIntoQueue(qentry **q);
 extern void initQentry(qentry **q);
 extern void writeIntoFile(qentry **q);
 
+extern qentry *q_qentry;
+
 extern void closeFile(void);
 
 
