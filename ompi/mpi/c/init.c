@@ -343,7 +343,7 @@ void writeIntoFile(qentry **q){
         sprintf(test, "test %d\n", illi++);
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
-        fwrite(test, 1, strlen(test), file);
+        fwrite(item->function, 1, strlen(test), file);
     }
 }
 
