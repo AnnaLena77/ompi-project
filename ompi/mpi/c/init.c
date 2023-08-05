@@ -77,7 +77,7 @@ static char* mapped_data;
 static int file_size;
 static int illi=1;
 
-static qentry *q_qentry;
+qentry *q_qentry;
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
