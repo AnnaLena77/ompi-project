@@ -341,7 +341,7 @@ void writeIntoFile(qentry **q){
         sprintf(test, "test %d\n", illi++);
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
-        write(fd, test, strlen(test));
+        fwrite(test, 1, strlen(test), file);
     }
 }
 
@@ -373,15 +373,18 @@ void initializeQueue()
     MPI_Comm_rank(comm, &processrank);
     sprintf(filename, "./data_rank_%d.txt", processrank);
     
-    fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    file = fopen(filename, "w");
+    
+    
+    //fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     //O_CREAT: Datei wird erstellt, wenn nicht vorhanden
     //O_WRONLY: Es darf nur in die Datei geschrieben werden
     //S_IRUSR | S_IWUSR: Eigentümer darf Datei lesen und schreiben (Permissions)
     
-    if(fd == -1){
+    /*if(fd == -1){
     	perror("open");
     	exit(EXIT_FAILURE);
-    }
+    }*/
     
     //file_size = 6*20000000; // Größe der Datei (kann angepasst werden)
     
