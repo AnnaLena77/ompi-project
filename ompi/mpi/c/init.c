@@ -341,13 +341,13 @@ void writeIntoFile(qentry **q){
         sprintf(test, "test %d\n", illi++);
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
-        fwrite(test, sizeof(char), strlen(test), fd);
+        write(fd, test, strlen(test));
     }
 }
 
 void closeFile(){
     // Synchronisiere die Daten auf die Festplatte
-    if (msync(mapped_data, file_size, MS_SYNC) == -1) {
+    /*if (msync(mapped_data, file_size, MS_SYNC) == -1) {
         perror("msync");
         close(fd);
         exit(EXIT_FAILURE);
@@ -358,7 +358,7 @@ void closeFile(){
         perror("munmap");
         close(fd);
         exit(EXIT_FAILURE);
-    }
+    }*/
 
     close(fd);
 }
@@ -383,10 +383,10 @@ void initializeQueue()
     	exit(EXIT_FAILURE);
     }
     
-    file_size = 6*20000000; // Größe der Datei (kann angepasst werden)
+    //file_size = 6*20000000; // Größe der Datei (kann angepasst werden)
     
     // Ändere die Größe der Datei auf file_size Bytes
-    if (ftruncate(fd, file_size) == -1) {
+    /*if (ftruncate(fd, file_size) == -1) {
         perror("ftruncate");
         close(fd);
         exit(EXIT_FAILURE);
@@ -397,7 +397,7 @@ void initializeQueue()
         perror("mmap");
         close(fd);
         exit(EXIT_FAILURE);
-    }
+    }*/
     
     //fclose(file);
     //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
