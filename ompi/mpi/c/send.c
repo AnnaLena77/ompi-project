@@ -55,8 +55,8 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     //item->start
     //gettimeofday(&item->start, NULL);
     //item->operation
-    memcpy(item->function, "MPI_Send", 8);
-    memcpy(item->communicationType, "p2p", 3);
+    memcpy(item->function, "MPI_Send", 9);
+    memcpy(item->communicationType, "p2p", 4);
     //item->blocking
     item->blocking = 1;
     //item->datatype
