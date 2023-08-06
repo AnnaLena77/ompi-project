@@ -51,13 +51,11 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     #ifdef ENABLE_ANALYSIS
     qentry *item = q_qentry;
     initQentry(&item);
-    printf("test\n");
     //item->start
     //gettimeofday(&item->start, NULL);
     //item->operation
     memcpy(item->function, "MPI_Send", 9);
     memcpy(item->communicationType, "p2p", 4);
-    printf("test2\n");
     //item->blocking
     item->blocking = 1;
     //item->datatype
