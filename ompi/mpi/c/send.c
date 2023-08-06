@@ -57,19 +57,20 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     //item->operation
     memcpy(item->function, "MPI_Send", 9);
     memcpy(item->communicationType, "p2p", 4);
+    printf("test2\n");
     //item->blocking
     item->blocking = 1;
     //item->datatype
     char type_name[MPI_MAX_OBJECT_NAME];
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
-    memcpy(item->datatype, type_name, strlen(type_name));
+    memcpy(item->datatype, type_name, type_name_length);
 
     //item->communicator
     char comm_name[MPI_MAX_OBJECT_NAME];
     int comm_name_length;
     MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    memcpy(item->communicationArea, comm_name, strlen(comm_name));
+    memcpy(item->communicationArea, comm_name, comm_name_length);
     //item->processrank
     int processrank;
     MPI_Comm_rank(comm, &processrank);
@@ -80,7 +81,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     char proc_name[MPI_MAX_PROCESSOR_NAME];
     int proc_name_length;
     MPI_Get_processor_name(proc_name, &proc_name_length);
-    memcpy(item->processorname, proc_name, proc_name);
+    memcpy(item->processorname, proc_name, proc_name_length);
     #endif
     
     int rc = MPI_SUCCESS;

@@ -49,8 +49,8 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     //item->start
     //gettimeofday(&item->start, NULL);
     //item->operation
-    memcpy(item->function, "MPI_Recv", 9);
-    memcpy(item->communicationType, "p2p", 4);
+    memcpy(item->function, "MPI_Recv", 8);
+    memcpy(item->communicationType, "p2p", 3);
     //item->blocking
     item->blocking = 1;
     //item->datatype
