@@ -49,8 +49,8 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
 {
     //Nur dieser Teil macht 15 Sekunden bei Pingpong mit 20.000.000
     #ifdef ENABLE_ANALYSIS
-    /*qentry *item = q_qentry;
-    initQentry(&item);
+    qentry *item = q_qentry;
+    /*initQentry(&item);
     //item->start
     //gettimeofday(&item->start, NULL);
     //item->operation
@@ -113,7 +113,6 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     if (MPI_PROC_NULL == dest) {
         return MPI_SUCCESS;
     }
-    qentry *item = q_qentry;
     #ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm));
     #else

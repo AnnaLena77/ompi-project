@@ -43,13 +43,13 @@ static const char FUNC_NAME[] = "MPI_Recv";
 int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
-    /*#ifdef ENABLE_ANALYSIS
+    #ifdef ENABLE_ANALYSIS
     qentry *item = q_qentry;
     initQentry(&item);
     //item->start
     //gettimeofday(&item->start, NULL);
     //item->operation
-    memcpy(item->function, "MPI_Recv", 8);
+    /*memcpy(item->function, "MPI_Recv", 8);
     memcpy(item->communicationType, "p2p", 3);
     //item->blocking
     item->blocking = 1;
@@ -113,7 +113,6 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
         }
         return MPI_SUCCESS;
     }
-    qentry *item = q_qentry;
 #ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
 #else
