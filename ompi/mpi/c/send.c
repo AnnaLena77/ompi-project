@@ -49,7 +49,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
 {
     //Nur dieser Teil macht 15 Sekunden bei Pingpong mit 20.000.000
     #ifdef ENABLE_ANALYSIS
-    qentry *item = q_qentry;
+    /*qentry *item = q_qentry;
     initQentry(&item);
     //item->start
     //gettimeofday(&item->start, NULL);
@@ -79,7 +79,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     char proc_name[MPI_MAX_PROCESSOR_NAME];
     int proc_name_length;
     MPI_Get_processor_name(proc_name, &proc_name_length);
-    memcpy(item->processorname, proc_name, proc_name_length);
+    memcpy(item->processorname, proc_name, proc_name_length);*/
     #endif
     
     int rc = MPI_SUCCESS;
@@ -113,10 +113,10 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     if (MPI_PROC_NULL == dest) {
         return MPI_SUCCESS;
     }
-    #ifndef ENABLE_ANALYSIS
+    //#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm));
-    #else
-    rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm, &item));
+    //#else
+    //rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm, &item));
     //writeIntoFile(&item);
     //free(item);
     //qentryIntoQueue(&item);

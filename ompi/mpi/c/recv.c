@@ -43,7 +43,7 @@ static const char FUNC_NAME[] = "MPI_Recv";
 int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
-    #ifdef ENABLE_ANALYSIS
+    /*#ifdef ENABLE_ANALYSIS
     qentry *item = q_qentry;
     initQentry(&item);
     //item->start
@@ -76,7 +76,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     char proc_name[MPI_MAX_PROCESSOR_NAME];
     int proc_name_length;
     MPI_Get_processor_name(proc_name, &proc_name_length);
-    memcpy(item->processorname, proc_name, proc_name_length);
+    memcpy(item->processorname, proc_name, proc_name_length);*/
     
     #endif
     int rc = MPI_SUCCESS;
@@ -113,10 +113,10 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
         }
         return MPI_SUCCESS;
     }
-#ifndef ENABLE_ANALYSIS
+//#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
-#else
-    rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
+//#else
+    //rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
     //writeIntoFile(&item);
     //free(item);
     //qentryIntoQueue(&item);

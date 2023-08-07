@@ -361,7 +361,7 @@ void closeFile(){
         close(fd);
         exit(EXIT_FAILURE);
     }*/
-
+    free(q_qentry);
     close(fd);
 }
 
