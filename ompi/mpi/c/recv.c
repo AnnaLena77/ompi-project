@@ -120,6 +120,6 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     //writeIntoFile(&item);
     //free(item);
     //qentryIntoQueue(&item);
-#endif
+//#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
