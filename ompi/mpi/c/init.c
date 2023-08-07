@@ -344,7 +344,7 @@ void writeIntoFile(qentry **q){
         qentry *item = *q;
         char buffer[1000];
         char buffer2[30];
-        createTimeString(q->start, buffer2);
+        createTimeString(item->start, buffer2);
         snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\tNOW()\n",
                  item->function, item->communicationType, item->count, item->datasize, item->communicationArea,
                  item->processorname, item->processrank, item->partnerrank, buffer2);
