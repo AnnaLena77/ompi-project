@@ -342,11 +342,13 @@ void writeIntoFile(qentry **q){
     	return;
     } else {
         qentry *item = *q;
-        char test[30];
-        sprintf(test, "%s\n", item->function);
+        char buffer[1000];
+        snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\tNOW()\n",
+                 q->function, q->communicationType, q->count, q->datasize, q->communicationArea,
+                 q->processorname, q->processrank, q->partnerrank, buffer2);
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
-        fwrite(test, 1, strlen(test), file);
+        fwrite(buffer, 1, 1000, file);
     }
 }
 
@@ -421,7 +423,6 @@ static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
     q_qentry = (qentry*)malloc(sizeof(qentry));
-    printf("Test without thread\n");
     #ifdef ENABLE_ANALYSIS
     gettimeofday(&start, NULL);
     #endif
