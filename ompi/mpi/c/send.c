@@ -86,17 +86,8 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
         MPI_Comm_get_name(comm, comm_name, &comm_name_length);
         memcpy(item->communicationArea, comm_name, comm_name_length);
     }
-    //item->processrank
-    /*int processrank;
-    MPI_Comm_rank(comm, &processrank);
-    item->processrank = processrank;
     //item->partnerrank
     item->partnerrank = dest;
-    //item->processorname
-    char proc_name[MPI_MAX_PROCESSOR_NAME];
-    int proc_name_length;
-    MPI_Get_processor_name(proc_name, &proc_name_length);
-    memcpy(item->processorname, proc_name, proc_name_length);*/
     #endif
     
     int rc = MPI_SUCCESS;

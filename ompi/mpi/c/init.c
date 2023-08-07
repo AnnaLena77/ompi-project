@@ -70,6 +70,9 @@ static int lock = 0;
 //sem_t ENSURE_INIT;
 
 static int size, processrank;
+char proc_name[MPI_MAX_PROCESSOR_NAME];
+int proc_name_length;
+
 static FILE *file;
 static char filename[20];
 static int fd;
@@ -115,8 +118,8 @@ void initQentry(qentry **q){
         item->datasize = 0;
         memcpy(item->operation, "", 0);
         memcpy(item->communicationArea, "", 0);
-        memcpy(item->processorname, "", 0);
-        item->processrank = -1;
+        memcpy(item->processorname, proc_name, proc_name_length);
+        item->processrank = processrank;
         item->partnerrank = -1;
         memcpy(item->sendmode, "", 0);
         item->immediate = 0;
@@ -373,6 +376,8 @@ void initializeQueue()
     MPI_Comm comm = MPI_COMM_WORLD;
     MPI_Comm_size(comm, &size);
     MPI_Comm_rank(comm, &processrank);
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    
     sprintf(filename, "./data_rank_%d.txt", processrank);
     
     file = fopen(filename, "w");
