@@ -350,7 +350,7 @@ void writeIntoFile(qentry **q){
                  item->processorname, item->processrank, item->partnerrank, buffer2);
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
-        fwrite(buffer, 1, strlen(buffer), file);
+        //fwrite(buffer, 1, strlen(buffer), file);
     }
 }
 
