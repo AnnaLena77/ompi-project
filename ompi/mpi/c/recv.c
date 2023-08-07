@@ -73,10 +73,14 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
         memcpy(item->datatype, type_name, type_name_length);
     }
     //item->communicator
-    char comm_name[MPI_MAX_OBJECT_NAME];
-    int comm_name_length;
-    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    memcpy(item->communicationArea, comm_name, comm_name_length);
+    if(comm == MPI_COMM_WORLD){
+        memcpy(item->communicationArea, "MPI_COMM_WORLD", 14);
+    } else {
+        char comm_name[MPI_MAX_OBJECT_NAME];
+        int comm_name_length;
+        MPI_Comm_get_name(comm, comm_name, &comm_name_length);
+        memcpy(item->communicationArea, comm_name, comm_name_length);
+    }
     
     //item->processrank
     /*int processrank;
