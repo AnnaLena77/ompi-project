@@ -113,13 +113,14 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
         }
         return MPI_SUCCESS;
     }
-//#ifndef ENABLE_ANALYSIS
+    qentry *item = q_qentry;
+#ifndef ENABLE_ANALYSIS
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
-//#else
-    //rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
+#else
+    rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
     //writeIntoFile(&item);
     //free(item);
     //qentryIntoQueue(&item);
-//#endif
+#endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }
