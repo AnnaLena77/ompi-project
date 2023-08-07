@@ -54,11 +54,24 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     //item->blocking
     item->blocking = 1;
     //item->datatype
-    char type_name[MPI_MAX_OBJECT_NAME];
-    int type_name_length;
-    MPI_Type_get_name(type, type_name, &type_name_length);
-    memcpy(item->datatype, type_name, type_name_length);
-
+    //item->datatype
+    if(type==MPI_INT){
+        memcpy(item->datatype, "MPI_INT", 7); 
+    }
+    else if(type==MPI_CHAR){
+        memcpy(item->datatype, "MPI_CHAR", 8);
+    }
+    else if(type==MPI_DOUBLE){
+        memcpy(item->datatype, "MPI_DOUBLE", 10);
+    }
+    else if(type==MPI_LONG){
+        memcpy(item->datatype, "MPI_LONG", 8);
+    } else {
+        char type_name[MPI_MAX_OBJECT_NAME];
+        int type_name_length;
+        MPI_Type_get_name(type, type_name, &type_name_length);
+        memcpy(item->datatype, type_name, type_name_length);
+    }
     //item->communicator
     /*char comm_name[MPI_MAX_OBJECT_NAME];
     int comm_name_length;
