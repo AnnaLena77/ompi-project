@@ -78,7 +78,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     MPI_Get_processor_name(proc_name, &proc_name_length);
     memcpy(item->processorname, proc_name, proc_name_length);*/
     
-    //#endif
+    #endif
     int rc = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_RECV, 1);
