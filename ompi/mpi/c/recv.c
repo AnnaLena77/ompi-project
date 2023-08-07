@@ -49,12 +49,12 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     //item->start
     //gettimeofday(&item->start, NULL);
     //item->operation
-    /*memcpy(item->function, "MPI_Recv", 8);
+    memcpy(item->function, "MPI_Recv", 8);
     memcpy(item->communicationType, "p2p", 3);
     //item->blocking
     item->blocking = 1;
     //item->datatype
-    char type_name[MPI_MAX_OBJECT_NAME];
+    /*char type_name[MPI_MAX_OBJECT_NAME];
     int type_name_length;
     MPI_Type_get_name(type, type_name, &type_name_length);
     memcpy(item->datatype, type_name, type_name_length);
