@@ -398,7 +398,7 @@ void writeIntoFile(qentry **q){
         offset ++;
         
         printf("test7\n");
-        
+        1
         memcpy(buffer+offset, (char *)&item->partnerrank, 1);
         offset ++;
         buffer[offset] = '\n';
