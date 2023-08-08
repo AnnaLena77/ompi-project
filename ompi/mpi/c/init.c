@@ -345,17 +345,50 @@ void writeIntoFile(qentry **q){
         
         int offset = 0;
         char buffer[500];
+        
         int func_len = strlen(item->function);
         memcpy(buffer, item->function, func_len);
         offset += func_len;
-        buffer[offset] = ",";
+        buffer[offset] = ',';
         offset ++;
         
         int comm_type_len = strlen(item->communicationType);
-        memcpy(buffer + offset, item->communicationType, func_len);
+        memcpy(buffer + offset, item->communicationType, comm_type_len);
         offset += comm_type_len;
-        buffer[offset] = ",";
+        buffer[offset] = ',';
+        offset ++;
         
+        buffer[offset] = item->count;
+        offset ++;
+        buffer[offset] = ',';
+        offset ++;
+        
+        buffer[offset] = item->datasize;
+        offset ++;
+        buffer[offset] = ',';
+        offset ++;
+        
+        int comm_area_len = strlen(item->communicationArea);
+        memcpy(buffer + offset, item->communicationArea, comm_area_len);
+        offset += comm_area_len;
+        buffer[offset] = ',';
+        offset ++;
+        
+        int procname_len = strlen(item->processorname);
+        memcpy(buffer + offset, item->processorname, procname_len);
+        offset += procname_len;
+        buffer[offset] = ',';
+        offset ++;
+        
+        buffer[offset] = item->processrank;
+        offset ++;
+        buffer[offset] = ',';
+        offset ++;
+        
+        buffer[offset] = item->partnerrank;
+        offset ++;
+        buffer[offset] = ',';
+        offset ++;
         
         printf("%s\n", buffer);
         
