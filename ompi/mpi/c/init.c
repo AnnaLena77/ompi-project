@@ -347,9 +347,11 @@ void writeIntoFile(qentry **q){
         char buffer[500];
         
         size_t func_len = strlen(item->function);
+        printf("Func_len: %d\n", func_len);
         memcpy(buffer, item->function, func_len);
         offset += func_len;
         buffer[offset] = ',';
+        printf("Offset: %d\n", offset);
         offset ++;
         
         printf("%s\n", buffer);
