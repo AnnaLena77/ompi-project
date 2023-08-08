@@ -112,7 +112,7 @@ void initQentry(qentry **q){
         memcpy(item->function, "", 0);
         item->blocking = -1;
         memcpy(item->datatype, "", 0);
-        item->count = 0;
+        item->count = 1234;
         item->sendcount = 0;
         item->recvcount = 0;
         item->datasize = 0;
@@ -359,17 +359,20 @@ void writeIntoFile(qentry **q){
         offset ++;
         
         int count = item->count;
-        int offset2 = log10(count);
-        /*while(count>0){
-            buffer[offset] = (count%10) + '0';
-            offset ++;
-            count = count/10;
-        }*/
-        printf("Offset: %d\n", offset2);
-        buffer[offset] = count + '0';
-        offset++;
-        buffer[offset] = ',';
-        offset ++;
+        if(count>9){
+            int offset2 = log10(count);
+	   for(int i = offset2, i=>0; i--){
+                buffer[offset+i] = (count%10) + '0';
+                count = count/10;
+	   }
+	   offset+=offset2
+	   buffer[offset] = ',';
+        } else {
+            buffer[offset] = count + '0';
+	   offset++;
+	   buffer[offset] = ',';
+	   offset ++;
+        } 
         //printf("%s\n", buffer);
    
         /*memcpy(buffer+offset, (char *)&item->datasize, sizeof(item->datasize));
