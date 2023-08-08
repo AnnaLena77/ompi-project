@@ -392,7 +392,7 @@ void writeIntoFile(qentry **q){
         offset ++;*/
         //buffer[offset] = '\n';
         
-        printf("%s", buffer);
+        //printf("%s", buffer);
         
         
         
