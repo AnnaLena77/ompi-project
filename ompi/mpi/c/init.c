@@ -352,21 +352,29 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
+        printf("test1\n");
+        
         int comm_type_len = strlen(item->communicationType);
         memcpy(buffer + offset, item->communicationType, comm_type_len);
         offset += comm_type_len;
         buffer[offset] = ',';
         offset ++;
         
+        printf("test2\n");
+        
         memcpy(buffer+offset, item->count, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
         
+        printf("test3\n");
+        
         memcpy(buffer+offset, item->datasize, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
+        
+        printf("test4\n");
         
         int comm_area_len = strlen(item->communicationArea);
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
@@ -374,20 +382,28 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
+        printf("test5\n");
+        
         int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
         offset += procname_len;
         buffer[offset] = ',';
         offset ++;
         
+        printf("test6\n");
+        
         memcpy(buffer+offset, item->processrank, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
         
+        printf("test7\n");
+        
         memcpy(buffer+offset, item->partnerrank, 1);
         offset ++;
         buffer[offset] = '\n';
+        
+        printf("test8\n");
         
         printf("%s", buffer);
         
