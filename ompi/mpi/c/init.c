@@ -342,12 +342,28 @@ void writeIntoFile(qentry **q){
     	return;
     } else {
         qentry *item = *q;
+        
+        size_t offset = 0;
         char buffer[500];
+        
+        size_t func_len = strlen(item->function);
+        memcpy(buffer, item->function, func_len);
+        offset += func_len;
+        buffer[offset] = ',';
+        offset ++;
+        
+        printf("%s", buffer);
+        
+        
+        
+        
+        
         //char buffer2[30];
         //createTimeString(item->start, buffer2);
-        snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\tNOW()\n",
+        /*snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\tNOW()\n",
                  item->function, item->communicationType, item->count, item->datasize, item->communicationArea,
-                 item->processorname, item->processrank, item->partnerrank);
+                 item->processorname, item->processrank, item->partnerrank);*/
+        char *buffer = "%s
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
         //fwrite(buffer, 1, strlen(buffer), file);
@@ -382,10 +398,11 @@ void initializeQueue()
     MPI_Comm_rank(comm, &processrank);
     MPI_Get_processor_name(proc_name, &proc_name_length);
     
-    sprintf(filename, "./data_rank_%d.txt", processrank);
+    sprintf(filename, "./data_rank_%d.csv", processrank);
     
     file = fopen(filename, "w");
     
+    fprintf(filename, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
     
     //fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     //O_CREAT: Datei wird erstellt, wenn nicht vorhanden
