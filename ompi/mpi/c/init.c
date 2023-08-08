@@ -342,7 +342,7 @@ void writeIntoFile(qentry **q){
     	return;
     } else {
         qentry *item = *q;
-        char buffer[1000];
+        char buffer[500];
         //char buffer2[30];
         //createTimeString(item->start, buffer2);
         snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\tNOW()\n",
