@@ -387,8 +387,7 @@ void writeIntoFile(qentry **q){
         
         buffer[offset] = item->partnerrank;
         offset ++;
-        buffer[offset] = ',';
-        offset ++;
+        buffer[offset] = '\n';
         
         printf("%s\n", buffer);
         
