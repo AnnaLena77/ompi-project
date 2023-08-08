@@ -358,7 +358,7 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        char test[10]
+        char test[10];
         memcpy(test, (char *)&item->count, sizeof(item->count));
         offset ++;
         buffer[offset] = ',';
