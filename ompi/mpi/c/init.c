@@ -358,7 +358,7 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        char str[12]
+        char str[12];
         sprintf(str, "%d", item->count);
         memcpy(buffer + offset, str, strlen(str));
         offset+=strlen(str);
