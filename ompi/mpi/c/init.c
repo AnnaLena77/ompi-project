@@ -362,14 +362,14 @@ void writeIntoFile(qentry **q){
         
         printf("test2\n");
         
-        memcpy(buffer+offset, item->count, 1);
+        memcpy(buffer+offset, (char *)item->count, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
         
         printf("test3\n");
         
-        memcpy(buffer+offset, item->datasize, 1);
+        memcpy(buffer+offset, (char *)item->datasize, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
@@ -392,14 +392,14 @@ void writeIntoFile(qentry **q){
         
         printf("test6\n");
         
-        memcpy(buffer+offset, item->processrank, 1);
+        memcpy(buffer+offset, (char *)item->processrank, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
         
         printf("test7\n");
         
-        memcpy(buffer+offset, item->partnerrank, 1);
+        memcpy(buffer+offset, (char *)item->partnerrank, 1);
         offset ++;
         buffer[offset] = '\n';
         
