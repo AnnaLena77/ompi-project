@@ -362,6 +362,8 @@ void writeIntoFile(qentry **q){
         char s[sizeof(n)];
         memcpy(s, char *)&n, sizeof(n));
         
+        printf("String: %s\n", s);
+        
         /*int il = 5;
         char test[10];
         printf("item->count: %s size: %d\n", (char)item->count, sizeof(item->count));
