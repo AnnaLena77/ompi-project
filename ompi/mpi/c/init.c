@@ -358,23 +358,14 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        int n = 12;
-        char s[sizeof(n)];
-        memcpy(s, (char *)&n, sizeof(n));
-        
-        printf("String: %s\n", s);
-        
-        /*int il = 5;
-        char test[10];
-        printf("item->count: %s size: %d\n", (char)item->count, sizeof(item->count));
-        memcpy(test, &il, sizeof(il));
-        offset ++;
+        char str[12]
+        sprintf(str, "%d", item->count);
+        memcpy(buffer + offset, str, strlen(str));
+        offset+=strlen(str);
         buffer[offset] = ',';
         offset ++;
-        
-        printf("%s\n", test);
-        
-        memcpy(buffer+offset, (char *)&item->datasize, sizeof(item->datasize));
+   
+        /*memcpy(buffer+offset, (char *)&item->datasize, sizeof(item->datasize));
         offset ++;
         buffer[offset] = ',';
         offset ++;*/
@@ -400,7 +391,7 @@ void writeIntoFile(qentry **q){
         offset ++;*/
         //buffer[offset] = '\n';
         
-        //printf("%s", buffer);
+        printf("%s", buffer);
         
         
         
