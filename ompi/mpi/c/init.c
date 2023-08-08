@@ -365,7 +365,7 @@ void writeIntoFile(qentry **q){
                 buffer[offset+i] = (count%10) + '0';
                 count = count/10;
 	   }
-	   offset+=offset2
+	   offset+=offset2;
 	   buffer[offset] = ',';
         } else {
             buffer[offset] = count + '0';
