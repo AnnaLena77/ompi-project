@@ -403,7 +403,7 @@ void initializeQueue()
     
     file = fopen(filename, "w");
     
-    fprintf(filename, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
+    fprintf(file, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
     
     //fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     //O_CREAT: Datei wird erstellt, wenn nicht vorhanden
