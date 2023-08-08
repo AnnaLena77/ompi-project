@@ -352,7 +352,7 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        printf("%s", buffer);
+        printf("%s\n", buffer);
         
         
         
@@ -363,7 +363,6 @@ void writeIntoFile(qentry **q){
         /*snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\tNOW()\n",
                  item->function, item->communicationType, item->count, item->datasize, item->communicationArea,
                  item->processorname, item->processrank, item->partnerrank);*/
-        char *buffer = "%s
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
         //fwrite(buffer, 1, strlen(buffer), file);
