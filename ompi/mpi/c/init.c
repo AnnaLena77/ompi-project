@@ -358,12 +358,12 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        buffer[offset] = item->count;
+        memcpy(buffer+offset, item->count, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
         
-        buffer[offset] = item->datasize;
+        memcpy(buffer+offset, item->datasize, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
@@ -380,16 +380,16 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        buffer[offset] = item->processrank;
+        memcpy(buffer+offset, item->processrank, 1);
         offset ++;
         buffer[offset] = ',';
         offset ++;
         
-        buffer[offset] = item->partnerrank;
+        memcpy(buffer+offset, item->partnerrank, 1);
         offset ++;
         buffer[offset] = '\n';
         
-        printf("%s\n", buffer);
+        printf("%s", buffer);
         
         
         
