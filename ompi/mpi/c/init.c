@@ -358,12 +358,12 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        char str[12];
+        /*char str[12];
         sprintf(str, "%d", item->count);
         memcpy(buffer + offset, str, strlen(str));
         offset+=strlen(str);
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
         //printf("%s\n", buffer);
    
         /*memcpy(buffer+offset, (char *)&item->datasize, sizeof(item->datasize));
@@ -390,7 +390,7 @@ void writeIntoFile(qentry **q){
 
         memcpy(buffer+offset, (char *)&item->partnerrank, sizeof(item->partnerrank));
         offset ++;*/
-        //buffer[offset] = '\n';
+        buffer[offset] = '\n';
         
         //printf("%s", buffer);
         
@@ -405,7 +405,7 @@ void writeIntoFile(qentry **q){
                  item->processorname, item->processrank, item->partnerrank);*/
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
-        //fwrite(buffer, 1, strlen(buffer), file);
+        fwrite(buffer, 1, strlen(buffer), file);
     }
 }
 
