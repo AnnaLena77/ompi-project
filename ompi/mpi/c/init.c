@@ -360,7 +360,7 @@ void writeIntoFile(qentry **q){
         
         int n = 12;
         char s[sizeof(n)];
-        memcpy(s, char *)&n, sizeof(n));
+        memcpy(s, (char *)&n, sizeof(n));
         
         printf("String: %s\n", s);
         
