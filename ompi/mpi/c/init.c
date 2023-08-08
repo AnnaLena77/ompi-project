@@ -343,11 +343,11 @@ void writeIntoFile(qentry **q){
     } else {
         qentry *item = *q;
         char buffer[1000];
-        char buffer2[30];
-        createTimeString(item->start, buffer2);
-        snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\tNOW()\n",
+        //char buffer2[30];
+        //createTimeString(item->start, buffer2);
+        snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\tNOW()\n",
                  item->function, item->communicationType, item->count, item->datasize, item->communicationArea,
-                 item->processorname, item->processrank, item->partnerrank, buffer2);
+                 item->processorname, item->processrank, item->partnerrank);
         //memcpy(mapped_data, test, strlen(test));
         //mapped_data += strlen(test);
         //fwrite(buffer, 1, strlen(buffer), file);
