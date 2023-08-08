@@ -358,7 +358,7 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        int il = item->count;
+        int il = 5;
         char test[10];
         printf("item->count: %s size: %d\n", (char)item->count, sizeof(item->count));
         memcpy(test, &il, sizeof(il));
