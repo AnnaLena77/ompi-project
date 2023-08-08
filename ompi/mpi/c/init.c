@@ -360,13 +360,7 @@ void writeIntoFile(qentry **q){
         
         int count = item->count;
         if(count>9){
-            int offset2 = log10(count)+1;
-	   for(int i = offset2; i>=0; i--){
-                buffer[offset+i] = (count%10) + '0';
-                count = count/10;
-	   }
-	   offset+=offset2;
-	   buffer[offset] = ',';
+            
         } else {
             buffer[offset] = count + '0';
 	   offset++;
