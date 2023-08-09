@@ -450,7 +450,7 @@ void writeIntoFile(qentry **q){
             partner_before = partner;
             char *buffer_help = createIntArray(partner);
             int partner_len = strlen(partner_before_arr);
-            printf("%s\n", buffer_help);
+            printf("Hallo %s\n", buffer_help);
             memcpy(buffer + offset, buffer_help, partner_len);
             memcpy(count_before_arr, buffer_help, partner_len);
             free(buffer_help);
