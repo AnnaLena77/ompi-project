@@ -352,7 +352,7 @@ char* createIntArray(int count){
         count = count / 10;
     }
     buffer_help[i] = '\0';
-    char buffer_help2 = (char*) malloc(i-1);
+    char *buffer_help2 = (char*) malloc(i-1);
     int x = 0;
     while(i>0){
         i--;
@@ -413,7 +413,7 @@ void writeIntoFile(qentry **q){
         //printf("%s\n", buffer);
    
         //int comm_area_len = strlen(item->communicationArea);
-        buffer[offset] = = '0';
+        buffer[offset] = '0';
         offset ++;
         //offset += comm_area_len;
         buffer[offset] = ',';
@@ -449,8 +449,8 @@ void writeIntoFile(qentry **q){
             partner_before = partner;
             char *buffer_help = createIntArray(partner);
             int partner_len = strlen(partner_before_arr);
-            memcpy(buffer + offset, buffer_help, count_len);
-            memcpy(count_before_arr, buffer_help, count_len);
+            memcpy(buffer + offset, buffer_help, partner_len);
+            memcpy(count_before_arr, buffer_help, partner_len);
             free(buffer_help);
             offset+=partner_len;
             buffer[offset] = ',';
