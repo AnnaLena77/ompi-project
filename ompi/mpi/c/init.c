@@ -401,7 +401,7 @@ void writeIntoFile(qentry **q){
             //printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
         } else {
             count_before = count;
-            count_before_arr = count + '0';
+            count_before_arr[0] = count + '0';
             buffer[offset] = count + '0';
 	   offset++;
 	   buffer[offset] = ',';
