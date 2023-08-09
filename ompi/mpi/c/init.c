@@ -360,7 +360,6 @@ char* createIntArray(int count){
         x++;
     }
     buffer_help2[x] = '\0';
-    printf("%s\n", buffer_help2);
     return buffer_help2;
 }
 

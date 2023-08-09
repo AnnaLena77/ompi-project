@@ -32,7 +32,7 @@ typedef struct qentry {
     int withinEagerLimit;
     int foundMatchWild;
     char usedAlgorithm[30];
-    struct timeval start;
+    struct timespec start;
     struct timeval initializeRequest;
     struct timeval startRequest;
     //Completion of the first fragment of a long message that requires an acknowledgement
