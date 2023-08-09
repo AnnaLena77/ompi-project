@@ -368,9 +368,9 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        /*int count = item->count;
+        int count = item->count;
         if(count>9){
-            char buffer_help[20];
+            char buffer_help[8];
             int i = 0;
             while(count!=0){
                  int rem = count%10;
@@ -382,6 +382,7 @@ void writeIntoFile(qentry **q){
             while(i>0){
                 i--;
                 buffer[offset] = buffer_help[i];
+                printf("Wrote %c to buffer\n", buffer_help[i]);
                 offset++;
             }
             buffer[offset] = ',';
@@ -453,7 +454,9 @@ void closeFile(){
         exit(EXIT_FAILURE);
     }*/
     free(q_qentry);
+    printf("start closing\n");
     close(fd);
+    printf("finished closing\n");
 }
 
 void initializeQueue()
