@@ -396,7 +396,7 @@ void writeIntoFile(qentry **q){
         else if(count>9){
             count_before = count;
             char *buffer_help = createIntArray(count);
-            int count_len = strlen(count_before_arr);
+            int count_len = strlen(buffer_help);
             memcpy(buffer + offset, buffer_help, count_len);
             memcpy(count_before_arr, buffer_help, count_len);
             free(buffer_help);
@@ -446,11 +446,10 @@ void writeIntoFile(qentry **q){
             buffer[offset] = ',';
             offset ++;
         }
-        else if(count>9){
+        else if(partner > 9){
             partner_before = partner;
             char *buffer_help = createIntArray(partner);
             int partner_len = strlen(partner_before_arr);
-            printf("Hallo %s\n", buffer_help);
             memcpy(buffer + offset, buffer_help, partner_len);
             memcpy(count_before_arr, buffer_help, partner_len);
             free(buffer_help);
