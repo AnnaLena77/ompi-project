@@ -377,6 +377,7 @@ void writeIntoFile(qentry **q){
                  buffer_help[i++] = (rem>9)?(rem-10)+'a':rem+'0';
                  count = count / 10;
             }
+            buffer_help[i] = '\0';
             printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
         } else {
             buffer[offset] = count + '0';
