@@ -378,7 +378,7 @@ void writeIntoFile(qentry **q){
             int count_len = strlen(count_before_arr);
             memcpy(buffer + offset, count_before_arr, count_len);
             offset+=count_len;
-            buffer[offset] = ','
+            buffer[offset] = ',';
             offset ++;
         }
         else if(count>9){
