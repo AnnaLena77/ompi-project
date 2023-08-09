@@ -337,7 +337,7 @@ static void* SQLMonitorFunc(void* _arg){
    // printf("Length: %d\n", queue_length);
 }
 
-char* createIntArray(int number){
+char* createIntArray(int count){
     char *buffer_help = (char*) malloc(8);
     int i = 0;
     while(count!=0){
