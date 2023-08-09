@@ -457,9 +457,9 @@ void writeIntoFile(qentry **q){
             buffer[offset] = ',';
             offset ++;
         } else {
-            partner_before = count;
-            partner_before_arr[0] = count + '0';
-            buffer[offset] = count + '0';
+            partner_before = partner;
+            partner_before_arr[0] = partner + '0';
+            buffer[offset] = partner + '0';
 	   offset++;
 	   buffer[offset] = ',';
 	   offset ++;
