@@ -367,7 +367,6 @@ void writeIntoFile(qentry **q){
         offset += comm_type_len;
         buffer[offset] = ',';
         offset ++;
-        printf("Offset before: %d\n", offset);
         int count = item->count;
         if(count>9){
             char buffer_help[8];
