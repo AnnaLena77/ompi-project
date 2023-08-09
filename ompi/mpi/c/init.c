@@ -370,11 +370,14 @@ void writeIntoFile(qentry **q){
         
         int count = item->count;
         if(count>9){
-            char buf[20];
-            itoa(count, buf, strlen(buf));
-            offset += strlen(buf);
-            buffer[offset] = ',';
-            offset ++;
+            buffer_help[20];
+            int i = 0;
+            while(num!=0){
+                 int rem = num%10;
+                 buffer_help[i++] = (rem>9)?(rem-10)+'a':rem+'0';
+                 num = num / 10;
+            }
+            printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
         } else {
             buffer[offset] = count + '0';
 	   offset++;
