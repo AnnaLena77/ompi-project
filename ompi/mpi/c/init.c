@@ -381,11 +381,11 @@ void writeIntoFile(qentry **q){
             
             while(i>0){
                 i--;
-                //buffer[offset] = buffer_help[i];
-                //offset++;
+                buffer[offset] = buffer_help[i];
+                offset++;
             }
-            //buffer[offset] = ',';
-            //offset ++;
+            buffer[offset] = ',';
+            offset ++;
             //printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
         } else {
             buffer[offset] = count + '0';
@@ -419,7 +419,7 @@ void writeIntoFile(qentry **q){
 
         memcpy(buffer+offset, (char *)&item->partnerrank, sizeof(item->partnerrank));
         offset ++;*/
-        buffer[offset] = '\0';
+        buffer[offset] = '\n';
         
         //printf("%s", buffer);
         
