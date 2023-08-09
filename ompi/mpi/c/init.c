@@ -343,7 +343,7 @@ char* createIntArray(int number){
     while(number>0){
         numbers[offset] = number%10 + '0';
         offset ++;
-        n/=10;
+        number/=10;
     }
     return numbers;
 }
@@ -375,6 +375,8 @@ void writeIntoFile(qentry **q){
                 buffer[offset] = numbers[i];
                 offset++;
             }
+            buffer[offset] = ',';
+            offset++;
         } else {
             buffer[offset] = count + '0';
 	   offset++;
