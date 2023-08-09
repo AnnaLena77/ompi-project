@@ -374,6 +374,7 @@ void writeIntoFile(qentry **q){
         if(count>9){
             char *buffer_help = createIntArray(count);
             int i = strlen(buffer_help);
+            printf("%d\n", i);
             while(i>0){
                 i--;
                 buffer[offset] = buffer_help[i];
