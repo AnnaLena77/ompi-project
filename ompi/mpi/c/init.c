@@ -80,6 +80,9 @@ static char* mapped_data;
 static int file_size;
 static int illi=1;
 
+static int count_before = 0;
+static char count_before_arr[10];
+
 qentry *q_qentry;
 
 float timeDifference(struct timeval a, struct timeval b){
@@ -371,21 +374,34 @@ void writeIntoFile(qentry **q){
         offset ++;
         
         int count = item->count;
-        if(count>9){
+        if(count == count_before){
+            int count_len = strlen(count_before_arr);
+            memcpy(buffer + offset, count_before_arr, count_len);
+            offset+=count_len;
+            buffer[offset] = ','
+            offset ++;
+        }
+        else if(count>9){
+            count_before = count;
             char *buffer_help = createIntArray(count);
             int i = strlen(buffer_help);
+            int x = 0;
             //printf("%d\n", i);
             while(i>0){
                 i--;
                 buffer[offset] = buffer_help[i];
                 //printf("Wrote %c to buffer\n", buffer_help[i]);
                 offset++;
+                count_before_arr[x] = buffer_help[i];
+                x++;
             }
             free(buffer_help);
             buffer[offset] = ',';
             offset ++;
             //printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
         } else {
+            count_before = count;
+            count_before_arr = count + '0';
             buffer[offset] = count + '0';
 	   offset++;
 	   buffer[offset] = ',';
