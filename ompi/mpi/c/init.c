@@ -382,7 +382,7 @@ void writeIntoFile(qentry **q){
                 offset++;
             }
             free(buffer_help);
-            //buffer[offset] = '\0';
+            buffer[offset] = '\0';
             //offset ++;
             buffer[offset] = ',';
             offset ++;
