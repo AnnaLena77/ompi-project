@@ -393,7 +393,7 @@ void writeIntoFile(qentry **q){
 	   offset++;
 	   buffer[offset] = ',';
 	   offset ++;
-        } */
+        } 
         //printf("%s\n", buffer);
    
         /*memcpy(buffer+offset, (char *)&item->datasize, sizeof(item->datasize));
