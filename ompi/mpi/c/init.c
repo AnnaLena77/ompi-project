@@ -372,10 +372,10 @@ void writeIntoFile(qentry **q){
         if(count>9){
             buffer_help[20];
             int i = 0;
-            while(num!=0){
-                 int rem = num%10;
+            while(count!=0){
+                 int rem = count%10;
                  buffer_help[i++] = (rem>9)?(rem-10)+'a':rem+'0';
-                 num = num / 10;
+                 count = count / 10;
             }
             printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
         } else {
