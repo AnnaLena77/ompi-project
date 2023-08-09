@@ -383,7 +383,7 @@ void writeIntoFile(qentry **q){
             }
             free(buffer_help);
             buffer[offset] = '\0';
-            //offset ++;
+            offset ++;
             buffer[offset] = ',';
             offset ++;
             //printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
