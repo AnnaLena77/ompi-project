@@ -380,9 +380,9 @@ void writeIntoFile(qentry **q){
             buffer_help[i] = '\0';
             
             while(i>=0){
+                i--;
                 buffer[offset] = buffer_help[i];
                 offset++;
-                i--;
             }
             buffer[offset] = ',';
             offset ++;
