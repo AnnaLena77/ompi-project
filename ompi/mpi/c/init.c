@@ -337,16 +337,18 @@ static void* SQLMonitorFunc(void* _arg){
    // printf("Length: %d\n", queue_length);
 }
 
-/*char* createIntArray(int number){
-    char *numbers = (char*)malloc(20*sizeof(int));
-    int offset = 0;
-    while(number>0){
-        numbers[offset] = number%10 + '0';
-        offset ++;
-        number/=10;
-    }
-    return numbers;
-}*/
+char* createIntArray(int number){
+    char *buffer_help = (char*) malloc(8);
+    int i = 0;
+    while(count!=0){
+        int rem = count%10;
+        buffer_help[i++] = (rem>9)?(rem-10)+'a':rem+'0';
+        count = count / 10;
+        }
+    buffer_help[i] = '\0';
+    return buffer_help;
+}
+
 void writeIntoFile(qentry **q){
     if(q==NULL || *q==NULL){
     	return;
@@ -367,17 +369,11 @@ void writeIntoFile(qentry **q){
         offset += comm_type_len;
         buffer[offset] = ',';
         offset ++;
+        
         int count = item->count;
         if(count>9){
-            char buffer_help[8];
-            int i = 0;
-            while(count!=0){
-                 int rem = count%10;
-                 buffer_help[i++] = (rem>9)?(rem-10)+'a':rem+'0';
-                 count = count / 10;
-            }
-            buffer_help[i] = '\0';
-            
+            char *buffer_help = createIntArray(count);
+            int i = strlen(buffer_help);
             while(i>0){
                 i--;
                 buffer[offset] = buffer_help[i];
@@ -455,9 +451,7 @@ void closeFile(){
         exit(EXIT_FAILURE);
     }*/
     free(q_qentry);
-    printf("start closing\n");
     close(fd);
-    printf("finished closing\n");
 }
 
 void initializeQueue()
