@@ -70,6 +70,7 @@ static int lock = 0;
 //sem_t ENSURE_INIT;
 
 static int size, processrank;
+static char processrank_arr[4];
 char proc_name[MPI_MAX_PROCESSOR_NAME];
 int proc_name_length;
 
@@ -426,30 +427,21 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        /*memcpy(buffer+offset, (char *)&item->processrank, sizeof(item->processrank));
+        int processrank_len = strlen(processrank_arr);
+        memcpy(buffer+offset, processrank_arr, processrank_len);
         offset ++;
         buffer[offset] = ',';
         offset ++;
 
-        memcpy(buffer+offset, (char *)&item->partnerrank, sizeof(item->partnerrank));
-        offset ++;*/
+        /*memcpy(buffer+offset, (char *)&item->partnerrank, sizeof(item->partnerrank));
+        offset ++;
         buffer[offset] = '\n';
         offset++;
-        buffer[offset] = '\0';
+        buffer[offset] = '\0';*/
         
         //printf("%s", buffer);
-        
-        
-        
-        
-        
         //char buffer2[30];
         //createTimeString(item->start, buffer2);
-        /*snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\tNOW()\n",
-                 item->function, item->communicationType, item->count, item->datasize, item->communicationArea,
-                 item->processorname, item->processrank, item->partnerrank);*/
-        //memcpy(mapped_data, test, strlen(test));
-        //mapped_data += strlen(test);
         fwrite(buffer, 1, strlen(buffer), file);
     }
 }
@@ -483,6 +475,23 @@ void initializeQueue()
     MPI_Get_processor_name(proc_name, &proc_name_length);
     
     sprintf(filename, "./data_rank_%d.csv", processrank);
+    int processrank = item->processrank;
+    if(processrank>9){
+        char *buffer_help = createIntArray(processrank);
+        int i = strlen(buffer_help);
+        int x = 0;
+        //printf("%d\n", i);
+        while(i>0){
+            i--;
+            processrank_arr[x] = buffer_help[i];
+            x++;
+        }
+        processrank_arr[x] = '\0';
+        free(buffer_help);
+    } else {
+        processrank_arr[0] = count + '0';
+        processrank_arr[1] = '\0';
+    } 
     
     file = fopen(filename, "w");
     
