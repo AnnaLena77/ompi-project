@@ -337,6 +337,16 @@ static void* SQLMonitorFunc(void* _arg){
    // printf("Length: %d\n", queue_length);
 }
 
+char* createIntArray(int number){
+    char *numbers = (char*)malloc(20*sizeof(int));
+    int offset = 0;
+    while(number>0){
+        numbers[offset] = number%10 + '0';
+        offset ++;
+        n/=10;
+    }
+    return numbers;
+}
 void writeIntoFile(qentry **q){
     if(q==NULL || *q==NULL){
     	return;
@@ -360,8 +370,11 @@ void writeIntoFile(qentry **q){
         
         int count = item->count;
         if(count>9){
-            int digit = (int)log10(count) +1;
-            
+            char *numbers = createIntArray(count);
+            for(int i=strlen(numbers)-1; i>=0; i--){
+                buffer[offset] = numbers[i];
+                offset++;
+            }
         } else {
             buffer[offset] = count + '0';
 	   offset++;
@@ -394,7 +407,7 @@ void writeIntoFile(qentry **q){
 
         memcpy(buffer+offset, (char *)&item->partnerrank, sizeof(item->partnerrank));
         offset ++;*/
-        buffer[offset] = '\n';
+        buffer[offset] = '\0';
         
         //printf("%s", buffer);
         
