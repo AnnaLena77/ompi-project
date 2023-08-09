@@ -370,7 +370,7 @@ void writeIntoFile(qentry **q){
         
         int count = item->count;
         if(count>9){
-            buffer_help[20];
+            char buffer_help[20];
             int i = 0;
             while(count!=0){
                  int rem = count%10;
