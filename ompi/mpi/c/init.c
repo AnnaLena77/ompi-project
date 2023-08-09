@@ -380,6 +380,7 @@ void writeIntoFile(qentry **q){
                 //printf("Wrote %c to buffer\n", buffer_help[i]);
                 offset++;
             }
+            free(buffer_help);
             buffer[offset] = '\0';
             offset ++;
             buffer[offset] = ',';
