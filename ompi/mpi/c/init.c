@@ -82,7 +82,9 @@ static int file_size;
 static int illi=1;
 
 static int count_before = 0;
+static int partner_before = 0;
 static char count_before_arr[10];
+static char partner_before_arr[10];
 
 qentry *q_qentry;
 
@@ -342,15 +344,23 @@ static void* SQLMonitorFunc(void* _arg){
 }
 
 char* createIntArray(int count){
-    char *buffer_help = (char*) malloc(8);
+    char buffer_help[8];
     int i = 0;
     while(count!=0){
         int rem = count%10;
         buffer_help[i++] = (rem>9)?(rem-10)+'a':rem+'0';
         count = count / 10;
-        }
+    }
     buffer_help[i] = '\0';
-    return buffer_help;
+    char buffer_help2 = (char*) malloc(i-1);
+    int x = 0;
+    while(i>0){
+        i--;
+        buffer_help2[x] = buffer_help[i];
+        x++;
+    }
+    buffer_help2[x] = '\0';
+    return buffer_help2;
 }
 
 void writeIntoFile(qentry **q){
@@ -385,21 +395,13 @@ void writeIntoFile(qentry **q){
         else if(count>9){
             count_before = count;
             char *buffer_help = createIntArray(count);
-            int i = strlen(buffer_help);
-            int x = 0;
-            //printf("%d\n", i);
-            while(i>0){
-                i--;
-                buffer[offset] = buffer_help[i];
-                //printf("Wrote %c to buffer\n", buffer_help[i]);
-                offset++;
-                count_before_arr[x] = buffer_help[i];
-                x++;
-            }
+            int count_len = strlen(count_before_arr);
+            memcpy(buffer + offset, buffer_help, count_len);
+            memcpy(count_before_arr, buffer_help, count_len);
             free(buffer_help);
+            offset+=count_len;
             buffer[offset] = ',';
             offset ++;
-            //printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
         } else {
             count_before = count;
             count_before_arr[0] = count + '0';
@@ -410,10 +412,12 @@ void writeIntoFile(qentry **q){
         } 
         //printf("%s\n", buffer);
    
-        /*memcpy(buffer+offset, (char *)&item->datasize, sizeof(item->datasize));
+        //int comm_area_len = strlen(item->communicationArea);
+        buffer[offset] = = '0';
         offset ++;
+        //offset += comm_area_len;
         buffer[offset] = ',';
-        offset ++;*/
+        offset ++;
        
         int comm_area_len = strlen(item->communicationArea);
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
@@ -433,11 +437,36 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
 
-        /*memcpy(buffer+offset, (char *)&item->partnerrank, sizeof(item->partnerrank));
-        offset ++;
+        int partner = item->partnerrank;
+        if(partner == partner_before){
+            int partner_len = strlen(partner_before_arr);
+            memcpy(buffer + offset, partner_before_arr, partner_len);
+            offset+=partner_len;
+            buffer[offset] = ',';
+            offset ++;
+        }
+        else if(count>9){
+            partner_before = partner;
+            char *buffer_help = createIntArray(partner);
+            int partner_len = strlen(partner_before_arr);
+            memcpy(buffer + offset, buffer_help, count_len);
+            memcpy(count_before_arr, buffer_help, count_len);
+            free(buffer_help);
+            offset+=partner_len;
+            buffer[offset] = ',';
+            offset ++;
+        } else {
+            partner_before = count;
+            partner_before_arr[0] = count + '0';
+            buffer[offset] = count + '0';
+	   offset++;
+	   buffer[offset] = ',';
+	   offset ++;
+        } 
+        
         buffer[offset] = '\n';
         offset++;
-        buffer[offset] = '\0';*/
+        buffer[offset] = '\0';
         
         //printf("%s", buffer);
         //char buffer2[30];
@@ -479,14 +508,7 @@ void initializeQueue()
     if(processrank>9){
         char *buffer_help = createIntArray(processrank);
         int i = strlen(buffer_help);
-        int x = 0;
-        //printf("%d\n", i);
-        while(i>0){
-            i--;
-            processrank_arr[x] = buffer_help[i];
-            x++;
-        }
-        processrank_arr[x] = '\0';
+        memcpy(count_before_arr, buffer_help, i);
         free(buffer_help);
     } else {
         processrank_arr[0] = processrank + '0';
