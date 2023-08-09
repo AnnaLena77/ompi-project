@@ -378,7 +378,15 @@ void writeIntoFile(qentry **q){
                  count = count / 10;
             }
             buffer_help[i] = '\0';
-            printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
+            
+            while(i>=0){
+                buffer[offset] = buffer_help[i];
+                offset++;
+                i--;
+            }
+            buffer[offset] = ',':
+            offset ++;
+            //printf("%s, length:%d\n", buffer_help, strlen(buffer_help));
         } else {
             buffer[offset] = count + '0';
 	   offset++;
