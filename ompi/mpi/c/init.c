@@ -368,7 +368,7 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        int count = item->count;
+        /*int count = item->count;
         if(count>9){
             char buffer_help[20];
             int i = 0;
@@ -392,7 +392,7 @@ void writeIntoFile(qentry **q){
 	   offset++;
 	   buffer[offset] = ',';
 	   offset ++;
-        } 
+        } */
         //printf("%s\n", buffer);
    
         /*memcpy(buffer+offset, (char *)&item->datasize, sizeof(item->datasize));
