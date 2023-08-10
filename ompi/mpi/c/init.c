@@ -471,7 +471,7 @@ void writeIntoFile(qentry **q){
         //printf("%s", buffer);
         //char buffer2[30];
         //createTimeString(item->start, buffer2);
-        fwrite(buffer, 1, strlen(buffer), file);
+        //fwrite(buffer, 1, strlen(buffer), file);
     }
 }
 
