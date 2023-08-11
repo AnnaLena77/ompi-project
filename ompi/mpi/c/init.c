@@ -109,6 +109,20 @@ static void createTimeString(struct timeval time, char* timeString){
     }
 }
 
+static char *getTimeString(struct timespec time){
+    time_t seconds = time.tv_sec;
+    long nanoseconds = ts.tv_nsec;
+    
+    struct tm local_time;
+    localtime_r(&seconds, &local_time);
+    char timestamp = (char*)malloc(50);
+    
+    snprintf(timestamp, strlen(timestamp), "'%d-%02i-%02i %02i:%02i:%02i.%06li'", local_time.tm_year + 1900, local_time.tm_mon + 1, local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec, nanosecconds);
+    
+    return timestamp;
+    }
+}
+
 void initQentry(qentry **q){
     if(q==NULL || *q==NULL){
     	return;
@@ -463,6 +477,9 @@ void writeIntoFile(qentry **q){
 	   buffer[offset] = ',';
 	   offset ++;
         } 
+        
+        char* time_start = getTimeString(item->start);
+        free(time_start);
         
         buffer[offset] = '\n';
         offset++;
