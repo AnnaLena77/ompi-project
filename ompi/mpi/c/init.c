@@ -478,7 +478,7 @@ void writeIntoFile(qentry **q){
 	   offset ++;
         } 
         
-        char* time_start = getTimeString(item->start);
+        char* time_start = getTimeString(item->starts);
         free(time_start);
         
         buffer[offset] = '\n';
