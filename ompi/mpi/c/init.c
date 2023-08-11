@@ -111,7 +111,7 @@ static void createTimeString(struct timeval time, char* timeString){
 
 static char *getTimeString(struct timespec time){
     time_t seconds = time.tv_sec;
-    long nanoseconds = ts.tv_nsec;
+    long nanoseconds = time.tv_nsec;
     
     struct tm local_time;
     localtime_r(&seconds, &local_time);
