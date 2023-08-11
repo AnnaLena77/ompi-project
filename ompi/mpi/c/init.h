@@ -32,7 +32,7 @@ typedef struct qentry {
     int withinEagerLimit;
     int foundMatchWild;
     char usedAlgorithm[30];
-    //struct timespec starts;
+    struct timespec starts;
     struct timeval start;
     struct timeval initializeRequest;
     struct timeval startRequest;
