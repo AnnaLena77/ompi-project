@@ -110,8 +110,8 @@ static void createTimeString(struct timeval time, char* timeString){
 }
 
 static char *getTimeString(struct timespec time){
-    time_t seconds = time->tv_sec;
-    long nanoseconds = time->tv_nsec;
+    time_t seconds = time.tv_sec;
+    long nanoseconds = time.tv_nsec;
     if(seconds==NULL && nanoseconds==NULL){
         return NULL;
     }
