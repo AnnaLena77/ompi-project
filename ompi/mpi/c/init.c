@@ -112,15 +112,15 @@ static void createTimeString(struct timeval time, char* timeString){
 static char *getTimeString(struct timespec time){
     time_t seconds = time.tv_sec;
     long nanoseconds = time.tv_nsec;
-    if(seconds==NULL && nanoseconds==NULL){
+    if(seconds==0 && nanoseconds==0){
         return NULL;
     }
     
     struct tm local_time;
     localtime_r(&seconds, &local_time);
-    char timestamp = (char*)malloc(100);
+    char *timestamp = (char*)malloc(100);
     
-    snprintf(timestamp, sizeof(timestamp), "%04d-%02d-%02d %02d:%02d:%02d", local_time.tm_year + 1900, local_time.tm_mon + 1, local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec);
+    snprintf(timestamp, 100, "%04d-%02d-%02d %02d:%02d:%02d.%06li", local_time.tm_year + 1900, local_time.tm_mon + 1, local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec, nanoseconds);
     
     return timestamp;
 }
