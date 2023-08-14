@@ -390,7 +390,7 @@ void writeIntoFile(qentry **q){
         
         //gettimeofday(&ts1, NULL);
         //int func_len = strlen(item->function);
-        //memcpy(buffer, item->function, func_len);
+        memcpy(buffer, item->function, func_len);
         //gettimeofday(&ts2, NULL);
         
        // printf("Memcpy: %f\n", timeDifference(ts2, ts1));
@@ -402,7 +402,7 @@ void writeIntoFile(qentry **q){
         //printf("Strcpy: %f\n", timeDifference(ts2, ts1));
         
         //gettimeofday(&ts1, NULL);
-        strcat(buffer, item->function);
+        //strcat(buffer, item->function);
         //gettimeofday(&ts2, NULL);
         
         //printf("Strcat: %f\n", timeDifference(ts2, ts1));
