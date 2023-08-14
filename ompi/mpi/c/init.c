@@ -250,7 +250,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
 }
 
 //Monitor-Function for SQL-Connection
-static void* SQLMonitorFunc(void* _arg){
+/*static void* SQLMonitorFunc(void* _arg){
     //Batchstring für den ersten Eintrag vorbereiten
     char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
     PGconn *conn = PQconnectdb(conninfo);
@@ -270,7 +270,7 @@ static void* SQLMonitorFunc(void* _arg){
             //PQfinish(conn);
             //exit(1);
         }*/
-    } 
+    /*} 
     
     qentry *item;
     int finish = 0;
@@ -355,7 +355,7 @@ static void* SQLMonitorFunc(void* _arg){
          queueiteration = TAILQ_FIRST(&head);
     }
    // printf("Length: %d\n", queue_length);
-}
+}*/
 
 char* createIntArray(int count){
     char buffer_help[8];
