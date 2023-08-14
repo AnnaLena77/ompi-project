@@ -387,22 +387,40 @@ void writeIntoFile(qentry **q){
         
         int offset = 0;
         char buffer[500];
+        struct timeval ts1;
+        struct timeval ts2;
         
-        /*int func_len = strlen(item->function);
+        gettimeofday(&ts1, NULL);
+        int func_len = strlen(item->function);
         memcpy(buffer, item->function, func_len);
+        gettimeofday(&ts2, NULL);
+        
+        printf("Memcpy: %f\n", timeDifference(ts2, ts1));
+        
+        gettimeofday(&ts1, NULL);
+        strcpy(buffer, item->function);
+        gettimeofday(&ts2, NULL);
+        
+        printf("Strcpy: %f\n", timeDifference(ts2, ts1));
+        
+        gettimeofday(&ts1, NULL);
+        strcat(buffer, item->function);
+        gettimeofday(&ts2, NULL);
+        
+        printf("Strcat: %f\n", timeDifference(ts2, ts1));
+        
         offset += func_len;
         buffer[offset] = ',';
-        offset ++;*/
-        fwrite(item->function, 1, strlen(item->function), file);
+        offset ++;
         
-        /*int comm_type_len = strlen(item->communicationType);
+        
+        int comm_type_len = strlen(item->communicationType);
         memcpy(buffer + offset, item->communicationType, comm_type_len);
         offset += comm_type_len;
         buffer[offset] = ',';
-        offset ++;*/
-        fwrite(item->communicationType, 1, strlen(item->communicationType), file);
+        offset ++;
         
-        /*int count = item->count;
+        int count = item->count;
         if(count == count_before){
             int count_len = strlen(count_before_arr);
             memcpy(buffer + offset, count_before_arr, count_len);
@@ -428,11 +446,9 @@ void writeIntoFile(qentry **q){
 	   offset ++;
         } 
         //printf("%s\n", buffer);*/
-        
-        fwrite(&item->count, sizeof(int), 1, file);
    
         //int comm_area_len = strlen(item->communicationArea);
-        /*buffer[offset] = '0';
+        buffer[offset] = '0';
         offset ++;
         //offset += comm_area_len;
         buffer[offset] = ',';
@@ -442,17 +458,16 @@ void writeIntoFile(qentry **q){
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
         offset += comm_area_len;
         buffer[offset] = ',';
-        offset ++;*/
-        fwrite(item->communicationArea, 1, strlen(item->communicationArea), file);
+        offset ++;
         
-        /*int procname_len = strlen(item->processorname);
+        int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
         offset += procname_len;
         buffer[offset] = ',';
-        offset ++;*/
+        offset ++;
         fwrite(item->processorname, 1, strlen(item->processorname), file);
         
-        /*int processrank_len = strlen(processrank_arr);
+        int processrank_len = strlen(processrank_arr);
         memcpy(buffer+offset, processrank_arr, processrank_len);
         offset ++;
         buffer[offset] = ',';
@@ -485,12 +500,12 @@ void writeIntoFile(qentry **q){
 	   offset ++;
         } 
         
-        char* time_start = getTimeString(item->starts);
-        free(time_start);
+        //char* time_start = getTimeString(item->starts);
+        //free(time_start);
         
         buffer[offset] = '\n';
         offset++;
-        buffer[offset] = '\0';*/
+        buffer[offset] = '\0';
         
         //printf("%s", buffer);
         //char buffer2[30];
