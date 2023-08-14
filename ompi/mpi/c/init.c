@@ -389,7 +389,7 @@ void writeIntoFile(qentry **q){
         char buffer[500];
         
         //gettimeofday(&ts1, NULL);
-        //int func_len = strlen(item->function);
+        int func_len = strlen(item->function);
         memcpy(buffer, item->function, func_len);
         //gettimeofday(&ts2, NULL);
         
