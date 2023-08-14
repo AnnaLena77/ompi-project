@@ -396,13 +396,13 @@ void writeIntoFile(qentry **q){
        // printf("Memcpy: %f\n", timeDifference(ts2, ts1));
         
         //gettimeofday(&ts1, NULL);
-        strcpy(buffer, item->function);
+        //strcpy(buffer, item->function);
         //gettimeofday(&ts2, NULL);
         
         //printf("Strcpy: %f\n", timeDifference(ts2, ts1));
         
         //gettimeofday(&ts1, NULL);
-        //strcat(buffer, item->function);
+        strcat(buffer, item->function);
         //gettimeofday(&ts2, NULL);
         
         //printf("Strcat: %f\n", timeDifference(ts2, ts1));
