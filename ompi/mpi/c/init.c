@@ -443,7 +443,7 @@ void writeIntoFile(qentry **q){
         offset += comm_area_len;
         buffer[offset] = ',';
         offset ++;*/
-        fwrite(item->communicationArea, 1, strlen(communicationArea), file);
+        fwrite(item->communicationArea, 1, strlen(item->communicationArea), file);
         
         /*int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
