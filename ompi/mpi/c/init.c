@@ -385,10 +385,23 @@ void writeIntoFile(qentry **q){
     } else {
         qentry *item = *q;
         
+        struct timeval start, end;
+        long sec, msec;
+        
         int offset = 0;
         char buffer[500];
         
+        gettimeofday(&start, NULL);
         snprintf(buffer, 500, "%d,", 1);
+        gettimeofday(&end, NULL);
+        
+        sec = end.tv_sec-start.tv_sec;
+        msec = end.tv_usec-start.tv_usec;
+        if(msec<0){
+            --sec;
+            msec+=1000000;
+        }
+        printf("%2ld sec %6ld msec\n");
         
         //gettimeofday(&ts1, NULL);
         /*int func_len = strlen(item->function);
