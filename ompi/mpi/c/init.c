@@ -393,14 +393,14 @@ void writeIntoFile(qentry **q){
         offset += func_len;
         buffer[offset] = ',';
         offset ++;*/
-        //fwrite(item->function, 1, strlen(item->function), file);
+        fwrite(item->function, 1, strlen(item->function), file);
         
         /*int comm_type_len = strlen(item->communicationType);
         memcpy(buffer + offset, item->communicationType, comm_type_len);
         offset += comm_type_len;
         buffer[offset] = ',';
         offset ++;*/
-        //fwrite(item->communicationType, 1, strlen(item->communicationType), file);
+        fwrite(item->communicationType, 1, strlen(item->communicationType), file);
         
         /*int count = item->count;
         if(count == count_before){
@@ -409,8 +409,7 @@ void writeIntoFile(qentry **q){
             offset+=count_len;
             buffer[offset] = ',';
             offset ++;
-        }
-        else if(count>9){
+        } else if(count>9){
             count_before = count;
             char *buffer_help = createIntArray(count);
             int count_len = strlen(buffer_help);
@@ -428,10 +427,12 @@ void writeIntoFile(qentry **q){
 	   buffer[offset] = ',';
 	   offset ++;
         } 
-        //printf("%s\n", buffer);
+        //printf("%s\n", buffer);*/
+        
+        fwrite(item->count, sizeof(int), 1, file);
    
         //int comm_area_len = strlen(item->communicationArea);
-        buffer[offset] = '0';
+        /*buffer[offset] = '0';
         offset ++;
         //offset += comm_area_len;
         buffer[offset] = ',';
@@ -441,15 +442,17 @@ void writeIntoFile(qentry **q){
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
         offset += comm_area_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
+        fwrite(item->communicationArea, 1, strlen(communicationArea), file);
         
-        int procname_len = strlen(item->processorname);
+        /*int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
         offset += procname_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
+        fwrite(item->processorname, 1, strlen(item-processorname), file);
         
-        int processrank_len = strlen(processrank_arr);
+        /*int processrank_len = strlen(processrank_arr);
         memcpy(buffer+offset, processrank_arr, processrank_len);
         offset ++;
         buffer[offset] = ',';
