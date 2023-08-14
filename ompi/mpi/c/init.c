@@ -429,7 +429,7 @@ void writeIntoFile(qentry **q){
         } 
         //printf("%s\n", buffer);*/
         
-        fwrite(item->count, sizeof(int), 1, file);
+        //fwrite(item->count, sizeof(int), 1, file);
    
         //int comm_area_len = strlen(item->communicationArea);
         /*buffer[offset] = '0';
