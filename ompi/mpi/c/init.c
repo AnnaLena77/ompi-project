@@ -526,7 +526,7 @@ void initializeQueue()
     
     sprintf(filename, "./data_rank_%d.csv", processrank);
     int processrank = processrank;
-    if(processrank>9){
+    /*if(processrank>9){
         char *buffer_help = createIntArray(processrank);
         int i = strlen(buffer_help);
         memcpy(count_before_arr, buffer_help, i);
@@ -534,7 +534,7 @@ void initializeQueue()
     } else {
         processrank_arr[0] = processrank + '0';
         processrank_arr[1] = '\0';
-    } 
+    } */
     
     file = fopen(filename, "w");
     
