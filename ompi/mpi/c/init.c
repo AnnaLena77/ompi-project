@@ -88,8 +88,10 @@ static char partner_before_arr[10];
 
 qentry *q_qentry;
 
-double timeDifference(struct timeval *a, struct timeval *b){
-    return (double)(a->tv_sec - b->tv_sec) * 1000000000.0 + (double)(a->tv_usec - b->tv_usec) * 1000.0;
+float timeDifference(struct timeval a, struct timeval b){
+    float seconds = a.tv_sec-b.tv_sec;
+    float microseconds = (a.tv_usec-b.tv_usec)*0.000001;
+    return seconds+microseconds;
 }
 
 static void createTimeString(struct timeval time, char* timeString){
@@ -250,7 +252,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
 }
 
 //Monitor-Function for SQL-Connection
-/*static void* SQLMonitorFunc(void* _arg){
+static void* SQLMonitorFunc(void* _arg){
     //Batchstring für den ersten Eintrag vorbereiten
     char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
     PGconn *conn = PQconnectdb(conninfo);
@@ -270,7 +272,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
             //PQfinish(conn);
             //exit(1);
         }*/
-    /*} 
+    } 
     
     qentry *item;
     int finish = 0;
@@ -355,7 +357,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
          queueiteration = TAILQ_FIRST(&head);
     }
    // printf("Length: %d\n", queue_length);
-}*/
+}
 
 char* createIntArray(int count){
     char buffer_help[8];
@@ -385,29 +387,27 @@ void writeIntoFile(qentry **q){
         
         int offset = 0;
         char buffer[500];
-        struct timeval ts1;
-        struct timeval ts2;
         
-        gettimeofday(&ts1, NULL);
-        int func_len = strlen(item->function);
-        memcpy(buffer, item->function, func_len);
-        gettimeofday(&ts2, NULL);
+        //gettimeofday(&ts1, NULL);
+        //int func_len = strlen(item->function);
+        //memcpy(buffer, item->function, func_len);
+        //gettimeofday(&ts2, NULL);
         
-        printf("Memcpy: %.0f\n", timeDifference(&ts2, &ts1));
+       // printf("Memcpy: %f\n", timeDifference(ts2, ts1));
         
-        gettimeofday(&ts1, NULL);
+        //gettimeofday(&ts1, NULL);
         strcpy(buffer, item->function);
-        gettimeofday(&ts2, NULL);
+        //gettimeofday(&ts2, NULL);
         
-        printf("Strcpy: %.0f\n", timeDifference(&ts2, &ts1));
+        //printf("Strcpy: %f\n", timeDifference(ts2, ts1));
         
-        gettimeofday(&ts1, NULL);
-        strcat(buffer, item->function);
-        gettimeofday(&ts2, NULL);
+        //gettimeofday(&ts1, NULL);
+        //strcat(buffer, item->function);
+        //gettimeofday(&ts2, NULL);
         
-        printf("Strcat: %.0f\n", timeDifference(&ts2, &ts1));
+        //printf("Strcat: %f\n", timeDifference(ts2, ts1));
         
-        offset += func_len;
+        /*offset += func_len;
         buffer[offset] = ',';
         offset ++;
         
@@ -446,7 +446,7 @@ void writeIntoFile(qentry **q){
         //printf("%s\n", buffer);*/
    
         //int comm_area_len = strlen(item->communicationArea);
-        buffer[offset] = '0';
+        /*buffer[offset] = '0';
         offset ++;
         //offset += comm_area_len;
         buffer[offset] = ',';
@@ -503,7 +503,7 @@ void writeIntoFile(qentry **q){
         
         buffer[offset] = '\n';
         offset++;
-        buffer[offset] = '\0';
+        buffer[offset] = '\0';*/
         
         //printf("%s", buffer);
         //char buffer2[30];
