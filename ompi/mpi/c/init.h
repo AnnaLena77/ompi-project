@@ -15,13 +15,13 @@ typedef struct qentry {
     char function[30];
     char communicationType[30];
     int blocking;
-    char datatype[MPI_MAX_OBJECT_NAME];
+    char datatype[64];
     int count;
     int sendcount;
     int recvcount;
     int datasize;
     char operation[30]; //MPI_Reduce, MPI_Accumulate
-    char communicationArea[MPI_MAX_OBJECT_NAME];
+    char communicationArea[64];
     char processorname[30];
     int processrank;
     int partnerrank;
