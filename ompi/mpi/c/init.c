@@ -89,7 +89,7 @@ static char partner_before_arr[10];
 qentry *q_qentry;
 
 double timeDifference(struct timeval a, struct timeval b){
-    return (double)(end->tv_sec - start->tv_sec) * 1000000000.0 + (double)(end->tv_usec - start->tv_usec) * 1000.0;
+    return (double)(a->tv_sec - b->tv_sec) * 1000000000.0 + (double)(a->tv_usec - b->tv_usec) * 1000.0;
 }
 
 static void createTimeString(struct timeval time, char* timeString){
