@@ -450,7 +450,7 @@ void writeIntoFile(qentry **q){
         offset += procname_len;
         buffer[offset] = ',';
         offset ++;*/
-        fwrite(item->processorname, 1, strlen(item-processorname), file);
+        fwrite(item->processorname, 1, strlen(item->processorname), file);
         
         /*int processrank_len = strlen(processrank_arr);
         memcpy(buffer+offset, processrank_arr, processrank_len);
