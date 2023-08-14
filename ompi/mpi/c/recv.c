@@ -47,7 +47,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     qentry *item = q_qentry;
     initQentry(&item);
     //item->start
-    clock_gettime(CLOCK_REALTIME, &item->starts);
+    //clock_gettime(CLOCK_REALTIME, &item->starts);
     //item->operation
     memcpy(item->function, "MPI_Recv", 8);
     memcpy(item->communicationType, "p2p", 3);
