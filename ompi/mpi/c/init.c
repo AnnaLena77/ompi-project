@@ -388,7 +388,7 @@ void writeIntoFile(qentry **q){
         int offset = 0;
         char buffer[500];
         
-        snprintf(buffer, 500, "%d,", item->count);
+        snprintf(buffer, 500, "%d,", 1);
         
         //gettimeofday(&ts1, NULL);
         /*int func_len = strlen(item->function);
