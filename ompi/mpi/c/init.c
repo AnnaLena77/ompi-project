@@ -401,7 +401,7 @@ void writeIntoFile(qentry **q){
             --sec;
             msec+=1000000;
         }
-        printf("%2ld sec %6ld msec\n");
+        printf("%2ld sec %6ld msec\n", sec, msec);
         
         //gettimeofday(&ts1, NULL);
         /*int func_len = strlen(item->function);
