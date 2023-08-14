@@ -88,10 +88,8 @@ static char partner_before_arr[10];
 
 qentry *q_qentry;
 
-float timeDifference(struct timeval a, struct timeval b){
-    float seconds = a.tv_sec-b.tv_sec;
-    float microseconds = (a.tv_usec-b.tv_usec)*0.000001;
-    return seconds+microseconds;
+double timeDifference(struct timeval a, struct timeval b){
+    return (double)(end->tv_sec - start->tv_sec) * 1000000000.0 + (double)(end->tv_usec - start->tv_usec) * 1000.0;
 }
 
 static void createTimeString(struct timeval time, char* timeString){
@@ -395,19 +393,19 @@ void writeIntoFile(qentry **q){
         memcpy(buffer, item->function, func_len);
         gettimeofday(&ts2, NULL);
         
-        printf("Memcpy: %f\n", timeDifference(ts2, ts1));
+        printf("Memcpy: %.0f\n", timeDifference(ts2, ts1));
         
         gettimeofday(&ts1, NULL);
         strcpy(buffer, item->function);
         gettimeofday(&ts2, NULL);
         
-        printf("Strcpy: %f\n", timeDifference(ts2, ts1));
+        printf("Strcpy: %.0f\n", timeDifference(ts2, ts1));
         
         gettimeofday(&ts1, NULL);
         strcat(buffer, item->function);
         gettimeofday(&ts2, NULL);
         
-        printf("Strcat: %f\n", timeDifference(ts2, ts1));
+        printf("Strcat: %.0f\n", timeDifference(ts2, ts1));
         
         offset += func_len;
         buffer[offset] = ',';
