@@ -71,20 +71,20 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     else if(type==MPI_LONG){
         memcpy(item->datatype, "MPI_LONG", 8);
     } else {
-        char type_name[MPI_MAX_OBJECT_NAME];
+        //char type_name[MPI_MAX_OBJECT_NAME];
         int type_name_length;
-        MPI_Type_get_name(type, type_name, &type_name_length);
-        memcpy(item->datatype, type_name, type_name_length);
+        MPI_Type_get_name(type, item->datatype, &type_name_length);
+        //memcpy(item->datatype, type_name, type_name_length);
     }
 
     //item->communicator
     if(comm == MPI_COMM_WORLD){
         memcpy(item->communicationArea, "MPI_COMM_WORLD", 14);
     } else {
-        char comm_name[MPI_MAX_OBJECT_NAME];
+        //char comm_name[MPI_MAX_OBJECT_NAME];
         int comm_name_length;
-        MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-        memcpy(item->communicationArea, comm_name, comm_name_length);
+        MPI_Comm_get_name(comm, item->communicationArea, &comm_name_length);
+        //memcpy(item->communicationArea, comm_name, comm_name_length);
     }
     //item->partnerrank
     item->partnerrank = dest;

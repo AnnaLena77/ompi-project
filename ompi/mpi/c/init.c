@@ -388,19 +388,21 @@ void writeIntoFile(qentry **q){
         int offset = 0;
         char buffer[500];
         
-        int func_len = strlen(item->function);
+        /*int func_len = strlen(item->function);
         memcpy(buffer, item->function, func_len);
         offset += func_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
+        fwrite(item->function, 1, strlen(item->function), file);
         
-        int comm_type_len = strlen(item->communicationType);
+        /*int comm_type_len = strlen(item->communicationType);
         memcpy(buffer + offset, item->communicationType, comm_type_len);
         offset += comm_type_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
+        fwrite(item->communicationType, 1, strlen(item->communicationType), file);
         
-        int count = item->count;
+        /*int count = item->count;
         if(count == count_before){
             int count_len = strlen(count_before_arr);
             memcpy(buffer + offset, count_before_arr, count_len);
@@ -433,7 +435,7 @@ void writeIntoFile(qentry **q){
         offset ++;
         //offset += comm_area_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
        
         int comm_area_len = strlen(item->communicationArea);
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
