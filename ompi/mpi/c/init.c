@@ -429,13 +429,13 @@ void writeIntoFile(qentry **q){
         memcpy(buffer + offset, processrank_arr, processrank_len);
         offset ++;
         buffer[offset] = ',';
-        offset ++;*/
+        offset ++;
 
         memcpy(buffer + offset, &item->partnerrank, sizeof(int));
         offset = strlen(buffer)-1;
         buffer[offset] = '\n';
         offset++;
-        buffer[offset] = '\0';
+        buffer[offset] = '\0';*/
         
         //printf("%s", buffer);
         //char buffer2[30];
