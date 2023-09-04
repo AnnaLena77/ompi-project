@@ -404,7 +404,7 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        memcpy(buffer+offset, &item->count, sizeof(int));
+        memcpy(buffer + offset, &item->count, sizeof(int));
         offset += sizeof(int);
         buffer[offset] = ',';
         offset ++;
@@ -433,8 +433,6 @@ void writeIntoFile(qentry **q){
 	   offset ++;
         } */
         //printf("%s\n", buffer);
-   
-        //int comm_area_len = strlen(item->communicationArea);
        
         int comm_area_len = strlen(item->communicationArea);
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
