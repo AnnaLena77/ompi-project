@@ -404,7 +404,7 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        memcpy(buffer, &item->count, sizeof(int));
+        memcpy(buffer+offset, &item->count, sizeof(int));
         offset += sizeof(int);
         buffer[offset] = ',';
         offset ++;
@@ -454,8 +454,8 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
 
-        memcpy(buffer+offset, &item->partnerrank; sizeof(int));
-        buffer += sizeof(int));
+        memcpy(buffer+offset, &item->partnerrank, sizeof(int));
+        buffer += sizeof(int);
         buffer[offset] = '\n';
         offset++;
         buffer[offset] = '\0';
