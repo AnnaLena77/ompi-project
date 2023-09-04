@@ -419,17 +419,17 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        /*int procname_len = strlen(item->processorname);
+        int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
         offset += procname_len;
         buffer[offset] = ',';
-        offset ++;*/
+        offset ++;
         
-        int processrank_len = strlen(processrank_arr);
+        /*int processrank_len = strlen(processrank_arr);
         memcpy(buffer + offset, processrank_arr, processrank_len);
         offset ++;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
 
         memcpy(buffer + offset, &item->partnerrank, sizeof(int));
         offset = strlen(buffer)-1;
