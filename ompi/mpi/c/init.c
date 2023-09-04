@@ -412,32 +412,6 @@ void writeIntoFile(qentry **q){
         offset = strlen(buffer)-1;
         buffer[offset] = ',';
         offset ++;
-        
-        /*if(count == count_before){
-            int count_len = strlen(count_before_arr);
-            memcpy(buffer + offset, count_before_arr, count_len);
-            offset+=count_len;
-            buffer[offset] = ',';
-            offset ++;
-        } else if(count>9){
-            count_before = count;
-            char *buffer_help = createIntArray(count);
-            int count_len = strlen(buffer_help);
-            memcpy(buffer + offset, buffer_help, count_len);
-            memcpy(count_before_arr, buffer_help, count_len);
-            free(buffer_help);
-            offset+=count_len;
-            buffer[offset] = ',';
-            offset ++;
-        } else {
-            count_before = count;
-            count_before_arr[0] = count + '0';
-            buffer[offset] = count + '0';
-	   offset++;
-	   buffer[offset] = ',';
-	   offset ++;
-        } */
-        //printf("%s\n", buffer);
        
         int comm_area_len = strlen(item->communicationArea);
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
@@ -447,46 +421,23 @@ void writeIntoFile(qentry **q){
         
         int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
+        printf("Offset: %d\n", offset);
+        printf("Len: %d\n", strlen(buffer));
         offset += procname_len;
         buffer[offset] = ',';
         offset ++;
         
         int processrank_len = strlen(processrank_arr);
-        memcpy(buffer+offset, processrank_arr, processrank_len);
+        memcpy(buffer + offset, processrank_arr, processrank_len);
         offset ++;
         buffer[offset] = ',';
         offset ++;
 
-        memcpy(buffer+offset, &item->partnerrank, sizeof(int));
+        memcpy(buffer + offset, &item->partnerrank, sizeof(int));
         offset = strlen(buffer)-1;
         buffer[offset] = '\n';
         offset++;
         buffer[offset] = '\0';
-        /*if(partner == partner_before){
-            int partner_len = strlen(partner_before_arr);
-            memcpy(buffer + offset, partner_before_arr, partner_len);
-            offset+=partner_len;
-            buffer[offset] = ',';
-            offset ++;
-        }
-        else if(partner > 9){
-            partner_before = partner;
-            char *buffer_help = createIntArray(partner);
-            int partner_len = strlen(partner_before_arr);
-            memcpy(buffer + offset, buffer_help, partner_len);
-            memcpy(count_before_arr, buffer_help, partner_len);
-            free(buffer_help);
-            offset+=partner_len;
-            buffer[offset] = ',';
-            offset ++;
-        } else {
-            partner_before = partner;
-            partner_before_arr[0] = partner + '0';
-            buffer[offset] = partner + '0';
-	   offset++;
-	   buffer[offset] = ',';
-	   offset ++;
-        }*/
         
         //printf("%s", buffer);
         //char buffer2[30];
