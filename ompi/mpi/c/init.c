@@ -424,7 +424,7 @@ void writeIntoFile(qentry **q){
         offset += procname_len;
         printf("Offset: %d\n", offset);
         printf("Len: %d\n", strlen(buffer));
-        buffer[offset+1] = ',';
+        buffer[offset-1] = ',';
         offset ++;
         
         int processrank_len = strlen(processrank_arr);
