@@ -421,10 +421,8 @@ void writeIntoFile(qentry **q){
         
         int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
-        offset += procname_len;
-        printf("Offset: %d\n", offset);
-        printf("Len: %d\n", strlen(buffer));
-        buffer[offset-1] = ',';
+        offset += procname_len+1;
+        buffer[offset] = ',';
         offset ++;
         
         int processrank_len = strlen(processrank_arr);
