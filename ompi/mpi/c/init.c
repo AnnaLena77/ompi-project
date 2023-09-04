@@ -411,6 +411,7 @@ void writeIntoFile(qentry **q){
         offset ++;
         printf("item-count: %d\n", item->count);
         printf("buffer: %d\n", (unsigned char)buffer[test]);
+        printf("buffer: %d\n", (unsigned char)buffer[test+1]);
         /*if(count == count_before){
             int count_len = strlen(count_before_arr);
             memcpy(buffer + offset, count_before_arr, count_len);
