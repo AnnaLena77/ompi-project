@@ -421,9 +421,9 @@ void writeIntoFile(qentry **q){
         
         int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
+        offset += procname_len;
         printf("Offset: %d\n", offset);
         printf("Len: %d\n", strlen(buffer));
-        offset += procname_len;
         buffer[offset] = ',';
         offset ++;
         
