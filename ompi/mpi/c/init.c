@@ -405,13 +405,13 @@ void writeIntoFile(qentry **q){
         offset ++;
         
         //int test = offset;
-        //memcpy(buffer + offset, &item->count, sizeof(int));
+        memcpy(buffer + offset, &item->count, sizeof(int));
         /*int extractedNumber;
         memcpy(&extractedNumber, &buffer[test], sizeof(int));
         printf("buffer: %d\n", extractedNumber);*/
-        /*offset = strlen(buffer)-1;
+        offset = strlen(buffer)-1;
         buffer[offset] = ',';
-        offset ++;*/
+        offset ++;
        
         int comm_area_len = strlen(item->communicationArea);
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
@@ -419,11 +419,11 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        int procname_len = strlen(item->processorname);
+        /*int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
         offset += procname_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
         
         int processrank_len = strlen(processrank_arr);
         memcpy(buffer + offset, processrank_arr, processrank_len);
