@@ -404,13 +404,8 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        int test = item->count;
-        memset(buffer + offset, 0, sizeof(int)); 
-        memcpy(buffer + offset, &test, sizeof(int));
-        offset += sizeof(int);
-        //printf("Sizeof: %d\n", sizeof(item->count));
-        printf("Offset: %d\n", offset);
-        printf("Strlen: %d\n", strlen(buffer));
+        memcpy(buffer + offset, &item->count, sizeof(int));
+        offset = strlen(buffer)-1;
         buffer[offset] = ',';
         offset ++;
         /*if(count == count_before){
