@@ -404,9 +404,11 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        memcpy(buffer + offset, &item->count, sizeof(int));
+        int test = item->count;
+        memset(buffer + offset, 0, sizeof(int)); 
+        memcpy(buffer + offset, &test, sizeof(int));
         offset += sizeof(int);
-        printf("Sizeof: %d\n", sizeof(item->count));
+        //printf("Sizeof: %d\n", sizeof(item->count));
         printf("Offset: %d\n", offset);
         printf("Strlen: %d\n", strlen(buffer));
         buffer[offset] = ',';
