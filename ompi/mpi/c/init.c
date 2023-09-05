@@ -429,9 +429,8 @@ void writeIntoFile(qentry **q){
         printf("1, strlen: %d\n", strlen(buffer));
         printf("1, offset: %d\n", offset);
         
-        int processrank_len = strlen(processrank_arr);
-        memcpy(buffer + offset, processrank_arr, processrank_len);
-        offset ++;
+        memcpy(buffer + offset, &item->processrank, sizeof(int));
+        offset = strlen(buffer);
         buffer[offset] = ',';
         offset ++;
         
