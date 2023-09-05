@@ -425,33 +425,22 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
-        printf("1: %s\n", buffer);
-        printf("1, strlen: %d\n", strlen(buffer));
-        printf("1, offset: %d\n", offset);
-        
         memcpy(buffer + offset, &item->processrank, sizeof(int));
         offset = strlen(buffer);
         buffer[offset] = ',';
         offset ++;
-        
-        printf("2: %s\n", buffer);
-        printf("2, strlen: %d\n", strlen(buffer));
-        printf("2, offset: %d\n", offset);
 
         memcpy(buffer + offset, &item->partnerrank, sizeof(int));
         offset = strlen(buffer);
         
-        printf("3: %s\n", buffer);
-        printf("3, strlen: %d\n", strlen(buffer));
-        printf("3, offset: %d\n", offset);
-        /*buffer[offset] = '\n';
+        buffer[offset] = '\n';
         offset++;
         buffer[offset] = '\0';*/
         
         //printf("%s", buffer);
         //char buffer2[30];
         //createTimeString(item->start, buffer2);
-        //fwrite(buffer, 1, strlen(buffer), file);
+        fwrite(buffer, 1, strlen(buffer), file);
     }
 }
 
