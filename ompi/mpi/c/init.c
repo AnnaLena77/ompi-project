@@ -425,14 +425,20 @@ void writeIntoFile(qentry **q){
         buffer[offset] = ',';
         offset ++;
         
+        printf("1: %s\n", buffer);
+        
         int processrank_len = strlen(processrank_arr);
         memcpy(buffer + offset, processrank_arr, processrank_len);
         offset ++;
         buffer[offset] = ',';
         offset ++;
+        
+        printf("2: %s\n", buffer);
 
         memcpy(buffer + offset, &item->partnerrank, sizeof(int));
         offset = strlen(buffer)-1;
+        
+        printf("3:%s\n", buffer);
         /*buffer[offset] = '\n';
         offset++;
         buffer[offset] = '\0';*/
@@ -440,7 +446,7 @@ void writeIntoFile(qentry **q){
         //printf("%s", buffer);
         //char buffer2[30];
         //createTimeString(item->start, buffer2);
-        fwrite(buffer, 1, strlen(buffer), file);
+        //fwrite(buffer, 1, strlen(buffer), file);
     }
 }
 
