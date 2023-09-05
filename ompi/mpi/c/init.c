@@ -433,6 +433,8 @@ void writeIntoFile(qentry **q){
         memcpy(buffer + offset, &item->partnerrank, sizeof(int));
         offset = strlen(buffer)-1;
         
+        buffer[offset] = ',';
+        offset ++;
         buffer[offset] = '\n';
         offset++;
         buffer[offset] = '\0';
