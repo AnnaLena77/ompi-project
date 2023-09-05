@@ -435,7 +435,7 @@ void writeIntoFile(qentry **q){
         
         buffer[offset] = '\n';
         offset++;
-        buffer[offset] = '\0';*/
+        buffer[offset] = '\0';
         
         //printf("%s", buffer);
         //char buffer2[30];
