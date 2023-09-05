@@ -409,7 +409,7 @@ void writeIntoFile(qentry **q){
         /*int extractedNumber;
         memcpy(&extractedNumber, &buffer[test], sizeof(int));
         printf("buffer: %d\n", extractedNumber);*/
-        offset = strlen(buffer)-1;
+        offset = strlen(buffer);
         buffer[offset] = ',';
         offset ++;
        
@@ -440,7 +440,7 @@ void writeIntoFile(qentry **q){
         printf("2, offset: %d\n", offset);
 
         memcpy(buffer + offset, &item->partnerrank, sizeof(int));
-        offset = strlen(buffer)-1;
+        offset = strlen(buffer);
         
         printf("3: %s\n", buffer);
         printf("3, strlen: %d\n", strlen(buffer));
