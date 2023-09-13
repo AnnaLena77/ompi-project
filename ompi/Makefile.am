@@ -122,6 +122,7 @@ DIST_SUBDIRS = \
         mpi/fortran/use-mpi-f08/bindings \
         mpi/fortran/mpiext-use-mpi-f08 \
         mpi/java \
+        mpi/pgcopy \
         $(OMPI_MPIEXT_ALL_SUBDIRS) \
         $(MCA_ompi_FRAMEWORKS_SUBDIRS) \
         $(MCA_ompi_FRAMEWORK_COMPONENT_ALL_SUBDIRS)
