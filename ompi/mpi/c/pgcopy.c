@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
-#include "ompi/mpi/pgcopy/pgcopy.h"
+#include "ompi/mpi/c/pgcopy/pgcopy.h"
 
 /*
 PGCOPY-Binary File:

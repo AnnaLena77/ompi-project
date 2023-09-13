@@ -45,7 +45,7 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
-#include "ompi/mpi/pgcopy/pgcopy.h"
+#include "ompi/mpi/c/pgcopy.h"
 
 
 #if OMPI_BUILD_MPI_PROFILING
