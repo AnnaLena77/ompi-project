@@ -45,7 +45,7 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
-//#include "ompi/mpi/c/init.h"
+#include "ompi/mpi/pgcopy/pgcopy.h"
 
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -225,6 +225,7 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
         char buffer[1000]; // Puffer für den Text        
         char buffer2[30];
         createTimeString(q->start, buffer2);
+        //sprintf ohne sizeof(buffer) ggf. schneller
         snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\tNOW()\n",
                  q->function, q->communicationType, q->count, q->datasize, q->communicationArea,
                  q->processorname, q->processrank, q->partnerrank, buffer2);
@@ -391,6 +392,8 @@ void writeIntoFile(qentry **q){
         int offset = 0;
         char buffer[500];
         
+        void createHeader(buffer, 5, &offset);
+        
         int func_len = strlen(item->function);
         memcpy(buffer, item->function, func_len);
 
@@ -409,7 +412,7 @@ void writeIntoFile(qentry **q){
         /*int extractedNumber;
         memcpy(&extractedNumber, &buffer[test], sizeof(int));
         printf("buffer: %d\n", extractedNumber);*/
-        offset = strlen(buffer)-1;
+        offset = strlen(buffer);
         buffer[offset] = ',';
         offset ++;
        
@@ -426,12 +429,12 @@ void writeIntoFile(qentry **q){
         offset ++;
         
         memcpy(buffer + offset, &item->processrank, sizeof(int));
-        offset = strlen(buffer)-1;
+        offset = strlen(buffer);
         buffer[offset] = ',';
         offset ++;
 
         memcpy(buffer + offset, &item->partnerrank, sizeof(int));
-        offset = strlen(buffer)-1;
+        offset = strlen(buffer);
         
         buffer[offset] = ',';
         offset ++;
