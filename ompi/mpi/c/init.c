@@ -392,7 +392,7 @@ void writeIntoFile(qentry **q){
         int offset = 0;
         char buffer[500];
         
-        void createHeader(buffer, 5, &offset);
+        createHeader(buffer, 5, &offset);
         
         int func_len = strlen(item->function);
         memcpy(buffer, item->function, func_len);
