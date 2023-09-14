@@ -445,7 +445,7 @@ void writeIntoFile(qentry **q){
         //printf("%s", buffer);
         //char buffer2[30];
         //createTimeString(item->start, buffer2);
-        fwrite(buffer, 1, strlen(buffer), file);
+        //fwrite(buffer, 1, strlen(buffer), file);
     }
 }
 
@@ -489,9 +489,10 @@ void initializeQueue()
         processrank_arr[1] = '\0';
     } */
     
-    file = fopen(filename, "w");
+    file = fopen(filename, "wb");
+    fwrite(PGCOPY_HEADER, 19, 1, file);
     
-    fprintf(file, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
+    //fprintf(file, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
     
     //fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     //O_CREAT: Datei wird erstellt, wenn nicht vorhanden

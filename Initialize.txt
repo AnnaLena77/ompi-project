@@ -76,4 +76,6 @@ nix-shell -p postgresql postgresql.lib pkg-config
 nix-shell -p autoconf automake perl gnumake stdenv zlib python3 libtool flex hwloc munge numactl libbfd libiberty postgresql postgresql.lib pkg-config ucx
 
 
+externe Dateien hinzufügen: Makefile.am im jeweiligen Ordner
+
 
