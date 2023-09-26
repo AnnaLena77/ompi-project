@@ -456,7 +456,7 @@ void writeIntoFile(qentry **q){
         offset++;
         buffer[offset] = '\0';*/
         
-        timestampToBinary(item->start, buffer, &offset);
+        timestampToBinary(item->starts, buffer, &offset);
         
         //printf("%s", buffer);
         //char buffer2[30];
