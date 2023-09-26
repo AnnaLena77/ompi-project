@@ -392,7 +392,7 @@ void writeIntoFile(qentry **q){
         int offset = 0;
         char buffer[500];
         
-        newRow(buffer, 9, &offset);
+        newRow(buffer, 8, &offset);
         
         stringToBinary(item->function, buffer, &offset);
         
