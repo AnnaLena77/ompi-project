@@ -497,7 +497,7 @@ void initializeQueue()
     MPI_Comm_rank(comm, &processrank);
     MPI_Get_processor_name(proc_name, &proc_name_length);
     
-    sprintf(filename, "./data_rank_%d.csv", processrank);
+    sprintf(filename, "./data_rank_%d.bin", processrank);
     int processrank = processrank;
     /*if(processrank>9){
         char *buffer_help = createIntArray(processrank);
