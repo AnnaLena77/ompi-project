@@ -99,9 +99,9 @@ void timestampToBinary(struct timespec time, char* buffer, int* offset){
     *offset += 8; 
 }
 
-void createHeader(char* buffer, int column_count, int* offset){
-    memcpy(buffer, PGCOPY_HEADER, 19);
-    *offset += 19;
+void newRow(char* buffer, int column_count, int* offset){
+    //memcpy(buffer, PGCOPY_HEADER, 19);
+    //*offset += 19;
     
     buffer[*offset] = 0;
     buffer[*offset+1] = column_count;

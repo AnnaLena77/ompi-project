@@ -392,60 +392,77 @@ void writeIntoFile(qentry **q){
         int offset = 0;
         char buffer[500];
         
-        createHeader(buffer, 5, &offset);
+        newRow(buffer, 9, &offset);
         
-        int func_len = strlen(item->function);
+        stringToBinary(item->function, buffer, &offset);
+        
+        /*int func_len = strlen(item->function);
         memcpy(buffer, item->function, func_len);
 
         offset += func_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
         
-        int comm_type_len = strlen(item->communicationType);
+        stringToBinary(item->communicationType, buffer, &offset);
+        
+        /*int comm_type_len = strlen(item->communicationType);
         memcpy(buffer + offset, item->communicationType, comm_type_len);
         offset += comm_type_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
+        
+        intToBinary(item->count, buffer, &offset);
         
         //int test = offset;
-        memcpy(buffer + offset, &item->count, sizeof(int));
-        /*int extractedNumber;
+        /*memcpy(buffer + offset, &item->count, sizeof(int));
+        int extractedNumber;
         memcpy(&extractedNumber, &buffer[test], sizeof(int));
-        printf("buffer: %d\n", extractedNumber);*/
+        printf("buffer: %d\n", extractedNumber);
         offset = strlen(buffer);
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
+        
+        stringToBinary(item->communicationArea, buffer, &offset);
        
-        int comm_area_len = strlen(item->communicationArea);
+        /*int comm_area_len = strlen(item->communicationArea);
         memcpy(buffer + offset, item->communicationArea, comm_area_len);
         offset += comm_area_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
         
-        int procname_len = strlen(item->processorname);
+        stringToBinary(item->processorname, buffer, &offset);
+        
+        /*int procname_len = strlen(item->processorname);
         memcpy(buffer + offset, item->processorname, procname_len);
         offset += procname_len;
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
         
-        memcpy(buffer + offset, &item->processrank, sizeof(int));
+        intToBinary(item->processrank, buffer, &offset);
+        
+        /*memcpy(buffer + offset, &item->processrank, sizeof(int));
         offset = strlen(buffer);
         buffer[offset] = ',';
-        offset ++;
+        offset ++;*/
+        
+        intToBinary(item->partnerrank, buffer, &offset);
 
-        memcpy(buffer + offset, &item->partnerrank, sizeof(int));
+        /*memcpy(buffer + offset, &item->partnerrank, sizeof(int));
         offset = strlen(buffer);
         
         buffer[offset] = ',';
         offset ++;
         buffer[offset] = '\n';
         offset++;
-        buffer[offset] = '\0';
+        buffer[offset] = '\0';*/
+        
+        timestampToBinary(item->start, buffer, &offset);
         
         //printf("%s", buffer);
         //char buffer2[30];
         //createTimeString(item->start, buffer2);
         //fwrite(buffer, 1, strlen(buffer), file);
+        fwrite(buffer, offset, 1, file);
     }
 }
 
@@ -463,6 +480,9 @@ void closeFile(){
         close(fd);
         exit(EXIT_FAILURE);
     }*/
+      
+    fwrite(PGCOPY_TRAILER, 2, 1, file);
+    
     free(q_qentry);
     close(fd);
 }
