@@ -74,9 +74,12 @@ static char processrank_arr[4];
 char proc_name[MPI_MAX_PROCESSOR_NAME];
 int proc_name_length;
 
+char* buffer;
+int offset;
+
 static FILE *file;
 static char filename[20];
-static int fd;
+static char filename[20];
 static char* mapped_data;
 static int file_size;
 static int illi=1;
@@ -254,7 +257,6 @@ static void writeToPostgres(PGconn *conn, int numberOfEntries){
 
 //Monitor-Function for SQL-Connection
 static void* SQLMonitorFunc(void* _arg){
-    //Batchstring für den ersten Eintrag vorbereiten
     char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
     PGconn *conn = PQconnectdb(conninfo);
     if (PQstatus(conn) != CONNECTION_OK){
@@ -262,18 +264,14 @@ static void* SQLMonitorFunc(void* _arg){
         PQfinish(conn);
         exit(1);
     } else {
-        //printf("Database connected\n");
         if(!PQexec(conn, "DELETE FROM MPI_Information")){
             fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
             //PQfinish(conn);
             //exit(1);
         }
-        /*if(PQexec(conn, "ALTER TABLE MPI_Information AUTO_INCREMENT=1")){
-            fprintf(stderr, "Auto-Inocrement failed: %s\n", PQerrorMessage(conn));
-            //PQfinish(conn);
-            //exit(1);
-        }*/
-    } 
+    }
+    
+     
     
     qentry *item;
     int finish = 0;
@@ -281,83 +279,7 @@ static void* SQLMonitorFunc(void* _arg){
     struct timeval now;
     gettimeofday(&start_timestamp, NULL);
 
-    while(TAILQ_EMPTY(&head)){
-        if(!run_thread){
-            printf("finished\n");
-            return;
-        } else {
-	   sleep(0.5);
-            if(!TAILQ_EMPTY(&head)){
-                break;
-            }
-        }
-    }
-
-    while ((TAILQ_LAST(&head, tailhead))->id < 5){
-    	gettimeofday(&now, NULL);
-    	sleep(0.5);
-    	if(timeDifference(now, start_timestamp)>2.0){
-    		break;
-    	}
-    }
-    
-    qentry *queueiteration = TAILQ_FIRST(&head);
-    qentry *prev;
-
-    while(queueiteration != NULL){
-        gettimeofday(&now, NULL);
-        //printf("in der Queueiteration-While\n");
-        if(timeDifference(now, start_timestamp)>1){
-    	     qentry *first = queueiteration;
-    	     qentry *last = TAILQ_LAST(&head, tailhead);
-    	     //printf("First ID: %d\n", first->id);
-    	     //printf("Last ID: %d\n", last->id);
-    	     if(first->id == last->id){
-                  if(run_thread){
-                     continue;
-                  }
-                  else {
-                      //Es ist noch genau ein Eintrag übrig und das Programm ist fertig
-                      //printf("letzter Eintrag, thread ist durch\n");
-                      last = TAILQ_LAST(&head, tailhead);
-                      if(first->id == last->id){
-                         writeToPostgres(conn, 1);
-                         break;
-                      }
-                 }
-             }
-    	
-    	    //printf("First-ID: %d, Last-ID: %d\n", first->id, last->id);
-    	    int length = last->id-first->id;
-    	    //printf("Length: %d\n", length);
-    	    if(length<100000){
-    	        writeToPostgres(conn, length);
-    	        gettimeofday(&start_timestamp, NULL);
-    		
-            } else {
-                while(length>100000){
-                    length = length-100000;
-                    writeToPostgres(conn, 100000);
-                    gettimeofday(&start_timestamp, NULL);
-                }
-                writeToPostgres(conn, length);
-                gettimeofday(&start_timestamp, NULL);
-           } 
-           
-         }
-         
-         while(TAILQ_EMPTY(&head)){
-             printf("empty am ende\n");
-             if(run_thread){
-                 continue;
-             } else {
-                 queueiteration = TAILQ_FIRST(&head);
-                 break;
-             }
-         }
-         queueiteration = TAILQ_FIRST(&head);
-    }
-   // printf("Length: %d\n", queue_length);
+   
 }
 
 char* createIntArray(int count){
@@ -386,100 +308,42 @@ void writeIntoFile(qentry **q){
     } else {
         qentry *item = *q;
         
+        char buffer[200];
+        int offset = 0;
+        
         struct timeval start, end;
         long sec, msec;
-        
-        int offset = 0;
-        char buffer[500];
         
         newRow(buffer, 8, &offset);
         
         stringToBinary(item->function, buffer, &offset);
         
-        /*int func_len = strlen(item->function);
-        memcpy(buffer, item->function, func_len);
-
-        offset += func_len;
-        buffer[offset] = ',';
-        offset ++;*/
-        
         stringToBinary(item->communicationType, buffer, &offset);
-        
-        /*int comm_type_len = strlen(item->communicationType);
-        memcpy(buffer + offset, item->communicationType, comm_type_len);
-        offset += comm_type_len;
-        buffer[offset] = ',';
-        offset ++;*/
         
         intToBinary(item->count, buffer, &offset);
         
-        //int test = offset;
-        /*memcpy(buffer + offset, &item->count, sizeof(int));
-        int extractedNumber;
-        memcpy(&extractedNumber, &buffer[test], sizeof(int));
-        printf("buffer: %d\n", extractedNumber);
-        offset = strlen(buffer);
-        buffer[offset] = ',';
-        offset ++;*/
-        
         stringToBinary(item->communicationArea, buffer, &offset);
-       
-        /*int comm_area_len = strlen(item->communicationArea);
-        memcpy(buffer + offset, item->communicationArea, comm_area_len);
-        offset += comm_area_len;
-        buffer[offset] = ',';
-        offset ++;*/
         
         stringToBinary(item->processorname, buffer, &offset);
         
-        /*int procname_len = strlen(item->processorname);
-        memcpy(buffer + offset, item->processorname, procname_len);
-        offset += procname_len;
-        buffer[offset] = ',';
-        offset ++;*/
-        
         intToBinary(item->processrank, buffer, &offset);
-        
-        /*memcpy(buffer + offset, &item->processrank, sizeof(int));
-        offset = strlen(buffer);
-        buffer[offset] = ',';
-        offset ++;*/
         
         intToBinary(item->partnerrank, buffer, &offset);
 
-        /*memcpy(buffer + offset, &item->partnerrank, sizeof(int));
-        offset = strlen(buffer);
-        
-        buffer[offset] = ',';
-        offset ++;
-        buffer[offset] = '\n';
-        offset++;
-        buffer[offset] = '\0';*/
-        
         timestampToBinary(item->starts, buffer, &offset);
         //fwrite(buffer, offset, 1, file);
     }
 }
 
 void closeFile(){
-    // Synchronisiere die Daten auf die Festplatte
-    /*if (msync(mapped_data, file_size, MS_SYNC) == -1) {
-        perror("msync");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
+    fwrite(PGCOPY_TRAILER, 2, 1, file);  
+    close(file);
+}
 
-    // Schließe die Abbildung und die Datei
-    if (munmap(mapped_data, file_size) == -1) {
-        perror("munmap");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }*/
-      
-    //fwrite(PGCOPY_TRAILER, 2, 1, file);
-    
-    free(q_qentry);
-    close(fd);
+void openFile(){
+    char filename[20];
+    sprintf(filename, "./data_rank_%d.bin", processrank);
+    fwrite(PGCOPY_HEADER, 19, 1, file);
 }
 
 void initializeQueue()
@@ -491,21 +355,6 @@ void initializeQueue()
     MPI_Comm_size(comm, &size);
     MPI_Comm_rank(comm, &processrank);
     MPI_Get_processor_name(proc_name, &proc_name_length);
-    
-    sprintf(filename, "./data_rank_%d.bin", processrank);
-    int processrank = processrank;
-    /*if(processrank>9){
-        char *buffer_help = createIntArray(processrank);
-        int i = strlen(buffer_help);
-        memcpy(count_before_arr, buffer_help, i);
-        free(buffer_help);
-    } else {
-        processrank_arr[0] = processrank + '0';
-        processrank_arr[1] = '\0';
-    } */
-    
-    file = fopen(filename, "wb");
-    //fwrite(PGCOPY_HEADER, 19, 1, file);
     
     //fprintf(file, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
     
@@ -547,6 +396,8 @@ static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
     q_qentry = (qentry*)malloc(sizeof(qentry));
+    //buffer = (char*)malloc(2000000);
+    //offset = 0;
     #ifdef ENABLE_ANALYSIS
     gettimeofday(&start, NULL);
     #endif

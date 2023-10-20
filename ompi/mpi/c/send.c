@@ -47,7 +47,6 @@ static const char FUNC_NAME[] = "MPI_Send";
 int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
              int tag, MPI_Comm comm)
 {
-    //Nur dieser Teil macht 15 Sekunden bei Pingpong mit 20.000.000
     #ifdef ENABLE_ANALYSIS
     qentry *item = q_qentry;
     initQentry(&item);
