@@ -44,41 +44,45 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
     #ifdef ENABLE_ANALYSIS
-    qentry *item = NULL;
-    item = (qentry*)malloc(sizeof(qentry));
+    qentry *item = getWritingRingPos();
     initQentry(&item);
     //item->start
-    gettimeofday(&item->start, NULL);
+    clock_gettime(CLOCK_REALTIME, &item->starts);
     //item->operation
-    strcpy(item->function, "MPI_Recv");
-    strcpy(item->communicationType, "p2p");
+    memcpy(item->function, "MPI_Recv", 8);
+    memcpy(item->communicationType, "p2p", 3);
     //item->blocking
     item->blocking = 1;
     //item->datatype
-    char type_name[MPI_MAX_OBJECT_NAME];
-    int type_name_length;
-    MPI_Type_get_name(type, type_name, &type_name_length);
-    strcpy(item->datatype, type_name);
-
+    //item->datatype
+    if(type==MPI_INT){
+        memcpy(item->datatype, "MPI_INT", 7); 
+    }
+    else if(type==MPI_CHAR){
+        memcpy(item->datatype, "MPI_CHAR", 8);
+    }
+    else if(type==MPI_DOUBLE){
+        memcpy(item->datatype, "MPI_DOUBLE", 10);
+    }
+    else if(type==MPI_LONG){
+        memcpy(item->datatype, "MPI_LONG", 8);
+    } else {
+        //char type_name[MPI_MAX_OBJECT_NAME];
+        int type_name_length;
+        MPI_Type_get_name(type, item->datatype, &type_name_length);
+       // memcpy(item->datatype, type_name, type_name_length);
+    }
     //item->communicator
-    char comm_name[MPI_MAX_OBJECT_NAME];
-    int comm_name_length;
-    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    strcpy(item->communicationArea, comm_name);
-    
-    //item->processrank
-    int processrank;
-    MPI_Comm_rank(comm, &processrank);
-    item->processrank = processrank;
+    if(comm == MPI_COMM_WORLD){
+        memcpy(item->communicationArea, "MPI_COMM_WORLD", 14);
+    } else {
+        //char comm_name[MPI_MAX_OBJECT_NAME];
+        int comm_name_length;
+        MPI_Comm_get_name(comm, item->communicationArea, &comm_name_length);
+        //memcpy(item->communicationArea, comm_name, comm_name_length);
+    }
     //item->partnerrank
-    item->partnerrank = source;
-    
-    //item->processorname
-    char proc_name[MPI_MAX_PROCESSOR_NAME];
-    int proc_name_length;
-    MPI_Get_processor_name(proc_name, &proc_name_length);
-    strcpy(item->processorname, proc_name);
-    
+    item->partnerrank = source; 
     #endif
     int rc = MPI_SUCCESS;
 
@@ -118,8 +122,9 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
 #else
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
+    //writeIntoFile(&item);
     //free(item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

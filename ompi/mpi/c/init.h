@@ -7,6 +7,7 @@ extern void initializeMongoDB(void);
 extern void closeMongoDB(void);
 extern pthread_t MONITOR_THREAD;
 extern int run_thread;
+extern int counter;
 
 #ifndef QENTRY_H_
 #define QENTRY_H_
@@ -15,13 +16,13 @@ typedef struct qentry {
     char function[30];
     char communicationType[30];
     int blocking;
-    char datatype[30];
+    char datatype[64];
     int count;
     int sendcount;
     int recvcount;
     int datasize;
     char operation[30]; //MPI_Reduce, MPI_Accumulate
-    char communicationArea[30];
+    char communicationArea[64];
     char processorname[30];
     int processrank;
     int partnerrank;
@@ -32,6 +33,7 @@ typedef struct qentry {
     int withinEagerLimit;
     int foundMatchWild;
     char usedAlgorithm[30];
+    struct timespec starts;
     struct timeval start;
     struct timeval initializeRequest;
     struct timeval startRequest;
@@ -62,7 +64,21 @@ typedef struct {
 
 extern void qentryIntoQueue(qentry **q);
 extern void initQentry(qentry **q);
+//extern void writeIntoFile(qentry q);
 
+extern qentry *q_qentry;
+
+extern qentry* getWritingRingPos(void);
+
+#ifndef INIT_H
+#define INIT_H
+#define MAX_RINGSIZE 1000000
+extern qentry *ringbuffer;
+extern int writer_pos;
+extern int reader_pos;
+#endif
+
+extern void closeFile(void);
 
 
 
