@@ -44,7 +44,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
              int tag, MPI_Comm comm, MPI_Status *status)
 {
     #ifdef ENABLE_ANALYSIS
-    qentry *item = q_qentry;
+    qentry *item = getWritingRingPos();
     initQentry(&item);
     //item->start
     clock_gettime(CLOCK_REALTIME, &item->starts);
@@ -122,7 +122,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype type, int source,
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status));
 #else
     rc = MCA_PML_CALL(recv(buf, count, type, source, tag, comm, status, &item));
-    writeIntoFile(&item);
+    //writeIntoFile(&item);
     //free(item);
     //qentryIntoQueue(&item);
 #endif

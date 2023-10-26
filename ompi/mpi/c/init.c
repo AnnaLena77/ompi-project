@@ -55,8 +55,8 @@
 #define MPI_Init PMPI_Init
 #endif
 
-
 #ifdef ENABLE_ANALYSIS
+
 static struct timeval start;
 static struct timeval init_sql_finished;
 static struct timeval init_sql_start;
@@ -74,9 +74,6 @@ static char processrank_arr[4];
 char proc_name[MPI_MAX_PROCESSOR_NAME];
 int proc_name_length;
 
-char* buffer;
-int offset;
-
 static FILE *file;
 static char filename[20];
 static char filename[20];
@@ -90,6 +87,9 @@ static char count_before_arr[10];
 static char partner_before_arr[10];
 
 qentry *q_qentry;
+qentry *ringbuffer;
+int writer_pos;
+int reader_pos;
 
 float timeDifference(struct timeval a, struct timeval b){
     float seconds = a.tv_sec-b.tv_sec;
@@ -122,8 +122,6 @@ static char *getTimeString(struct timespec time){
     struct tm local_time;
     localtime_r(&seconds, &local_time);
     char *timestamp = (char*)malloc(100);
-    
-    //snprintf(timestamp, 100, "%04d-%02d-%02d %02d:%02d:%02d.%06li", local_time.tm_year + 1900, local_time.tm_mon + 1, local_time.tm_mday, local_time.tm_hour, local_time.tm_min, local_time.tm_sec, nanoseconds);
     
     return timestamp;
 }
@@ -170,26 +168,30 @@ void qentryIntoQueue(qentry **q){
     //printf("Echtes Samplerandom: %d\n",samplerandom);
     //if(time(NULL)-counter_time>0.1){ }
     qentry *item = *q;
+    //printf("%s\n", item->function);
     //gettimeofday(&item->intoQueue, NULL);
     item->id = ++ID;
     //printf("intoqueue: %d \n", item->id);
-    if(item->id==2) lock = 1;
     TAILQ_INSERT_TAIL(&head, item, pointers);
     //printf("Es kam was rein\n");
     queue_length++;
     //printf("Queue Length: %d\n", queue_length);
+    //printf("Leer? %d\n", TAILQ_EMPTY(&head));
 }
 
 qentry* dequeue(){
     qentry *item;
     item = TAILQ_FIRST(&head);
-    TAILQ_REMOVE(&head, item, pointers);
+    if(item != NULL){
+        TAILQ_REMOVE(&head, item, pointers);
+    }
     return item;
 }
 
 //Needs to be global!
 pthread_t MONITOR_THREAD = NULL;
-int run_thread = 1;
+int run_thread;
+int counter;
 
 static void registerCluster(){
     //Hier Slurm integrieren!
@@ -204,82 +206,214 @@ static void registerCluster(){
     MPI_Get_processor_name(processorname, &proc_name_length);
 }
 
-static void writeToPostgres(PGconn *conn, int numberOfEntries){
+static void writeToPostgres(PGconn *conn, char* buffer, int offset){
+    counter ++;
+    const char *copyQuery = "COPY mpi_information FROM STDIN (FORMAT binary)";
     PGresult *res;
-    int i;
-    int totalWritten = 0;
-    printf("Funktionsaufruf Test writeToPostgres, NumberOfEntries: %d\n", numberOfEntries);
-
-    // Erzeuge den COPY-Befehl
-    const char *copyQuery = "COPY MPI_Information(function, communicationType, count, datasize, communicationArea, processorname, processrank, partnerrank, time_start, time_db) FROM STDIN (FORMAT text)";
     res = PQexec(conn, copyQuery);
     if (PQresultStatus(res) != PGRES_COPY_IN) {
         printf("Fehler beim Starten des COPY-Befehls: %s\n", PQresultErrorMessage(res));
         PQclear(res);
+        PQfinish(conn);
         return;
     }
     PQclear(res);
-
-    // Schreibe die Daten in das COPY-Stream
-    for (i = 0; i < numberOfEntries; i++) {
-        //printf("DEQUEUE\n");
-        qentry *q = dequeue();
-        //printf("DEQUEUE FERTIG\n");
-        char buffer[1000]; // Puffer für den Text        
-        char buffer2[30];
-        createTimeString(q->start, buffer2);
-        //sprintf ohne sizeof(buffer) ggf. schneller
-        snprintf(buffer, sizeof(buffer), "%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\tNOW()\n",
-                 q->function, q->communicationType, q->count, q->datasize, q->communicationArea,
-                 q->processorname, q->processrank, q->partnerrank, buffer2);
-        //printf("%s\n", buffer);
-        PQputCopyData(conn, buffer, strlen(buffer));
-        free(q);
-    }
+    PQputCopyData(conn, PGCOPY_HEADER, 19);
+    
+    int copyRes = PQputCopyData(conn, buffer, offset);
     // Beende den COPY-Befehl
-    PQputCopyEnd(conn, NULL);
-    PQflush(conn);
-
-    // Warte auf das Ergebnis der COPY-Operation
-    /*PGresult *copyResult = NULL;
-    while ((copyResult = PQgetResult(conn)) != NULL) {
-        ExecStatusType status = PQresultStatus(copyResult);
-        if (status == PGRES_COMMAND_OK) {
-        // INSERT erfolgreich
-            printf("Daten erfolgreich in die Datenbank geschrieben.\n");
-        } else {
-        // Fehler beim INSERT
-            printf("Fehler beim Schreiben der Daten in die Datenbank: %s\n", PQresultErrorMessage(copyResult));
+    if(copyRes == 1){
+        if(PQputCopyEnd(conn, NULL)==1){
+            res = PQgetResult(conn);
+            if(PQresultStatus(res) == PGRES_COMMAND_OK){
+                printf("Insert a record successfully\n");
+            }
         }
-    PQclear(copyResult);
-    }*/
+    }
+    PQflush(conn);
+    
+}
+
+void qentryToBinary(qentry q, char *buffer, int *off){
+        counter ++;
+        //printf("Counter: %d\n", counter);
+        qentry *item = &q;
+        int offset = *off;
+        
+        newRow(buffer, 8, &offset);
+
+        stringToBinary(item->function, buffer, &offset);
+        
+        stringToBinary(item->communicationType, buffer, &offset);
+        
+        intToBinary(item->count, buffer, &offset);
+        
+        stringToBinary(item->communicationArea, buffer, &offset);
+        
+        stringToBinary(item->processorname, buffer, &offset);
+        
+        intToBinary(item->processrank, buffer, &offset);
+        
+        intToBinary(item->partnerrank, buffer, &offset);
+
+        timestampToBinary(item->starts, buffer, &offset);
+        
+        *off = offset;
+        //fwrite(buffer, offset, 1, file);
 }
 
 //Monitor-Function for SQL-Connection
 static void* SQLMonitorFunc(void* _arg){
+    
     char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
     PGconn *conn = PQconnectdb(conninfo);
     if (PQstatus(conn) != CONNECTION_OK){
         fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
         PQfinish(conn);
         exit(1);
-    } else {
-        if(!PQexec(conn, "DELETE FROM MPI_Information")){
+    } /*else {
+        /*if(!PQexec(conn, "DELETE FROM MPI_Information")){
             fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
             //PQfinish(conn);
             //exit(1);
         }
+    }*/
+    
+    
+    const char *copyQuery = "COPY mpi_information FROM STDIN (FORMAT binary)";
+    PGresult *res;
+    res = PQexec(conn, copyQuery);
+    if (PQresultStatus(res) != PGRES_COPY_IN) {
+        printf("Fehler beim Starten des COPY-Befehls: %s\n", PQresultErrorMessage(res));
+        PQclear(res);
+        PQfinish(conn);
+        return;
+    }
+    PQclear(res);
+    PQputCopyData(conn, PGCOPY_HEADER, 19);
+    
+   // int copyRes = PQputCopyData(conn, buffer, offset);
+    //int offset = 0;
+    //char *buffer = (char*)malloc(sizeof(char)*20000000);
+    
+    time_t start = time(NULL);
+
+    while(run_thread){
+        while(reader_pos==writer_pos-1 || (reader_pos == MAX_RINGSIZE-1 && writer_pos == 0)){
+            //printf("Reader sleeps at Position %d, %d\n", reader_pos, writer_pos);
+            sleep(0.01);
+            //printf("Prozess: %d haengt beim Lesen\n", processrank);
+            if(!run_thread) break;
+        }
+        
+        if(reader_pos == MAX_RINGSIZE-1){
+            reader_pos = 0;
+        }
+        else{
+            reader_pos ++;
+        }
+        
+        char buffer[200];
+        int offset = 0;
+        qentryToBinary(ringbuffer[reader_pos], buffer, &offset);
+        PQputCopyData(conn, buffer, offset);
+        /*while(TAILQ_EMPTY(&head)){
+            if(!run_thread){
+                printf("finished\n");
+                return;
+            } else {
+	       sleep(0.1);
+                if(!TAILQ_EMPTY(&head)){
+                    break;
+                }
+            }
+        }
+        
+        qentry* test = TAILQ_FIRST(&head);
+        
+        while(test != NULL){
+            //printf("%s\n", test->function);  
+            char buffer[200];
+            int offset = 0;
+            qentryToBinary(&test, buffer, &offset);
+        
+            //PQputCopyData(conn, buffer, offset);
+            while(TAILQ_NEXT(test, pointers)==NULL){
+                if(!run_thread){
+                    test = NULL;
+                    break;
+                } 
+            }
+            qentry *test2 = test;
+            test = TAILQ_NEXT(test2, pointers);
+            free(test2);
+        }*/
+        
+        /*time_t dif = time(NULL) - start;
+        if(offset>=19990000 || dif>500000){
+            //fwrite(buffer, offset, 1, file);
+            //writeToPostgres(conn, buffer, offset);
+            offset = 0;
+            memset(buffer, 0, 20000000);
+            start = time(NULL);
+        }*/
     }
     
-     
-    
-    qentry *item;
-    int finish = 0;
-    struct timeval start_timestamp;
-    struct timeval now;
-    gettimeofday(&start_timestamp, NULL);
+    while(reader_pos != writer_pos){
+        if(reader_pos == MAX_RINGSIZE-1){
+            reader_pos = 0;
+        } else {
+            reader_pos ++;
+        }
+        char buffer[200];
+        int offset = 0;
+        qentryToBinary(ringbuffer[reader_pos], buffer, &offset);
+        PQputCopyData(conn, buffer, offset);
+        //PQputCopyData(conn, buffer, offset);
+        //time_t dif = time(NULL)-start;
+        /*if(offset>=19990000 || dif>500000){
+            fwrite(buffer, offset, 1, file);
+            //writeToPostgres(conn, buffer, offset);
+            offset = 0;
+            memset(buffer, 0, 20000000);
+            start = time(NULL);
+        }*/
+    }
+    PQputCopyEnd(conn, NULL);
+    PQflush(conn);
+    //fwrite(buffer, offset, 1, file);
+    //writeToPostgres(conn, buffer, offset);
+}
 
-   
+struct timeval start_time, end_time;
+float total_time;
+
+qentry* getWritingRingPos(){
+
+    if(writer_pos == -1){
+        writer_pos ++;
+        return &ringbuffer[0];
+    }
+    
+    //Ringbuffer ist voll, es müssen erst Items ausgelesen werden
+    //gettimeofday(&start_time, NULL);
+    /*while(writer_pos == reader_pos){
+        printf("Writer sleeps at Position %d, %d\n", writer_pos, reader_pos);
+        sleep(0.01);
+    }*/
+    //gettimeofday(&end_time, NULL);
+    //total_time += timeDifference(end_time, start_time);
+    //Letzte Position im Ring-Buffer erreicht
+    
+    if(writer_pos == MAX_RINGSIZE-1){
+        writer_pos = 0;
+    }
+    //Solange Writer vor dem Reader kann nichts passieren
+    else{
+       writer_pos++;
+       //printf("writing\n");
+    }
+    return &ringbuffer[writer_pos];
 }
 
 char* createIntArray(int count){
@@ -302,47 +436,18 @@ char* createIntArray(int count){
     return buffer_help2;
 }
 
-void writeIntoFile(qentry **q){
-    if(q==NULL || *q==NULL){
-    	return;
-    } else {
-        qentry *item = *q;
-        
-        char buffer[200];
-        int offset = 0;
-        
-        struct timeval start, end;
-        long sec, msec;
-        
-        newRow(buffer, 8, &offset);
-        
-        stringToBinary(item->function, buffer, &offset);
-        
-        stringToBinary(item->communicationType, buffer, &offset);
-        
-        intToBinary(item->count, buffer, &offset);
-        
-        stringToBinary(item->communicationArea, buffer, &offset);
-        
-        stringToBinary(item->processorname, buffer, &offset);
-        
-        intToBinary(item->processrank, buffer, &offset);
-        
-        intToBinary(item->partnerrank, buffer, &offset);
-
-        timestampToBinary(item->starts, buffer, &offset);
-        //fwrite(buffer, offset, 1, file);
-    }
-}
 
 void closeFile(){
-    fwrite(PGCOPY_TRAILER, 2, 1, file);  
-    close(file);
+    //fwrite(PGCOPY_TRAILER, 2, 1, file);  
+    //close(file);
+    printf("Time: %f\n", total_time);
+    printf("Counter: %d\n", counter);
 }
 
 void openFile(){
     char filename[20];
     sprintf(filename, "./data_rank_%d.bin", processrank);
+    file = fopen(filename, "wb");
     fwrite(PGCOPY_HEADER, 19, 1, file);
 }
 
@@ -355,6 +460,7 @@ void initializeQueue()
     MPI_Comm_size(comm, &size);
     MPI_Comm_rank(comm, &processrank);
     MPI_Get_processor_name(proc_name, &proc_name_length);
+    
     
     //fprintf(file, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
     
@@ -395,6 +501,11 @@ void initializeQueue()
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
+    run_thread = 1;
+    counter = 0;
+    ringbuffer = (qentry*)malloc(sizeof(qentry)*MAX_RINGSIZE);
+    writer_pos = -1;
+    reader_pos = -1;
     q_qentry = (qentry*)malloc(sizeof(qentry));
     //buffer = (char*)malloc(2000000);
     //offset = 0;

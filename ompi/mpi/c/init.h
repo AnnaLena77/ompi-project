@@ -7,6 +7,7 @@ extern void initializeMongoDB(void);
 extern void closeMongoDB(void);
 extern pthread_t MONITOR_THREAD;
 extern int run_thread;
+extern int counter;
 
 #ifndef QENTRY_H_
 #define QENTRY_H_
@@ -63,9 +64,19 @@ typedef struct {
 
 extern void qentryIntoQueue(qentry **q);
 extern void initQentry(qentry **q);
-extern void writeIntoFile(qentry **q);
+//extern void writeIntoFile(qentry q);
 
 extern qentry *q_qentry;
+
+extern qentry* getWritingRingPos(void);
+
+#ifndef INIT_H
+#define INIT_H
+#define MAX_RINGSIZE 1000000
+extern qentry *ringbuffer;
+extern int writer_pos;
+extern int reader_pos;
+#endif
 
 extern void closeFile(void);
 

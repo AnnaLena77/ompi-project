@@ -53,12 +53,14 @@ int MPI_Finalize(void)
     /* Pretty simple */
 
     //sleep(8);
-    
 #ifdef ENABLE_ANALYSIS
-    //printf("run_thread wird 0\n");
+    printf("run_thread wird 0\n");
+    //printf("Reader: %d, Writer: %d\n", reader_pos, writer_pos);
     run_thread = 0;
     //closeFile();
     //pthread_join(MONITOR_THREAD, NULL);
+    free(ringbuffer);
+    //closeFile();
 #endif
     return ompi_mpi_finalize();
 }

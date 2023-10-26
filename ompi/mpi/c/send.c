@@ -47,8 +47,10 @@ static const char FUNC_NAME[] = "MPI_Send";
 int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
              int tag, MPI_Comm comm)
 {
+    //printf("test\n");
     #ifdef ENABLE_ANALYSIS
-    qentry *item = q_qentry;
+    qentry *item = getWritingRingPos();
+    //writer_pos ++;
     initQentry(&item);
     //item->start
     clock_gettime(CLOCK_REALTIME, &item->starts);
@@ -124,7 +126,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm));
     #else
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag, MCA_PML_BASE_SEND_STANDARD, comm, &item));
-    writeIntoFile(&item);
+    //writeIntoFile(&item);
     //free(item);
     //qentryIntoQueue(&item);
     #endif
