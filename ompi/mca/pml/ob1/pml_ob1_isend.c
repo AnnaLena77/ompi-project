@@ -226,8 +226,7 @@ int mca_pml_ob1_isend(const void *buf,
         
             item = *q;
             item->sendcount = item->sendcount + count;
-        	   item->count = item->count + count;
-        	   item->datasize = item->datasize + count*sizeof(datatype);
+        	   item->sendDatasize = item->sendDatasize + count*sizeof(datatype);
             if(item->blocking == 0 && !strcmp(item->communicationType, "p2p")){
                 //qentry->sendmode & qentry->operation
                 if(sendmode==MCA_PML_BASE_SEND_SYNCHRONOUS){
@@ -436,8 +435,7 @@ int mca_pml_ob1_send(const void *buf,
             }
             //size of send-Data:
             item->sendcount = item->sendcount + count;
-        	   item->count = item->count + count;
-        	   item->datasize = item->datasize + count*sizeof(datatype);
+        	   item->sendDatasize = item->sendDatasize + count*sizeof(datatype);
         	   //printf("Datasize aus send: %d\n", item->datasize);
             //qentry->sendmode & qentry->operation
             

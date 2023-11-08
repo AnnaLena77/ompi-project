@@ -50,10 +50,16 @@ int MPI_Bsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
 {
         
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     //item->start
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //item->function and communicationtype
     strcpy(item->function, "MPI_Bsend");
     strcpy(item->communicationType, "p2p");

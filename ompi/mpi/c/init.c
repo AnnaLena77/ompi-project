@@ -135,10 +135,10 @@ void initQentry(qentry **q){
         memcpy(item->function, "", 0);
         item->blocking = -1;
         memcpy(item->datatype, "", 0);
-        item->count = 1234;
         item->sendcount = 0;
+        item->sendDatasize = 0;
         item->recvcount = 0;
-        item->datasize = 0;
+        item->recvDatasize = 0;
         memcpy(item->operation, "", 0);
         memcpy(item->communicationArea, "", 0);
         memcpy(item->processorname, proc_name, proc_name_length);
@@ -151,7 +151,7 @@ void initQentry(qentry **q){
         item->withinEagerLimit = -1;
         item->foundMatchWild = -1;
         memcpy(item->usedAlgorithm, "", 0);
-        item->start = (struct timeval){0};
+        //item->start = (struct timeval){0};
         item->initializeRequest = (struct timeval){0};
         item->startRequest = (struct timeval){0};
         item->requestCompletePmlLevel = (struct timeval){0};
@@ -240,13 +240,15 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         qentry *item = &q;
         int offset = *off;
         
-        newRow(buffer, 8, &offset);
+        newRow(buffer, 9, &offset);
 
         stringToBinary(item->function, buffer, &offset);
         
         stringToBinary(item->communicationType, buffer, &offset);
         
-        intToBinary(item->count, buffer, &offset);
+        intToBinary(item->sendDatasize, buffer, &offset);
+        
+        intToBinary(item->recvDatasize, buffer, &offset);
         
         stringToBinary(item->communicationArea, buffer, &offset);
         
@@ -256,11 +258,13 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         
         intToBinary(item->partnerrank, buffer, &offset);
 
-        timestampToBinary(item->starts, buffer, &offset);
+        timestampToBinary(item->start, buffer, &offset);
         
         *off = offset;
         //fwrite(buffer, offset, 1, file);
 }
+
+#define TIME_TO_WAIT 0.5
 
 //Monitor-Function for SQL-Connection
 static void* SQLMonitorFunc(void* _arg){
@@ -271,14 +275,15 @@ static void* SQLMonitorFunc(void* _arg){
         fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
         PQfinish(conn);
         exit(1);
-    } /*else {
-        /*if(!PQexec(conn, "DELETE FROM MPI_Information")){
-            fprintf(stderr, "Remove Data failed: %s\n", PQerrorMessage(conn));
-            //PQfinish(conn);
-            //exit(1);
-        }
-    }*/
+    } else {
+       char proc_rank[3];
+       sprintf(proc_rank, "%d", processrank);
+       const char *query = "INSERT INTO cluster_information (processorname, rank) VALUES ($1, $2)";
+       const char *paramValues[2] = {proc_name, proc_rank};
+       PGresult *res = PQexecParams(conn, query, 2, NULL, paramValues, strlen(proc_name)+strlen(proc_rank), NULL, 0);
+    }
     
+    clock_t start = clock();
     
     const char *copyQuery = "COPY mpi_information FROM STDIN (FORMAT binary)";
     PGresult *res;
@@ -295,11 +300,9 @@ static void* SQLMonitorFunc(void* _arg){
    // int copyRes = PQputCopyData(conn, buffer, offset);
     //int offset = 0;
     //char *buffer = (char*)malloc(sizeof(char)*20000000);
-    
-    time_t start = time(NULL);
 
     while(run_thread){
-        while(reader_pos==writer_pos-1 || (reader_pos == MAX_RINGSIZE-1 && writer_pos == 0)){
+        while(writer_pos == -1 || reader_pos==writer_pos-1 || (reader_pos == MAX_RINGSIZE-1 && writer_pos == 0)){
             //printf("Reader sleeps at Position %d, %d\n", reader_pos, writer_pos);
             sleep(0.01);
             //printf("Prozess: %d haengt beim Lesen\n", processrank);
@@ -317,6 +320,20 @@ static void* SQLMonitorFunc(void* _arg){
         int offset = 0;
         qentryToBinary(ringbuffer[reader_pos], buffer, &offset);
         PQputCopyData(conn, buffer, offset);
+        
+        clock_t current = clock();
+        if(current>=(start + TIME_TO_WAIT * CLOCKS_PER_SEC)){
+            PQputCopyEnd(conn, NULL);
+            PQflush(conn);
+            res = PQexec(conn, copyQuery);
+            PQclear(res);
+            PQputCopyData(conn, PGCOPY_HEADER, 19);
+            
+            start = current;
+        }
+        
+        //printf("Reader: %d, Writer: %d\n", reader_pos, writer_pos);
+        
         /*while(TAILQ_EMPTY(&head)){
             if(!run_thread){
                 printf("finished\n");
@@ -378,9 +395,21 @@ static void* SQLMonitorFunc(void* _arg){
             memset(buffer, 0, 20000000);
             start = time(NULL);
         }*/
+        clock_t current = clock();
+        if(current>=(start + TIME_TO_WAIT * CLOCKS_PER_SEC)){
+            PQputCopyEnd(conn, NULL);
+            PQflush(conn);
+            
+            res = PQexec(conn, copyQuery);
+            PQclear(res);
+            PQputCopyData(conn, PGCOPY_HEADER, 19);
+            
+            start = current;
+        }
     }
     PQputCopyEnd(conn, NULL);
     PQflush(conn);
+    PQfinish(conn);
     //fwrite(buffer, offset, 1, file);
     //writeToPostgres(conn, buffer, offset);
 }
@@ -397,10 +426,10 @@ qentry* getWritingRingPos(){
     
     //Ringbuffer ist voll, es müssen erst Items ausgelesen werden
     //gettimeofday(&start_time, NULL);
-    /*while(writer_pos == reader_pos){
+    while(writer_pos == reader_pos){
         printf("Writer sleeps at Position %d, %d\n", writer_pos, reader_pos);
         sleep(0.01);
-    }*/
+    }
     //gettimeofday(&end_time, NULL);
     //total_time += timeDifference(end_time, start_time);
     //Letzte Position im Ring-Buffer erreicht
@@ -491,7 +520,7 @@ void initializeQueue()
     }*/
     
     //fclose(file);
-    //pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
+    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
     //gettimeofday(&init_sql_finished, NULL);
     //float dif = timeDifference(init_sql_finished, init_sql_start);
     //printf("Lost time for initializing sql: %f\n", dif);

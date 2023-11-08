@@ -34,10 +34,16 @@ int MPI_Imrecv(void *buf, int count, MPI_Datatype type,
                MPI_Message *message, MPI_Request *request)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     //item->start
     gettimeofday(&item->start, NULL);
-    //item->operation
+    //item->operation*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     strcpy(item->operation, "MPI_Imrecv");
     //item->blocking
     item->blocking = 0;
@@ -105,7 +111,7 @@ int MPI_Imrecv(void *buf, int count, MPI_Datatype type,
     rc = MCA_PML_CALL(imrecv(buf, count, type, message, request));
 #else
     rc = MCA_PML_CALL(imrecv(buf, count, type, message, request, &item));
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

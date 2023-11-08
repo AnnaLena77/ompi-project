@@ -48,9 +48,15 @@ int MPI_Reduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[
                        MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     strcpy(item->function, "MPI_Reduce_scatter");
     strcpy(item->communicationType, "collective");
     //item->datatype
@@ -185,7 +191,7 @@ int MPI_Reduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[
     err = comm->c_coll->coll_reduce_scatter(sendbuf, recvbuf, recvcounts,
                                            datatype, op, comm,
                                            comm->c_coll->coll_reduce_scatter_module, &item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OBJ_RELEASE(op);
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);

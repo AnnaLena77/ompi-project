@@ -48,9 +48,13 @@ int MPI_Fetch_and_op(const void *origin_addr, void *result_addr, MPI_Datatype da
                      int target_rank, MPI_Aint target_disp, MPI_Op op, MPI_Win win)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
     //Basic information
     strcpy(item->function, "MPI_Fetch_and_op");
     strcpy(item->communicationType, "one-sided");
@@ -63,8 +67,8 @@ int MPI_Fetch_and_op(const void *origin_addr, void *result_addr, MPI_Datatype da
     strcpy(item->datatype, origin_name);
     free(origin_name);
     //count and datasize
-    item->count = 1;
-    item->datasize = sizeof(datatype);
+    item->sendcount = 1;
+    item->sendDatasize = sizeof(datatype);
     //operation
     strcpy(item->operation, op->o_name);
     //Name of communicator

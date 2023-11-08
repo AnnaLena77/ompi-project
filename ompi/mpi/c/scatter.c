@@ -50,9 +50,15 @@ int MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                 int root, MPI_Comm comm)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     strcpy(item->function, "MPI_Scatter");
     strcpy(item->communicationType, "collective");
     int processrank;
@@ -228,7 +234,7 @@ int MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     err = comm->c_coll->coll_scatter(sendbuf, sendcount, sendtype, recvbuf,
                                     recvcount, recvtype, root, comm,
                                     comm->c_coll->coll_scatter_module, &item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

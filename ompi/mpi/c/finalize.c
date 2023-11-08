@@ -58,7 +58,7 @@ int MPI_Finalize(void)
     //printf("Reader: %d, Writer: %d\n", reader_pos, writer_pos);
     run_thread = 0;
     //closeFile();
-    //pthread_join(MONITOR_THREAD, NULL);
+    pthread_join(MONITOR_THREAD, NULL);
     free(ringbuffer);
     //closeFile();
 #endif

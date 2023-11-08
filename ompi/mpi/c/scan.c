@@ -48,9 +48,15 @@ int MPI_Scan(const void *sendbuf, void *recvbuf, int count,
              MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     strcpy(item->function, "MPI_Scan");
     strcpy(item->communicationType, "collective");
     //item->datatype
@@ -160,7 +166,7 @@ int MPI_Scan(const void *sendbuf, void *recvbuf, int count,
     err = comm->c_coll->coll_scan(sendbuf, recvbuf, count,
                                  datatype, op, comm,
                                  comm->c_coll->coll_scan_module, &item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OBJ_RELEASE(op);
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);

@@ -48,9 +48,15 @@ int MPI_Rput(const void *origin_addr, int origin_count, MPI_Datatype origin_data
              MPI_Datatype target_datatype, MPI_Win win, MPI_Request *request)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //Basic information
     strcpy(item->function, "MPI_Rput");
     strcpy(item->communicationType, "one-sided");
@@ -76,8 +82,8 @@ int MPI_Rput(const void *origin_addr, int origin_count, MPI_Datatype origin_data
         free(target_name);
     }
     //count and datasize
-    item->count = origin_count;
-    item->datasize = origin_count*sizeof(origin_datatype);
+    item->sendcount = origin_count;
+    item->sendDatasize = origin_count*sizeof(origin_datatype);
     //Name of communicator
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
     int comm_name_length;
@@ -146,7 +152,7 @@ int MPI_Rput(const void *origin_addr, int origin_count, MPI_Datatype origin_data
         rc = win->w_osc_module->osc_rput(origin_addr, origin_count, origin_datatype,
                                      target_rank, target_disp, target_count,
                                      target_datatype, win, request, &item);
-        qentryIntoQueue(&item);
+        //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, win, rc, FUNC_NAME);
 }

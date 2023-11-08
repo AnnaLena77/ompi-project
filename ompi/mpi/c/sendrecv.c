@@ -49,9 +49,15 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                  MPI_Comm comm,  MPI_Status *status)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     //item->start
-   gettimeofday(&item->start, NULL);
+   gettimeofday(&item->start, NULL);*/
+   
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //item->operation
     strcpy(item->operation, "MPI_Sendrecv");
     //item->blocking
@@ -166,7 +172,7 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         rc = rcs;
     }
 #ifdef ENABLE_ANALYSIS
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
 
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);

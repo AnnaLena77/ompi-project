@@ -45,10 +45,15 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
               int tag, MPI_Comm comm, MPI_Request *request)
 {
     #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     //item->start
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //item->operation
     strcpy(item->function, "MPI_Irecv");
     strcpy(item->communicationType, "p2p");
@@ -130,7 +135,7 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
     rc = MCA_PML_CALL(irecv(buf,count,type,source,tag,comm,request));
 #else
     rc = MCA_PML_CALL(irecv(buf,count,type,source,tag,comm,request, &item));
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

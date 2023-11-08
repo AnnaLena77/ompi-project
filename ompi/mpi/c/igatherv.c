@@ -48,9 +48,15 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                  MPI_Datatype recvtype, int root, MPI_Comm comm, MPI_Request *request)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     strcpy(item->function, "MPI_Igatherv");
     strcpy(item->communicationType, "collective");
     int processrank;
@@ -274,7 +280,7 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         ompi_coll_base_retain_datatypes(*request, sendtype, recvtype);
     }
 #ifdef ENABLE_ANALYSIS
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif  
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

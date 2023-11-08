@@ -53,7 +53,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype type, int dest,
     //writer_pos ++;
     initQentry(&item);
     //item->start
-    clock_gettime(CLOCK_REALTIME, &item->starts);
+    clock_gettime(CLOCK_REALTIME, &item->start);
     //item->operation
     memcpy(item->function, "MPI_Send", 8);
     memcpy(item->communicationType, "p2p", 3);

@@ -17,10 +17,10 @@ typedef struct qentry {
     char communicationType[30];
     int blocking;
     char datatype[64];
-    int count;
     int sendcount;
+    int sendDatasize;
     int recvcount;
-    int datasize;
+    int recvDatasize;
     char operation[30]; //MPI_Reduce, MPI_Accumulate
     char communicationArea[64];
     char processorname[30];
@@ -33,8 +33,8 @@ typedef struct qentry {
     int withinEagerLimit;
     int foundMatchWild;
     char usedAlgorithm[30];
-    struct timespec starts;
-    struct timeval start;
+    struct timespec start;
+    //struct timeval start;
     struct timeval initializeRequest;
     struct timeval startRequest;
     //Completion of the first fragment of a long message that requires an acknowledgement

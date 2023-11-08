@@ -50,9 +50,15 @@ int MPI_Ialltoallw(const void *sendbuf, const int sendcounts[], const int sdispl
                    MPI_Request *request)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     strcpy(item->function, "MPI_Ialltoallw");
     strcpy(item->communicationType, "collective");
 
@@ -156,7 +162,7 @@ int MPI_Ialltoallw(const void *sendbuf, const int sendcounts[], const int sdispl
                                        sendtypes, recvbuf, recvcounts,
                                        rdispls, recvtypes, comm, request,
                                        comm->c_coll->coll_ialltoallw_module, &item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         ompi_coll_base_retain_datatypes_w(*request, (MPI_IN_PLACE==sendbuf)?NULL:sendtypes, recvtypes, false);

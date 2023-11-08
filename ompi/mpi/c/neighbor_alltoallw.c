@@ -52,9 +52,15 @@ int MPI_Neighbor_alltoallw(const void *sendbuf, const int sendcounts[], const MP
                            const MPI_Datatype recvtypes[], MPI_Comm comm)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     strcpy(item->function, "MPI_Neighbor_alltoallw");
     strcpy(item->communicationType, "collective");
 
@@ -188,7 +194,7 @@ int MPI_Neighbor_alltoallw(const void *sendbuf, const int sendcounts[], const MP
     err = comm->c_coll->coll_neighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes,
                                                recvbuf, recvcounts, rdispls, recvtypes,
                                                comm, comm->c_coll->coll_neighbor_alltoallw_module, &item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

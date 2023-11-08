@@ -52,9 +52,15 @@ int MPI_Rget_accumulate(const void *origin_addr, int origin_count, MPI_Datatype 
                         MPI_Datatype target_datatype, MPI_Op op, MPI_Win win, MPI_Request *request)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //Basic information
     strcpy(item->function, "MPI_Rget_accumulate");
     strcpy(item->communicationType, "one-sided");
@@ -80,8 +86,8 @@ int MPI_Rget_accumulate(const void *origin_addr, int origin_count, MPI_Datatype 
         free(target_name);
     }
     //count and datasize
-    item->count = target_count;
-    item->datasize = target_count*sizeof(target_datatype);
+    item->sendcount = target_count;
+    item->sendDatasize = target_count*sizeof(target_datatype);
     //operation
     strcpy(item->operation, op->o_name);
     //Name of communicator
@@ -217,7 +223,7 @@ int MPI_Rget_accumulate(const void *origin_addr, int origin_count, MPI_Datatype 
                                                     target_count,
                                                     target_datatype,
                                                      op, win, request, &item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, win, rc, FUNC_NAME);
 }

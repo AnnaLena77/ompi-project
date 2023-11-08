@@ -47,10 +47,16 @@ static const char FUNC_NAME[] = "MPI_Rsend";
 int MPI_Rsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm)
 {   
     #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
     //item->start
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //item->operation
     strcpy(item->function, "MPI_Rsend");
     strcpy(item->communicationType, "p2p");
@@ -135,7 +141,7 @@ int MPI_Rsend(const void *buf, int count, MPI_Datatype type, int dest, int tag, 
     #else
     rc = MCA_PML_CALL(send(buf, count, type, dest, tag,
                            MCA_PML_BASE_SEND_READY, comm, &item));
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
     #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

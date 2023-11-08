@@ -51,9 +51,15 @@ int MPI_Get_accumulate(const void *origin_addr, int origin_count, MPI_Datatype o
 {
 //Remote Daten werden an den Caller zurueckgegeben, bevor die gesendeten Daten in den entfernten Daten akkumuliert werden -> Kombiniert Get-Daten mit vorhandenen Daten
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //Basic information
     strcpy(item->function, "MPI_Get_accumulate");
     strcpy(item->communicationType, "one-sided");
@@ -79,8 +85,8 @@ int MPI_Get_accumulate(const void *origin_addr, int origin_count, MPI_Datatype o
         free(target_name);
     }
     //count and datasize
-    item->count = target_count;
-    item->datasize = target_count*sizeof(target_datatype);
+    item->sendcount = target_count;
+    item->sendDatasize = target_count*sizeof(target_datatype);
     //operation
     strcpy(item->operation, op->o_name);
     //Name of communicator
@@ -215,7 +221,7 @@ int MPI_Get_accumulate(const void *origin_addr, int origin_count, MPI_Datatype o
                                                     target_count,
                                                     target_datatype,
                                                     op, win, &item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, win, rc, FUNC_NAME);
 }

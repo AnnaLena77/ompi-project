@@ -53,9 +53,15 @@ int MPI_Ineighbor_alltoall(const void *sendbuf, int sendcount, MPI_Datatype send
                            MPI_Comm comm, MPI_Request *request)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     strcpy(item->function, "MPI_Ineighbor_alltoall");
     strcpy(item->communicationType, "collective");
     //item->datatype
@@ -163,7 +169,7 @@ int MPI_Ineighbor_alltoall(const void *sendbuf, int sendcount, MPI_Datatype send
     err = comm->c_coll->coll_ineighbor_alltoall(sendbuf, sendcount, sendtype,
                                                recvbuf, recvcount, recvtype, comm,
                                                request, comm->c_coll->coll_ineighbor_alltoall_module, &item);
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         ompi_coll_base_retain_datatypes(*request, sendtype, recvtype);

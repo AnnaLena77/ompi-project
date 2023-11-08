@@ -50,9 +50,14 @@ int MPI_Iscatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                  int root, MPI_Comm comm, MPI_Request *request)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+
+    qentry *item = getWritingRingPos();
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
+    initQentry(&item);
+    gettimeofday(&item->start, NULL);*/
     strcpy(item->function, "MPI_Iscatter");
     strcpy(item->communicationType, "collective");
     int processrank;
@@ -68,9 +73,9 @@ int MPI_Iscatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
          strcpy(item->datatype, type_name);
          free(type_name);
          //item->sendcount
-         item->count = sendcount;
+         //item->sendcount = sendcount;
          //item->datasize
-         item->datasize = sendcount * sizeof(sendtype);
+         //item->sendDatasize = sendcount * sizeof(sendtype);
     }
     else{
     	item->partnerrank = root;
@@ -231,7 +236,7 @@ int MPI_Iscatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         ompi_coll_base_retain_datatypes(*request, sendtype, recvtype);
     }
 #ifdef ENABLE_ANALYSIS
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

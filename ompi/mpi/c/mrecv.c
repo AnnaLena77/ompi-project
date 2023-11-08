@@ -38,9 +38,15 @@ int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
               MPI_Message *message, MPI_Status *status)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     //item->start
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //item->operation
     strcpy(item->operation, "MPI_Mrecv");
     //item->blocking
@@ -114,7 +120,7 @@ int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status));
 #else
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status, &item));
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
     /* Per MPI-1, the MPI_ERROR field is not defined for
        single-completion calls */

@@ -47,9 +47,13 @@ int MPI_Compare_and_swap(const void *origin_addr, const void *compare_addr, void
                          MPI_Datatype datatype, int target_rank, MPI_Aint target_disp, MPI_Win win)
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     initQentry(&item);
-    gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
     //Basic information
     strcpy(item->function, "MPI_Compare_and_swap");
     strcpy(item->communicationType, "one-sided");
@@ -62,8 +66,8 @@ int MPI_Compare_and_swap(const void *origin_addr, const void *compare_addr, void
     strcpy(item->datatype, origin_name);
     free(origin_name);
     //count and datasize
-    item->count = 1;
-    item->datasize = sizeof(datatype);
+    item->sendcount = 1;
+    item->sendDatasize = sizeof(datatype);
   
     //Name of communicator
     char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);

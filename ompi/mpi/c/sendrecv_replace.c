@@ -48,9 +48,15 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
 
 {
 #ifdef ENABLE_ANALYSIS
-    qentry *item = (qentry*)malloc(sizeof(qentry));
+    /*qentry *item = (qentry*)malloc(sizeof(qentry));
     //item->start
-   gettimeofday(&item->start, NULL);
+    gettimeofday(&item->start, NULL);*/
+    
+    qentry *item = getWritingRingPos();
+    initQentry(&item);
+    //item->start
+    clock_gettime(CLOCK_REALTIME, &item->start);
+    
     //item->operation
     strcpy(item->operation, "MPI_Sendrecv_replace");
     //item->blocking
@@ -210,7 +216,7 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
 #endif
 
 #ifdef ENABLE_ANALYSIS
-    qentryIntoQueue(&item);
+    //qentryIntoQueue(&item);
 #endif
 
  cleanup_and_return:
