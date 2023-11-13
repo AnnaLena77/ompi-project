@@ -40,11 +40,10 @@ static void *atomic_math_test(void *arg)
 {
     int count = *((int *) arg);
     int i;
-
-    for (i = 0; i < count; ++i) {
-        (void) opal_atomic_add_fetch_32(&val32, 5);
-        (void) opal_atomic_add_fetch_64(&val64, 6);
-        opal_atomic_add(&valint, 4);
+    for (i = 0 ; i < count ; ++i) {
+        (void)opal_atomic_add_fetch_32(&val32, 5);
+        (void)opal_atomic_add_fetch_64(&val64, 6);
+        opal_atomic_add (&valint, 4);
     }
 
     return NULL;
@@ -172,7 +171,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    test64 = opal_atomic_add_fetch_64(&val64, 17);
+    test64 = opal_atomic_add_fetch_64 (&val64, 17);
     if (test64 != 17 || val64 != 17) {
         fprintf(stderr,
                 "error in opal_atomic_add_fetch_64. expected (17, 17), got (%" PRId64 ", %" PRId64

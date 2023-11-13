@@ -49,5 +49,4 @@ OMPI_DECLSPEC int OMPI_Comm_failure_inject(MPI_Comm comm, bool notify);
 /* Provide defines to facilitate the detection of the new API */
 #define OMPI_HAVE_MPIX_COMM_GET_FAILED 1
 #define OMPI_HAVE_MPIX_COMM_ACK_FAILED 1
-#define OMPI_HAVE_MPIX_COMM_ISHRINK    1
 

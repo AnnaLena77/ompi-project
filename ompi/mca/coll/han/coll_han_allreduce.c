@@ -438,6 +438,8 @@ int mca_coll_han_allreduce_t2_task(void *task_args)
 	if (t->sbuf == MPI_IN_PLACE) {
 	    if (!t->noop) {
 #ifndef ENABLE_ANALYSIS
+	if (t->sbuf == MPI_IN_PLACE) {
+	    if (!t->noop) {
                 t->low_comm->c_coll->coll_reduce(MPI_IN_PLACE,
                                                  (char *) t->rbuf + 2 * extent * t->seg_count, tmp_count,
                                                  t->dtype, t->op, t->root_low_rank, t->low_comm,

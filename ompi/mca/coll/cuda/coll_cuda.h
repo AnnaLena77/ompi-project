@@ -128,6 +128,41 @@ static inline void *mca_coll_cuda_memcpy(void *dest, const void *src, size_t siz
     }
 }
 
+
+/* Checks the type of pointer
+ *
+ * @param addr   One pointer to check
+ * @retval <0                An error has occurred.
+ * @retval 0                 The buffer is NULL or it does not belong to a managed buffer
+ *                           in device memory.
+ * @retval >0                The buffer belongs to a managed buffer in
+ *                           device memory.
+ */
+static inline int mca_coll_cuda_check_buf(void *addr)
+{
+    uint64_t flags;
+    int dev_id;
+    if (OPAL_LIKELY(NULL != addr)) {
+        return opal_accelerator.check_addr(addr, &dev_id, &flags);
+    } else {
+        return 0;
+    }
+}
+
+static inline void *mca_coll_cuda_memcpy(void *dest, const void *src, size_t size)
+{
+    int res;
+    res = opal_accelerator.mem_copy(MCA_ACCELERATOR_NO_DEVICE_ID, MCA_ACCELERATOR_NO_DEVICE_ID,
+                                    dest, src, size, MCA_ACCELERATOR_TRANSFER_UNSPEC);
+    if (res != 0) {
+        opal_output(0, "CUDA: Error in cuMemcpy: res=%d, dest=%p, src=%p, size=%d", res, dest, src,
+                    (int) size);
+        abort();
+    } else {
+        return dest;
+    }
+}
+
 /* Types */
 /* Module */
 

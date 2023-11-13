@@ -190,8 +190,8 @@ static bool test3(void)
     char *a[] = {"aaa", "bbb", "ccc", NULL};
     char *b[4];
 
-    /* Try to free a null argv -- should be harmless (we'll seg fault if
-       it's not!) */
+     Set argc to be an initial bogus number -- opal_argv_add() should
+     reset it back to zero after the first iteration.
 
     opal_argv_free(argv);
 

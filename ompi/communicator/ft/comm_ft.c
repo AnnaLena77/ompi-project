@@ -218,6 +218,21 @@ int ompi_comm_get_failed_internal(ompi_communicator_t* comm, ompi_group_t **grou
 
 int ompi_comm_shrink_internal(ompi_communicator_t* comm, ompi_communicator_t** newcomm)
 {
+    int ret, exit_status = OMPI_SUCCESS;
+    ompi_group_t *c_group = OMPI_COMM_IS_INTER(comm)? comm->c_local_group: comm->c_remote_group;
+    opal_mutex_lock(&ompi_group_afp_mutex);
+    ret = ompi_group_intersection(ompi_group_all_failed_procs,
+                                  c_group,
+                                  group);
+    opal_mutex_unlock(&ompi_group_afp_mutex);
+    if( OMPI_SUCCESS != ret ) {
+        exit_status = ret;
+    }
+    return exit_status;
+}
+
+int ompi_comm_shrink_internal(ompi_communicator_t* comm, ompi_communicator_t** newcomm)
+{
     int rc, exit_status = OMPI_SUCCESS;
     int flag = 1;
     ompi_group_t *failed_group = NULL, *comm_group = NULL, *alive_group = NULL, *alive_rgroup = NULL;
@@ -244,9 +259,11 @@ int ompi_comm_shrink_internal(ompi_communicator_t* comm, ompi_communicator_t** n
     opal_mutex_unlock(&ompi_group_afp_mutex);
 #if OPAL_ENABLE_DEBUG
     stop = PMPI_Wtime();
+#endif
     OPAL_OUTPUT_VERBOSE((10, ompi_ftmpi_output_handle,
                          "%s ompi: comm_shrink: group_inter: %g seconds",
                          OMPI_NAME_PRINT(OMPI_PROC_MY_NAME), stop-start));
+#if OPAL_ENABLE_DEBUG
     start = PMPI_Wtime();
 #endif
     do {
@@ -254,16 +271,17 @@ int ompi_comm_shrink_internal(ompi_communicator_t* comm, ompi_communicator_t** n
          * the value of flag, instead we are only using the globally consistent
          * return value.
          */
-        rc = comm->c_coll->coll_agree( &flag,
-                                       1,
-                                       &ompi_mpi_int.dt,
-                                       &ompi_mpi_op_band.op,
-                                       &failed_group, true,
-                                       comm,
-                                       comm->c_coll->coll_agree_module);
-    } while( MPI_ERR_PROC_FAILED == rc );
+        ret = comm->c_coll->coll_agree( &flag,
+                                        1,
+                                        &ompi_mpi_int.dt,
+                                        &ompi_mpi_op_band.op,
+                                        &failed_group, true,
+                                        comm,
+                                        comm->c_coll->coll_agree_module);
+    } while( MPI_ERR_PROC_FAILED == ret );
 #if OPAL_ENABLE_DEBUG
     stop = PMPI_Wtime();
+#endif
     OPAL_OUTPUT_VERBOSE((10, ompi_ftmpi_output_handle,
                          "%s ompi: comm_shrink: AGREE: %g seconds",
                          OMPI_NAME_PRINT(OMPI_PROC_MY_NAME), stop-start));
@@ -302,20 +320,20 @@ int ompi_comm_shrink_internal(ompi_communicator_t* comm, ompi_communicator_t** n
             goto cleanup;
         }
     }
-    rc = ompi_comm_set( &newcomp,                 /* new comm */
-                        comm,                     /* old comm */
-                        0,                        /* local_size */
-                        NULL,                     /* local_ranks */
-                        0,                        /* remote_size */
-                        NULL,                     /* remote_ranks */
-                        comm->c_keyhash,          /* attrs */
-                        comm->error_handler,      /* error handler */
-                        alive_group,              /* local group */
-                        alive_rgroup,             /* remote group */
-                        0                         /* flags */
-                      );
-    if( OMPI_SUCCESS != rc ) {
-        exit_status = rc;
+    ret = ompi_comm_set( &newcomp,                 /* new comm */
+                         comm,                     /* old comm */
+                         0,                        /* local_size */
+                         NULL,                     /* local_ranks */
+                         0,                        /* remote_size */
+                         NULL,                     /* remote_ranks */
+                         comm->c_keyhash,          /* attrs */
+                         comm->error_handler,      /* error handler */
+                         alive_group,              /* local group */
+                         alive_rgroup,             /* remote group */
+                         0                         /* flags */
+                       );
+    if( OMPI_SUCCESS != ret ) {
+        exit_status = ret;
         goto cleanup;
     }
     if( NULL == newcomp ) {
@@ -324,6 +342,7 @@ int ompi_comm_shrink_internal(ompi_communicator_t* comm, ompi_communicator_t** n
     }
 #if OPAL_ENABLE_DEBUG
     stop = PMPI_Wtime();
+#endif
     OPAL_OUTPUT_VERBOSE((10, ompi_ftmpi_output_handle,
                          "%s ompi: comm_shrink: GRP COMPUTATION: %g seconds\n",
                          OMPI_NAME_PRINT(OMPI_PROC_MY_NAME), stop-start));
@@ -338,14 +357,14 @@ int ompi_comm_shrink_internal(ompi_communicator_t* comm, ompi_communicator_t** n
 #if OPAL_ENABLE_DEBUG
     start = PMPI_Wtime();
 #endif
-    rc = ompi_comm_nextcid( newcomp,  /* new communicator */
-                            comm,     /* old comm */
-                            NULL,     /* bridge comm */
-                            NULL,     /* local leader */
-                            NULL,     /* remote_leader */
-                            -1,       /* send_first */
-                            mode);    /* mode */
-    if( OMPI_SUCCESS != rc ) {
+    ret = ompi_comm_nextcid( newcomp,  /* new communicator */
+                             comm,     /* old comm */
+                             NULL,     /* bridge comm */
+                             NULL,     /* local leader */
+                             NULL,     /* remote_leader */
+                             -1,       /* send_first */
+                             mode);    /* mode */
+    if( OMPI_SUCCESS != ret ) {
         opal_output_verbose(1, ompi_ftmpi_output_handle,
                             "%s ompi: comm_shrink: Determine context id failed with error %d",
                             OMPI_NAME_PRINT(OMPI_PROC_MY_NAME), rc);
@@ -354,6 +373,7 @@ int ompi_comm_shrink_internal(ompi_communicator_t* comm, ompi_communicator_t** n
     }
 #if OPAL_ENABLE_DEBUG
     stop = PMPI_Wtime();
+#endif
     OPAL_OUTPUT_VERBOSE((10, ompi_ftmpi_output_handle,
                          "%s ompi: comm_shrink: NEXT CID: %g seconds\n",
                          OMPI_NAME_PRINT(OMPI_PROC_MY_NAME), stop-start));

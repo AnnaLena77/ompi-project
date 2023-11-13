@@ -39,18 +39,16 @@ struct pfoo_t {
     double d[2];
 } pfoo = {0}, *pbar = NULL;
 
-static void print_hex(void *ptr, int count, char *epilog, char *prolog)
+static void print_hex(void* ptr, int count, char* epilog, char* prolog)
 {
-    if (NULL != epilog)
-        fprintf(stderr, "%s", epilog);
-    for (int i = 0; i < count; i++) {
-        fprintf(stderr, "%02x", (unsigned int) (((unsigned char *) ptr)[i]));
+    if ( NULL != epilog) fprintf(stderr, "%s", epilog);
+    for ( int i = 0; i < count; i++ ) {
+        fprintf(stderr, "%02x", (unsigned int)(((unsigned char*)ptr)[i]));
     }
-    if (NULL != prolog)
-        fprintf(stderr, "%s", prolog);
+    if (NULL != prolog) fprintf(stderr, "%s", prolog);
 }
 
-static void print_bar_pbar(struct foo_t *_bar, struct pfoo_t *_pbar)
+static void print_bar_pbar(struct foo_t* _bar, struct pfoo_t* _pbar)
 {
     print_hex(&_bar->i[0], sizeof(int), NULL, " ");
     print_hex(&_bar->i[1], sizeof(int), "[", "] ");
@@ -77,8 +75,7 @@ static void print_stack(opal_convertor_t *conv)
     printf("\n");
 }
 
-static int testcase(ompi_datatype_t *newtype, size_t arr[][2])
-{
+static int testcase(ompi_datatype_t * newtype, size_t arr[][2]) {
     int i, j, errors = 0;
     struct iovec a;
     unsigned int iov_count;
@@ -105,7 +102,7 @@ static int testcase(ompi_datatype_t *newtype, size_t arr[][2])
         return OMPI_ERROR;
     }
 
-    for (i = 0; 0 != arr[i][0]; i++) {
+    for ( i = 0; 0 != arr[i][0]; i++) {
         /* add some garbage before and after the source data */
         a.iov_base = malloc(arr[i][0] + 2048);
         if (NULL == a.iov_base) {
@@ -129,46 +126,56 @@ static int testcase(ompi_datatype_t *newtype, size_t arr[][2])
     }
 
     for (j = 0; j < N; ++j) {
-        if (bar[j].i[0] != pbar[j].i[0] || bar[j].i[1] != 0 || bar[j].i[2] != pbar[j].i[1]
-            || bar[j].d[0] != pbar[j].d[0] || bar[j].d[1] != 0.0 || bar[j].d[2] != pbar[j].d[1]) {
-            if (0 == errors || report_all_errors) {
+        if (bar[j].i[0] != pbar[j].i[0] ||
+            bar[j].i[1] != 0 ||
+            bar[j].i[2] != pbar[j].i[1] ||
+            bar[j].d[0] != pbar[j].d[0] ||
+            bar[j].d[1] != 0.0 ||
+            bar[j].d[2] != pbar[j].d[1]) {
+            if(0 == errors || report_all_errors) {
                 ptrdiff_t displ;
-                char *error_location = "in gaps";
+                char* error_location = "in gaps";
                 if (bar[j].i[0] != pbar[j].i[0]) {
-                    displ = (char *) &bar[j].i[0] - (char *) &bar[0];
+                    displ = (char*)&bar[j].i[0] - (char*)&bar[0];
                     error_location = "i[0]";
                 } else if (bar[j].i[2] != pbar[j].i[1]) {
-                    displ = (char *) &bar[j].i[1] - (char *) &bar[0];
+                    displ = (char*)&bar[j].i[1] - (char*)&bar[0];
                     error_location = "i[2]";
                 } else if (bar[j].d[0] != pbar[j].d[0]) {
-                    displ = (char *) &bar[j].d[0] - (char *) &bar[0];
+                    displ = (char*)&bar[j].d[0] - (char*)&bar[0];
                     error_location = "d[0]";
                 } else if (bar[j].d[2] != pbar[j].d[1]) {
-                    displ = (char *) &bar[j].d[1] - (char *) &bar[0];
+                    displ = (char*)&bar[j].d[1] - (char*)&bar[0];
                     error_location = "d[2]";
                 } else {
-                    displ = (char *) &bar[j] - (char *) &bar[0];
+                    displ = (char*)&bar[j] - (char*)&bar[0];
                 }
                 for (i = 0; 0 != arr[i][0]; i++) {
-                    if ((displ >= arr[i][1]) && (displ <= (arr[i][1] + arr[i][0]))) {
-                        fprintf(stderr,
-                                "Problem encountered %li bytes into the %d unpack [%" PRIsize_t
-                                ":%" PRIsize_t "]\n",
+                    if( (displ >= arr[i][1]) && (displ <= (arr[i][1] + arr[i][0])) ) {
+                        fprintf(stderr, "Problem encountered %li bytes into the %d unpack [%"PRIsize_t":%"PRIsize_t"]\n",
                                 displ - arr[i][1], i, arr[i][1], arr[i][0]);
                         break;
                     }
                 }
 
-                (void) opal_datatype_dump(&newtype->super);
-                fprintf(stderr,
-                        "ERROR ! struct %d/%d in field %s, ptr = %p"
+                (void)opal_datatype_dump(&newtype->super);
+                fprintf(stderr, "ERROR ! struct %d/%d in field %s, ptr = %p"
                         " got (%d,%d,%d,%g,%g,%g) expected (%d,%d,%d,%g,%g,%g)\n",
-                        j, N, error_location, (void *) &bar[j], bar[j].i[0], bar[j].i[1],
-                        bar[j].i[2], bar[j].d[0], bar[j].d[1], bar[j].d[2], pbar[j].i[0], 0,
-                        pbar[j].i[1], pbar[j].d[0], 0.0, pbar[j].d[1]);
+                        j, N, error_location, (void*)&bar[j],
+                        bar[j].i[0],
+                        bar[j].i[1],
+                        bar[j].i[2],
+                        bar[j].d[0],
+                        bar[j].d[1],
+                        bar[j].d[2],
+                        pbar[j].i[0],
+                        0,
+                        pbar[j].i[1],
+                        pbar[j].d[0],
+                        0.0,
+                        pbar[j].d[1]);
                 print_bar_pbar(&bar[j], &pbar[j]);
-                if (report_all_errors)
-                    fprintf(stderr, "\n\n");
+                if( report_all_errors ) fprintf(stderr, "\n\n");
             }
             errors++;
         }

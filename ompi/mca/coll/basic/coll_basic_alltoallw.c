@@ -154,7 +154,7 @@ mca_coll_basic_alltoallw_intra_inplace(const void *rbuf, const int *rcounts, con
 #ifndef ENABLE_ANALYSIS
             err = MCA_PML_CALL(irecv ((char *) rbuf + rdisps[left], rcounts[left], rdtypes[left],
                                       left, MCA_COLL_BASE_TAG_ALLTOALLW, comm, &req));
-#else   
+#else
             err = MCA_PML_CALL(irecv ((char *) rbuf + rdisps[left], rcounts[left], rdtypes[left],
                                       left, MCA_COLL_BASE_TAG_ALLTOALLW, comm, &req, &item));
 #endif

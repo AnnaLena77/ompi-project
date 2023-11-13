@@ -79,7 +79,6 @@
 
 #include "opal/include/opal/opal_cuda.h"
 
-
 static struct mca_btl_base_registration_handle_t *
 mca_btl_smcuda_register_mem(struct mca_btl_base_module_t *btl,
                             struct mca_btl_base_endpoint_t *endpoint, void *base, size_t size,

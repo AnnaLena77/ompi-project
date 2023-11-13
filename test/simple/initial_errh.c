@@ -108,9 +108,7 @@ int main(int argc, char *argv[])
     rc = MPI_Comm_set_errhandler(MPI_COMM_SELF, MPI_ERRORS_ARE_FATAL);
     if (MPI_SUCCESS != rc) {
         MPI_Error_string(rc, estr, &slen);
-        fprintf(stderr,
-                "  UNEXPECTED: An error occurred during MPI_COMM_SETERRHANDLER(SELF) rc=%d: %s\n",
-                rc, estr);
+        fprintf(stderr, "  UNEXPECTED: An error occurred during MPI_COMM_SETERRHANDLER(SELF) rc=%d: %s\n", rc, estr);
         return rc;
     }
     /* FINALIZE should force reversion to the initial errhandler, so we need to
@@ -211,9 +209,7 @@ int main_child(int argc, char *argv[])
     rc = MPI_Comm_set_errhandler(icomm, MPI_ERRORS_ARE_FATAL);
     if (MPI_SUCCESS != rc) {
         MPI_Error_string(rc, estr, &slen);
-        fprintf(stderr,
-                "  UNEXPECTED: An error occurred during MPI_COMM_SETERRHANDLER(PARENT) rc=%d: %s\n",
-                rc, estr);
+        fprintf(stderr, "  UNEXPECTED: An error occurred during MPI_COMM_SETERRHANDLER(PARENT) rc=%d: %s\n", rc, estr);
         return rc;
     }
     MPI_Barrier(icomm);

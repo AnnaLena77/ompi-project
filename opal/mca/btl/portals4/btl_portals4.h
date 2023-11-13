@@ -35,7 +35,6 @@
 #include "opal/mca/btl/btl.h"
 
 #include <portals4.h>
-
 #ifdef
 #   include "ompi/mpi/c/init.h"
 #endif

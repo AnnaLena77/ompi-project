@@ -563,10 +563,8 @@ int mca_pml_ob1_send_request_start_buffered(
     }
     else item = NULL;
 #endif
-
     const bool need_ext_match = MCA_PML_OB1_SEND_REQUEST_REQUIRES_EXT_MATCH(sendreq);
     size_t hdr_size = sizeof (mca_pml_ob1_rendezvous_hdr_t);
-
     mca_btl_base_descriptor_t* des;
     mca_btl_base_segment_t* segment;
     mca_pml_ob1_hdr_t* hdr;
@@ -665,7 +663,6 @@ int mca_pml_ob1_send_request_start_buffered(
 #else
     rc = mca_bml_base_send (bml_btl, des, hdr->hdr_common.hdr_type, &item);
 #endif
-
     if( OPAL_LIKELY( rc >= 0 ) ) {
         if( OPAL_LIKELY( 1 == rc ) ) {
 #ifndef ENABLE_ANALYSIS
@@ -707,10 +704,8 @@ int mca_pml_ob1_send_request_start_copy( mca_pml_ob1_send_request_t* sendreq,
     }
     else item = NULL;
 #endif
-
     const bool need_ext_match = MCA_PML_OB1_SEND_REQUEST_REQUIRES_EXT_MATCH(sendreq);
     size_t hdr_size = OMPI_PML_OB1_MATCH_HDR_LEN;
-
     mca_btl_base_descriptor_t* des = NULL;
     mca_btl_base_segment_t* segment;
     mca_pml_ob1_hdr_t* hdr;
@@ -832,13 +827,11 @@ int mca_pml_ob1_send_request_start_copy( mca_pml_ob1_send_request_t* sendreq,
 
     /* send */
 
-
 #ifndef ENABLE_ANALYSIS
     rc = mca_bml_base_send_status(bml_btl, des, hdr->hdr_common.hdr_type);
 #else
     rc = mca_bml_base_send_status(bml_btl, des, hdr->hdr_common.hdr_type, &item);
 #endif
-
     SPC_USER_OR_MPI(sendreq->req_send.req_base.req_ompi.req_status.MPI_TAG, (ompi_spc_value_t)size,
                     OMPI_SPC_BYTES_SENT_USER, OMPI_SPC_BYTES_SENT_MPI);
     if( OPAL_LIKELY( rc >= OPAL_SUCCESS ) ) {
@@ -875,7 +868,6 @@ int mca_pml_ob1_send_request_start_prepare( mca_pml_ob1_send_request_t* sendreq,
 #endif
                                             )
 {
-
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -886,10 +878,8 @@ int mca_pml_ob1_send_request_start_prepare( mca_pml_ob1_send_request_t* sendreq,
     }
     else item = NULL;
 #endif
-
     const bool need_ext_match = MCA_PML_OB1_SEND_REQUEST_REQUIRES_EXT_MATCH(sendreq);
     size_t hdr_size = OMPI_PML_OB1_MATCH_HDR_LEN;
-
     mca_btl_base_descriptor_t* des;
     mca_btl_base_segment_t* segment;
     mca_pml_ob1_hdr_t* hdr;
@@ -938,7 +928,6 @@ int mca_pml_ob1_send_request_start_prepare( mca_pml_ob1_send_request_t* sendreq,
 #else
     rc = mca_bml_base_send(bml_btl, des, hdr->hdr_common.hdr_type, &item);
 #endif
-
     SPC_USER_OR_MPI(sendreq->req_send.req_base.req_ompi.req_status.MPI_TAG, (ompi_spc_value_t)size,
                     OMPI_SPC_BYTES_SENT_USER, OMPI_SPC_BYTES_SENT_MPI);
     if( OPAL_LIKELY( rc >= OPAL_SUCCESS ) ) {
@@ -986,10 +975,8 @@ int mca_pml_ob1_send_request_start_rdma( mca_pml_ob1_send_request_t* sendreq,
     }
     else item = NULL;
 #endif
-
     const bool need_ext_match = MCA_PML_OB1_SEND_REQUEST_REQUIRES_EXT_MATCH(sendreq);
     size_t reg_size, hdr_size = sizeof (mca_pml_ob1_rget_hdr_t);
-
     mca_btl_base_registration_handle_t *local_handle;
     mca_btl_base_descriptor_t *des;
     mca_pml_ob1_rdma_frag_t *frag;
@@ -1091,7 +1078,6 @@ int mca_pml_ob1_send_request_start_rdma( mca_pml_ob1_send_request_t* sendreq,
 #else
     rc = mca_bml_base_send(bml_btl, des, hdr->hdr_common.hdr_type, &item);
 #endif
-
     if (OPAL_UNLIKELY(rc < 0)) {
         MCA_PML_OB1_RDMA_FRAG_RETURN(frag);
         sendreq->rdma_frag = NULL;
@@ -1121,10 +1107,8 @@ int mca_pml_ob1_send_request_start_rndv( mca_pml_ob1_send_request_t* sendreq,
 #ifdef ENABLE_ANALYSIS
     qentry *item = *q;
 #endif
-
     const bool need_ext_match = MCA_PML_OB1_SEND_REQUEST_REQUIRES_EXT_MATCH(sendreq);
     size_t hdr_size = sizeof (mca_pml_ob1_rendezvous_hdr_t);
-
     mca_btl_base_descriptor_t* des;
     mca_btl_base_segment_t* segment;
     mca_pml_ob1_hdr_t* hdr;
@@ -1199,7 +1183,6 @@ int mca_pml_ob1_send_request_start_rndv( mca_pml_ob1_send_request_t* sendreq,
 #else
     rc = mca_bml_base_send(bml_btl, des, hdr->hdr_common.hdr_type, &item);
 #endif
-
     if( OPAL_LIKELY( rc >= 0 ) ) {
         if( OPAL_LIKELY( 1 == rc ) ) {
 #ifndef ENABLE_ANALYSIS

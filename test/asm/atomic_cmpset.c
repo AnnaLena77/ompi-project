@@ -80,7 +80,7 @@ static void *thread_main(void *arg)
     for (i = 0; i < nreps; i++) {
         opal_atomic_add_fetch_32(&val32, 5);
         opal_atomic_add_fetch_64(&val64, 5);
-        opal_atomic_add(&valint, 5);
+        opal_atomic_add (&valint, 5);
     }
 
     return (void *) (unsigned long) (rank + 1000);
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
     opal_atomic_rmb();
     assert((5 * nthreads * nreps) == val32);
     opal_atomic_rmb();
-    assert((5 * nthreads * nreps) == val64);
+    assert((5 * nthreads * nreps) ==  val64);
     opal_atomic_rmb();
     assert((5 * nthreads * nreps) == valint);
 

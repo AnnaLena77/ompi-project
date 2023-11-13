@@ -439,7 +439,6 @@ extern int mca_btl_smcuda_sendi(struct mca_btl_base_module_t *btl,
                                 , qentry **q
 #endif
                                 );
-
 /**
  * Initiate a send to the peer.
  *

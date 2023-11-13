@@ -67,7 +67,6 @@ mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts
         } else item = NULL;
     } else item = NULL;
 #endif
-
     int i, size, rank, left, right, err = MPI_SUCCESS, line;
     ptrdiff_t extent;
     ompi_request_t *req = MPI_REQUEST_NULL;
@@ -149,7 +148,6 @@ mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts
                 goto error_hndl;
             }
         }
-
         if( (left != right) && (0 != rcounts[left]) ) {
             /* Send data to the left */
 #ifndef ENABLE_ANALYSIS
@@ -195,14 +193,13 @@ mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts
 #else
             err = MCA_PML_CALL(send ((char *) tmp_buffer,  packed_size, MPI_PACKED,
                                      right, MCA_COLL_BASE_TAG_ALLTOALLV, MCA_PML_BASE_SEND_STANDARD,
-                                     comm, &item));
+                                     comm));
 #endif
             if (MPI_SUCCESS != err) {
                 line = __LINE__;
                 goto error_hndl;
             }
         }
-
         err = ompi_request_wait (&req, MPI_STATUSES_IGNORE);
         if (MPI_SUCCESS != err) {
             line = __LINE__;

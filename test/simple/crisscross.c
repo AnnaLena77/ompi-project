@@ -239,6 +239,30 @@ int main(int argc, char *argv[])
         MPI_Abort(MPI_COMM_WORLD, -1);
     }
 
+ mpierr = MPI_Reduce(&max_mbs, &r_max_mbs, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+ if (mpierr != MPI_SUCCESS)
+   {
+    fprintf(stderr,"MPI Error %d (MPI_Reduce) %s [%d]\n",mpierr,process_name,rank);
+    fflush(stderr);
+    MPI_Abort(MPI_COMM_WORLD, -1);
+   }
+
+ mpierr = MPI_Finalize();
+ if (mpierr != MPI_SUCCESS)
+   {
+    fprintf(stderr,"MPI Error %d (MPI_Finalize) %s [%d]\n",mpierr,process_name,rank);
+    fflush(stderr);
+    MPI_Abort(MPI_COMM_WORLD, -1);
+   }
+
+ fflush(stdout);
+
+ if ( rank == 0 )
+   {
+    mbs = sum_avg_mbs/sum_xfers;
+    printf("\n     average transfer rate for %d transfers: %9.1f mbs\n",sum_xfers, mbs);
+    printf("     minimum transfer rate for %d transfers: %9.1f mbs\n",sum_xfers, r_min_mbs);
+    printf("     maximum transfer rate for %d transfers: %9.1f mbs\n",sum_xfers, r_max_mbs);
     fflush(stdout);
 
     if (rank == 0) {

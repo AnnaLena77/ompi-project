@@ -737,7 +737,6 @@ int ompi_coll_base_reduce_intra_in_order_binary( const void *sendbuf, void *recv
                                           data->cached_in_order_bintree,
                                           segcount, max_outstanding_reqs, &item);
 #endif
-    if (MPI_SUCCESS != ret) {
         free(tmpbuf_free);
         return ret;
     }

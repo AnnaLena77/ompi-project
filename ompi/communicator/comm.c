@@ -3,7 +3,7 @@
  * Copyright (c) 2004-2005 The Trustees of Indiana University and Indiana
  *                         University Research and Technology
  *                         Corporation.  All rights reserved.
- * Copyright (c) 2004-2019 The University of Tennessee and The University
+ * Copyright (c) 2004-2023 The University of Tennessee and The University
  *                         of Tennessee Research Foundation.  All rights
  *                         reserved.
  * Copyright (c) 2004-2022 High Performance Computing Center Stuttgart,
@@ -253,6 +253,16 @@ int ompi_comm_set_nb (ompi_communicator_t **ncomm, ompi_communicator_t *oldcomm,
     newcomm->c_assertions = 0;
 
     /* Set remote group and duplicate the local comm, if applicable */
+    if ((NULL == remote_group) && (NULL != remote_ranks)) {
+        /* determine how the list of local_rank can be stored most
+           efficiently */
+        ret = ompi_group_incl(oldcomm->c_remote_group, remote_size,
+                              remote_ranks, &newcomm->c_remote_group);
+        if (OPAL_UNLIKELY(OMPI_SUCCESS != ret)) {
+            return ret;
+        }
+        remote_group = newcomm->c_remote_group;
+    }
     if ( NULL != remote_group ) {
         ompi_communicator_t *old_localcomm;
 
@@ -956,7 +966,7 @@ static int ompi_comm_split_type_core(ompi_communicator_t *comm,
     int my_size, my_rsize = 0, mode;
     int rc;
     int inter = OMPI_COMM_IS_INTER(comm);
-    
+
     /* Perform the rest of the processing for a communicator split.
      *
      * Step 1: Build potential communicator groups. If any ranks will not be part of
@@ -1066,12 +1076,19 @@ static int ompi_comm_split_type_core(ompi_communicator_t *comm,
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc && MPI_COMM_NULL != newcomp)) {
         ompi_comm_free (&newcomp);
         *newcomm = MPI_COMM_NULL;
+        return OMPI_SUCCESS;
     }
 
-    free (lranks);
-    free (rranks);
-
-    return rc;
+    if (MPI_COMM_TYPE_HW_UNGUIDED == global_orig_split_type) {
+        /* Handle MPI_COMM_TYPE_HW_UNGUIDED communicator split. */
+        return ompi_comm_split_unguided( comm, split_type,
+                                         key, need_split, no_reorder,
+                                         no_undefined, info, newcomm );
+    } else {
+        return ompi_comm_split_type_core( comm, global_split_type, split_type,
+                                          key, need_split, no_reorder,
+                                          no_undefined, info, newcomm);
+    }
 }
 
 /**
@@ -1253,13 +1270,8 @@ int ompi_comm_split_type (ompi_communicator_t *comm, int split_type, int key,
     tmp[4] = split_type;
     tmp[5] = -split_type;
 
-#ifndef ENABLE_ANALYSIS
     rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &tmp, 6, MPI_INT, MPI_MAX, comm,
                                       comm->c_coll->coll_allreduce_module);
-#else
-    rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &tmp, 6, MPI_INT, MPI_MAX, comm,
-                                      comm->c_coll->coll_allreduce_module, NULL);
-#endif
     if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
         return rc;
     }
@@ -1272,26 +1284,16 @@ int ompi_comm_split_type (ompi_communicator_t *comm, int split_type, int key,
         ok[0] = (MPI_UNDEFINED == orig_split_type) || global_orig_split_type == orig_split_type;
         ok[1] = (MPI_UNDEFINED == orig_split_type) || global_split_type == split_type;
 
-#ifndef ENABLE_ANALYSIS
         rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &ok, 2, MPI_INT, MPI_MIN, comm,
                                           comm->c_coll->coll_allreduce_module);
-#else
-        rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &ok, 2, MPI_INT, MPI_MIN, comm,
-                                          comm->c_coll->coll_allreduce_module, NULL);
-#endif
         if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
             return rc;
         }
 
         if (inter) {
             /* need an extra allreduce to ensure that all ranks have the same result */
-#ifndef ENABLE_ANALYSIS
             rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &ok, 2, MPI_INT, MPI_MIN, comm,
                                               comm->c_coll->coll_allreduce_module);
-#else
-            rc = comm->c_coll->coll_allreduce (MPI_IN_PLACE, &ok, 2, MPI_INT, MPI_MIN, comm,
-                                              comm->c_coll->coll_allreduce_module, NULL);
-#endif
             if (OPAL_UNLIKELY(OMPI_SUCCESS != rc)) {
                 return rc;
             }
@@ -2310,10 +2312,10 @@ int ompi_comm_get_rprocs (ompi_communicator_t *local_comm, ompi_communicator_t *
     int rc = OMPI_SUCCESS;
     int local_rank, local_size;
     ompi_proc_t **rprocs=NULL;
-    int32_t size_len;
+    size_t size_len;
     int int_len=0, rlen;
     pmix_data_buffer_t *sbuf=NULL, *rbuf=NULL;
-    void *sendbuf=NULL;
+    char *sendbuf=NULL;
     char *recvbuf;
     ompi_proc_t **proc_list = NULL;
     int i;
@@ -2444,8 +2446,8 @@ int ompi_comm_get_rprocs (ompi_communicator_t *local_comm, ompi_communicator_t *
         PMIX_DATA_BUFFER_RELEASE(sbuf);
     }
 
-    /* broadcast name list to all proceses in local_comm */
 #ifndef ENABLE_ANALYSIS
+    /* broadcast name list to all processes in local_comm */
     rc = local_comm->c_coll->coll_bcast( recvbuf, rlen, MPI_BYTE,
                                         local_leader, local_comm,
                                         local_comm->c_coll->coll_bcast_module);

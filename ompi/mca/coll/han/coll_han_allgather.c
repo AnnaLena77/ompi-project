@@ -103,7 +103,6 @@ mca_coll_han_allgather_intra(const void *sbuf, int scount,
         return han_module->previous_allgather(sbuf, scount, sdtype, rbuf, rcount, rdtype,
                                               comm, han_module->previous_allgather_module, &item);
 #endif
-
     }
     ompi_communicator_t *low_comm = han_module->sub_comm[INTRA_NODE];
     ompi_communicator_t *up_comm = han_module->sub_comm[INTER_NODE];

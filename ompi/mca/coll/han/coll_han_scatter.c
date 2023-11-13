@@ -123,11 +123,10 @@ mca_coll_han_scatter_intra(const void *sbuf, int scount,
 #ifndef ENABLE_ANALYSIS
         return han_module->previous_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
                                             comm, han_module->previous_scatter_module);
-#else 
+#else
         return han_module->previous_scatter(sbuf, scount, sdtype, rbuf, rcount, rdtype, root,
                                             comm, han_module->previous_scatter_module, &item);
 #endif
-
     }
 
     ompi_communicator_t *low_comm =

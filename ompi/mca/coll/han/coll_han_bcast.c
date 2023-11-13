@@ -106,7 +106,6 @@ mca_coll_han_bcast_intra(void *buf,
         return han_module->previous_bcast(buf, count, dtype, root,
                                           comm, han_module->previous_bcast_module, &item);
 #endif
-
     }
     /* Topo must be initialized to know rank distribution which then is used to
      * determine if han can be used */
@@ -348,7 +347,6 @@ mca_coll_han_bcast_intra_simple(void *buf,
                          w_rank, root_low_rank, root_up_rank));
 
     if (low_rank == root_low_rank) {
-
 #ifndef ENABLE_ANALYSIS
         up_comm->c_coll->coll_bcast(buf, count, dtype, root_up_rank,
                                     up_comm, up_comm->c_coll->coll_bcast_module);

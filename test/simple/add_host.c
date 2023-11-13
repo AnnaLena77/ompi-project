@@ -3,6 +3,7 @@
 #include <sys/param.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/param.h>
 
 #include <mpi.h>
 
@@ -31,9 +32,7 @@ int main(int argc, char *argv[])
     /* If we get COMM_NULL back, then we're the parent */
     if (MPI_COMM_NULL == parent) {
         if (argc < 3) {
-            printf("%s requires two arguments (%d)- the name of the first host to add, and the "
-                   "name of the second host to add\n",
-                   argv[0], argc);
+            printf("%s requires two arguments (%d)- the name of the first host to add, and the name of the second host to add\n", argv[0], argc);
             exit(1);
         }
 
@@ -41,9 +40,8 @@ int main(int argc, char *argv[])
         printf("Parent [pid %ld] about to spawn!\n", (long) pid);
         MPI_Info_create(&info);
         MPI_Info_set(info, "PMIX_ADD_HOST", argv[1]);
-        if (MPI_SUCCESS
-            != (rc = MPI_Comm_spawn(argv[0], MPI_ARGV_NULL, 3, info, 0, MPI_COMM_WORLD, &child,
-                                    MPI_ERRCODES_IGNORE))) {
+        if (MPI_SUCCESS != (rc = MPI_Comm_spawn(argv[0], MPI_ARGV_NULL, 3, info,
+                                                0, MPI_COMM_WORLD, &child, MPI_ERRCODES_IGNORE))) {
             printf("Child failed to spawn\n");
             return rc;
         }
@@ -59,9 +57,8 @@ int main(int argc, char *argv[])
         printf("\n\n\n");
         /* do it again */
         MPI_Info_set(info, "PMIX_ADD_HOST", argv[2]);
-        if (MPI_SUCCESS
-            != (rc = MPI_Comm_spawn(argv[0], MPI_ARGV_NULL, 3, info, 0, MPI_COMM_WORLD, &child,
-                                    MPI_ERRCODES_IGNORE))) {
+        if (MPI_SUCCESS != (rc = MPI_Comm_spawn(argv[0], MPI_ARGV_NULL, 3, info,
+                                                0, MPI_COMM_WORLD, &child, MPI_ERRCODES_IGNORE))) {
             printf("Child failed to spawn\n");
             return rc;
         }
