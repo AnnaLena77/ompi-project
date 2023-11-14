@@ -43,9 +43,9 @@
 #include "ompi/mca/pml/base/pml_base_sendreq.h"
 #endif
 
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
 #include "ompi/mpi/c/init.h"
-#endif
+#endif*/
 
 
 /**

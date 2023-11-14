@@ -35,8 +35,20 @@ int mca_pml_monitoring_isend(const void *buf,
                              int tag,
                              mca_pml_base_send_mode_t mode,
                              struct ompi_communicator_t* comm,
-                             struct ompi_request_t **request)
+                             struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int world_rank;
     /**
      * If this fails the destination is not part of my MPI_COM_WORLD
@@ -49,8 +61,13 @@ int mca_pml_monitoring_isend(const void *buf,
         mca_common_monitoring_record_pml(world_rank, data_size, tag);
     }
 
+#ifndef ENABLE_ANALYSIS
     return pml_selected_module.pml_isend(buf, count, datatype,
                                          dst, tag, mode, comm, request);
+#else
+    return pml_selected_module.pml_isend(buf, count, datatype,
+                                         dst, tag, mode, comm, request, &item);
+#endif
 }
 
 int mca_pml_monitoring_send(const void *buf,
@@ -59,8 +76,20 @@ int mca_pml_monitoring_send(const void *buf,
                             int dst,
                             int tag,
                             mca_pml_base_send_mode_t mode,
-                            struct ompi_communicator_t* comm)
+                            struct ompi_communicator_t* comm
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                            )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+#endif
     int world_rank;
     /* Are we sending to a peer from my own MPI_COMM_WORLD? */
     if(OPAL_SUCCESS == mca_common_monitoring_get_world_rank(dst, comm->c_remote_group, &world_rank)) {
@@ -70,6 +99,11 @@ int mca_pml_monitoring_send(const void *buf,
         mca_common_monitoring_record_pml(world_rank, data_size, tag);
     }
 
+#ifndef ENABLE_ANALYSIS
     return pml_selected_module.pml_send(buf, count, datatype,
                                         dst, tag, mode, comm);
+#else
+    return pml_selected_module.pml_send(buf, count, datatype,
+                                        dst, tag, mode, comm, &item);
+#endif
 }

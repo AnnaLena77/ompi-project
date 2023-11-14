@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2012 Oak Ridge National Labs.  All rights reserved.
- * Copyright (c) 2010-2023 The University of Tennessee and the University
+ * Copyright (c) 2010-2020 The University of Tennessee and the University
  *                         of Tennessee research Foundation.  All rights
  *                         reserved.
  * $COPYRIGHT$
@@ -25,7 +25,6 @@
 OMPI_DECLSPEC int MPIX_Comm_revoke(MPI_Comm comm);
 OMPI_DECLSPEC int MPIX_Comm_is_revoked(MPI_Comm comm, int *flag);
 OMPI_DECLSPEC int MPIX_Comm_shrink(MPI_Comm comm, MPI_Comm *newcomm);
-OMPI_DECLSPEC int MPIX_Comm_ishrink(MPI_Comm comm, MPI_Comm *newcomm, MPI_Request *request);
 OMPI_DECLSPEC int MPIX_Comm_failure_ack(MPI_Comm comm);
 OMPI_DECLSPEC int MPIX_Comm_failure_get_acked(MPI_Comm comm, MPI_Group *failedgrp);
 OMPI_DECLSPEC int MPIX_Comm_get_failed(MPI_Comm comm, MPI_Group *failedgroup);
@@ -36,7 +35,6 @@ OMPI_DECLSPEC int MPIX_Comm_iagree(MPI_Comm comm, int *flag, MPI_Request *reques
 OMPI_DECLSPEC int PMPIX_Comm_revoke(MPI_Comm comm);
 OMPI_DECLSPEC int PMPIX_Comm_is_revoked(MPI_Comm comm, int *flag);
 OMPI_DECLSPEC int PMPIX_Comm_shrink(MPI_Comm comm, MPI_Comm *newcomm);
-OMPI_DECLSPEC int PMPIX_Comm_ishrink(MPI_Comm comm, MPI_Comm *newcomm, MPI_Request *request);
 OMPI_DECLSPEC int PMPIX_Comm_failure_ack(MPI_Comm comm);
 OMPI_DECLSPEC int PMPIX_Comm_failure_get_acked(MPI_Comm comm, MPI_Group *failedgrp);
 OMPI_DECLSPEC int PMPIX_Comm_get_failed(MPI_Comm comm, MPI_Group *failedgroup);

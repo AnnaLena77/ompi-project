@@ -32,7 +32,7 @@
 #include "ompi/peruse/peruse-internal.h"
 #include "ompi/message/message.h"
 #include "ompi/memchecker.h"
-#include "ompi/mpi/c/init.h"
+//#include "ompi/mpi/c/init.h"
 
 /**
  * Single usage request. As we allow recursive calls to recv

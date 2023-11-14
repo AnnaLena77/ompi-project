@@ -36,9 +36,9 @@
 #include "ompi/mca/pml/ob1/pml_ob1_comm.h"
 #include "opal/mca/mpool/base/base.h"
 #include "ompi/mca/pml/base/pml_base_recvreq.h"
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
 #   include "ompi/mpi/c/init.h"
-#endif
+#endif*/
 
 BEGIN_C_DECLS
 

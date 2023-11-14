@@ -34,7 +34,7 @@
 #include "pml_ob1_rdmafrag.h"
 #include "ompi/mca/bml/bml.h"
 #include "ompi/memchecker.h"
-#include "ompi/mpi/c/init.h"
+//#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 

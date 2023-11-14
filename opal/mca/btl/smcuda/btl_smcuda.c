@@ -70,9 +70,9 @@
 #include "btl_smcuda_fifo.h"
 #include "btl_smcuda_frag.h"
 
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
 #   include "ompi/mpi/c/init.h"
-#endif
+#endif*/
 
 #include "btl_smcuda_accelerator.h"
 

@@ -41,9 +41,9 @@
 #include "opal/mca/common/sm/common_sm.h"
 #include "opal/util/bit_ops.h"
 
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
 #   include "ompi/mpi/c/init.h"
-#endif
+#endif*/
 
 BEGIN_C_DECLS
 

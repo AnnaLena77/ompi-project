@@ -36,7 +36,7 @@
 #include <sys/mman.h>
 
 #ifdef ENABLE_ANALYSIS
-#include <libpq-fe.h>
+#include <postgresql/libpq-fe.h>
 #endif
 
 #include "opal/util/show_help.h"
@@ -45,6 +45,7 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
+#include "ompi/mpi/c/init.h"
 #include "ompi/mpi/c/pgcopy.h"
 
 

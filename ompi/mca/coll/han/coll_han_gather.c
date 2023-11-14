@@ -216,9 +216,15 @@ mca_coll_han_gather_intra(const void *sbuf, int scount,
 
     /* reorder rbuf based on rank */
     if (w_rank == root && !han_module->is_mapbycore) {
+#ifndef ENABLE_ANALYSIS
         ompi_coll_han_reorder_gather(reorder_buf,
                                      rbuf, rcount, rdtype,
                                      comm, topo);
+#else
+        ompi_coll_han_reorder_gather(reorder_buf,
+                                     rbuf, rcount, rdtype,
+                                     comm, topo, &item);
+#endif
         free(reorder_buf);
     }
 

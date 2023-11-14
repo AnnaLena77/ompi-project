@@ -193,7 +193,7 @@ mca_coll_base_alltoallv_intra_basic_inplace(const void *rbuf, const int *rcounts
 #else
             err = MCA_PML_CALL(send ((char *) tmp_buffer,  packed_size, MPI_PACKED,
                                      right, MCA_COLL_BASE_TAG_ALLTOALLV, MCA_PML_BASE_SEND_STANDARD,
-                                     comm));
+                                     comm, &item));
 #endif
             if (MPI_SUCCESS != err) {
                 line = __LINE__;

@@ -47,9 +47,9 @@
 #include "ompi/mca/bml/base/base.h"
 
 
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
 #   include "ompi/mpi/c/init.h"
-#endif
+#endif*/
 
 int mca_pml_ob1_accelerator_need_buffers(mca_pml_ob1_recv_request_t* recvreq,
                                          mca_btl_base_module_t* btl);

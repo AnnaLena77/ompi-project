@@ -43,7 +43,7 @@
 
 #include "ompi/runtime/params.h"
 
-#include "ompi/mpi/c/init.h"
+//#include "ompi/mpi/c/init.h"
 
 /*
  * Table for Fortran <-> C communicator handle conversion.  Note that
