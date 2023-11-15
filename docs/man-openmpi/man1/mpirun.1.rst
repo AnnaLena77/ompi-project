@@ -917,7 +917,6 @@ Alternatively, processes can be mapped and bound to specified cores using
 the ``--map-by pe-list=`` option. For example, ``--map-by pe-list=0,2,5``
 will map three processes all three of which will be bound to logical cores
 ``0,2,5``. If you intend to bind each of the three processes to different
-
 cores then the ``:ordered`` qualifier can be used like
 ``--map-by pe-list=0,2,5:ordered``. In this example, the first process
 on a node will be bound to CPU 0, the second process on the node will
@@ -1697,7 +1696,8 @@ RETURN VALUE
    :class: error
 
    Is this content still current / accurate?  Should it be updated and
-   retained, or removed
+   retained, or removed?
+
 ``mpirun`` returns 0 if all processes started by mpirun exit after
 calling :ref:`MPI_FINALIZE(3) <mpi_finalize>`.  A non-zero value is
 returned if an internal error occurred in mpirun, or one or more

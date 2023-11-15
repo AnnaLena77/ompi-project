@@ -21,6 +21,7 @@ Packagers may therefore wish to configure Open MPI with something like
 the following:
 
 .. code-block:: sh
+
    # Install Sphinx so that Open MPI can re-build its docs with the
    # installed PRRTE's docs
 
@@ -75,6 +76,7 @@ PRRTE / PMIx (as all packagers should be), Open MPI needs to re-build
 its documentation with specific information from those external PRRTE
 / PMIx installs.  For that, you need to have Sphinx installed before
 running Open MPI's ``configure`` script.
+
 
 .. _label-install-packagers-dso-or-not:
 

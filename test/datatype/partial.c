@@ -14,8 +14,8 @@
  */
 
 #include "ompi_config.h"
-#include "ompi/datatype/ompi_datatype.h"
 #include "opal/datatype/opal_convertor.h"
+#include "ompi/datatype/ompi_datatype.h"
 #include "opal/datatype/opal_datatype_checksum.h"
 #include "opal/runtime/opal.h"
 

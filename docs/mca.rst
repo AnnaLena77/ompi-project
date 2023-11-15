@@ -655,6 +655,7 @@ presented here so that they can easily be found via internet searches:
      ``^accelerator,btl/uct``, then Open MPI will only warn about the
      failure to load DSOs that are neither in the accelerator
      framework nor are the UCT BTL.
+
 .. _label-mca-backward-compat:
 
 MCA Parameter Changes Between Open MPI 4.x and 5.x
@@ -1142,3 +1143,4 @@ Multiple suffixes may be appended to a mapping value:
 
    # New environment variable: (suffix on value)
    export PRTE_MCA_rmaps_default_mapping_policy=ppr:4:package:hwtcpus:oversubscribe
+

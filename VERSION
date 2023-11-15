@@ -16,7 +16,7 @@
 # <major>.<minor>.<release>.
 
 major=5
-minor=1
+minor=0
 release=0
 
 # MPI Standard Compliance Level

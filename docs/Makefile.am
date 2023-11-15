@@ -870,6 +870,7 @@ EXTRA_DIST += \
         $(OSHMEM_MAN1_CXX_REDIRECTS) \
         $(OSHMEM_MAN1_FORTRAN_REDIRECTS)
 
+
 ###########################################################################
 
 ALL_MAN_BUILT = \
