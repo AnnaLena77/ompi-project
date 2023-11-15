@@ -45,8 +45,11 @@
 #include "ompi/communicator/communicator.h"
 #include "ompi/errhandler/errhandler.h"
 #include "ompi/constants.h"
-#include "ompi/mpi/c/init.h"
 #include "ompi/mpi/c/pgcopy.h"
+
+#ifdef ENABLE_ANALYSIS
+#include "ompi/mpi/c/init.h"
+#endif
 
 
 #if OMPI_BUILD_MPI_PROFILING
@@ -531,12 +534,14 @@ void initializeQueue()
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
+#ifdef ENABLE_ANALYSIS
     run_thread = 1;
     counter = 0;
     ringbuffer = (qentry*)malloc(sizeof(qentry)*MAX_RINGSIZE);
     writer_pos = -1;
     reader_pos = -1;
     q_qentry = (qentry*)malloc(sizeof(qentry));
+#endif
     //buffer = (char*)malloc(2000000);
     //offset = 0;
     #ifdef ENABLE_ANALYSIS

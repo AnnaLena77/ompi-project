@@ -991,7 +991,7 @@ static inline int ompi_osc_ucx_acc_rputget(void *stage_addr, int stage_count,
                 target_count, target_dt, win);
 #else
         ret = ompi_osc_ucx_get(stage_addr, stage_count, stage_dt, target, target_disp,
-                target_count, target_dt, win, itemq);
+                target_count, target_dt, win, &itemq);
 #endif
     }
     if (ret != OMPI_SUCCESS) {
@@ -1476,7 +1476,7 @@ int ompi_osc_ucx_fetch_and_op(const void *origin_addr, void *result_addr,
 
         return ompi_osc_ucx_acc_unlock(module, target, lock_acquired, NULL);
     } else {
-#ifndef
+#ifndef ENABLE_ANALYSIS
         return ompi_osc_ucx_get_accumulate(origin_addr, 1, dt, result_addr, 1, dt,
                                            target, target_disp, 1, dt, op, win);
 #else
