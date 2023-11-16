@@ -120,6 +120,7 @@ static int ompi_comm_fill_rest (ompi_communicator_t *comm,
 ** for Comm_split for inter-coms, we do not have this
 ** functions, so we need to emulate it.
 */
+#ifndef ENABLE_ANALYSIS
 typedef int ompi_comm_allgatherfct (void* inbuf, int incount, MPI_Datatype intype,
                                     void* outbuf, int outcount, MPI_Datatype outtype,
                                     ompi_communicator_t *comm,
@@ -130,6 +131,18 @@ static int ompi_comm_allgather_emulate_intra (void* inbuf, int incount, MPI_Data
                                               MPI_Datatype outtype,
                                               ompi_communicator_t *comm,
                                               mca_coll_base_module_t *data);
+#else
+typedef int ompi_comm_allgatherfct (void* inbuf, int incount, MPI_Datatype intype,
+                                    void* outbuf, int outcount, MPI_Datatype outtype,
+                                    ompi_communicator_t *comm,
+                                    mca_coll_base_module_t *data, qentry **q);
+
+static int ompi_comm_allgather_emulate_intra (void* inbuf, int incount, MPI_Datatype intype,
+                                              void* outbuf, int outcount,
+                                              MPI_Datatype outtype,
+                                              ompi_communicator_t *comm,
+                                              mca_coll_base_module_t *data, qentry **q);
+#endif
 
 static int ompi_comm_copy_topo (ompi_communicator_t *oldcomm,
                                 ompi_communicator_t *newcomm);
@@ -538,7 +551,11 @@ int ompi_comm_split_with_info( ompi_communicator_t* comm, int color, int key,
         return OMPI_ERR_OUT_OF_RESOURCE;
     }
 
+#ifndef ENABLE_ANALYSIS
     rc = allgatherfct( myinfo, 2, MPI_INT, results, 2, MPI_INT, comm, comm->c_coll->coll_allgather_module );
+#else
+    rc = allgatherfct( myinfo, 2, MPI_INT, results, 2, MPI_INT, comm, comm->c_coll->coll_allgather_module, NULL );
+#endif
     if ( OMPI_SUCCESS != rc ) {
         goto exit;
     }
@@ -2087,7 +2104,11 @@ static int ompi_comm_allgather_emulate_intra( void *inbuf, int incount,
                                               MPI_Datatype intype, void* outbuf,
                                               int outcount, MPI_Datatype outtype,
                                               ompi_communicator_t *comm,
-                                              mca_coll_base_module_t *data)
+                                              mca_coll_base_module_t *data
+#ifdef ENABLE_ANALYSIS
+                                              , qentry **q
+#endif
+                                              )
 {
     int rank, size, rsize, i, rc;
     int *tmpbuf=NULL;
