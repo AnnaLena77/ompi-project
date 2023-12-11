@@ -244,7 +244,7 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         qentry *item = &q;
         int offset = *off;
         
-        newRow(buffer, 9, &offset);
+        newRow(buffer, 10, &offset);
 
         stringToBinary(item->function, buffer, &offset);
         
@@ -264,6 +264,11 @@ void qentryToBinary(qentry q, char *buffer, int *off){
 
         timestampToBinary(item->start, buffer, &offset);
         
+        struct timespec time_end;
+        clock_gettime(CLOCK_REALTIME, &time_end);
+        
+        timestampToBinary(time_end, buffer, &offset);
+        
         *off = offset;
         //fwrite(buffer, offset, 1, file);
 }
@@ -280,7 +285,7 @@ static void* SQLMonitorFunc(void* _arg){
         PQfinish(conn);
         exit(1);
     } else {
-       char proc_rank[3];
+       char proc_rank[4];
        sprintf(proc_rank, "%d", processrank);
        const char *query = "INSERT INTO cluster_information (processorname, rank) VALUES ($1, $2)";
        const char *paramValues[2] = {proc_name, proc_rank};
