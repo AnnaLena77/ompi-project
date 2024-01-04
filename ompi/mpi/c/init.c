@@ -244,7 +244,7 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         qentry *item = &q;
         int offset = *off;
         
-        newRow(buffer, 10, &offset);
+        newRow(buffer, 11, &offset);
 
         stringToBinary(item->function, buffer, &offset);
         
@@ -261,13 +261,17 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         intToBinary(item->processrank, buffer, &offset);
         
         intToBinary(item->partnerrank, buffer, &offset);
+        
+        stringToBinary(item->usedAlgorithm, buffer, &offset);
 
         timestampToBinary(item->start, buffer, &offset);
         
-        struct timespec time_end;
+        timestampToBinary(item->end, buffer, &offset);
+        
+        /*struct timespec time_end;
         clock_gettime(CLOCK_REALTIME, &time_end);
         
-        timestampToBinary(time_end, buffer, &offset);
+        timestampToBinary(time_end, buffer, &offset);*/
         
         *off = offset;
         //fwrite(buffer, offset, 1, file);

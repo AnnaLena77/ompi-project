@@ -188,6 +188,7 @@ int MPI_Ireduce(const void *sendbuf, void *recvbuf, int count,
                                     datatype, op, root, comm, request,
                                     comm->c_coll->coll_ireduce_module, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         ompi_coll_base_retain_op(*request, op, datatype);

@@ -147,6 +147,7 @@ int MPI_Get(void *origin_addr, int origin_count,
         rc = win->w_osc_module->osc_get(origin_addr, origin_count, origin_datatype,
                                     target_rank, target_disp, target_count,
                                     target_datatype, win, &item);
+        clock_gettime(CLOCK_REALTIME, &item->end);
         //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, win, rc, FUNC_NAME);

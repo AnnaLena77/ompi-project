@@ -172,6 +172,7 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         rc = rcs;
     }
 #ifdef ENABLE_ANALYSIS
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
 

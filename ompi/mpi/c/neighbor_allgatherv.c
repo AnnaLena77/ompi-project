@@ -204,6 +204,7 @@ int MPI_Neighbor_allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sen
                                                 recvtype, comm, comm->c_coll->coll_neighbor_allgatherv_module, &item);
 #endif
 #ifdef ENABLE_ANALYSIS
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);

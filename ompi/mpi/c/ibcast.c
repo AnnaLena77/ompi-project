@@ -153,6 +153,7 @@ int MPI_Ibcast(void *buffer, int count, MPI_Datatype datatype,
                                   request,
                                   comm->c_coll->coll_ibcast_module, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {

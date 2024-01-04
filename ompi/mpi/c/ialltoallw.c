@@ -163,6 +163,7 @@ int MPI_Ialltoallw(const void *sendbuf, const int sendcounts[], const int sdispl
                                        rdispls, recvtypes, comm, request,
                                        comm->c_coll->coll_ialltoallw_module, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {
         ompi_coll_base_retain_datatypes_w(*request, (MPI_IN_PLACE==sendbuf)?NULL:sendtypes, recvtypes, false);

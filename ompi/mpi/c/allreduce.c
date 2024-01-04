@@ -172,7 +172,8 @@ int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
     err = comm->c_coll->coll_allreduce(sendbuf, recvbuf, count,
                                       datatype, op, comm,
                                       comm->c_coll->coll_allreduce_module, &item);
-    //qentryIntoQueue(&item);    
+    //qentryIntoQueue(&item);  
+    clock_gettime(CLOCK_REALTIME, &item->end);  
 #endif
     OBJ_RELEASE(op);
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);

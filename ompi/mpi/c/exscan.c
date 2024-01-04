@@ -155,6 +155,7 @@ int MPI_Exscan(const void *sendbuf, void *recvbuf, int count,
     err = comm->c_coll->coll_exscan(sendbuf, recvbuf, count,
                                    datatype, op, comm,
                                    comm->c_coll->coll_exscan_module, &item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     OBJ_RELEASE(op);

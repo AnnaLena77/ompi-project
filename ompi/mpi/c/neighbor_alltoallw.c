@@ -195,6 +195,7 @@ int MPI_Neighbor_alltoallw(const void *sendbuf, const int sendcounts[], const MP
                                                recvbuf, recvcounts, rdispls, recvtypes,
                                                comm, comm->c_coll->coll_neighbor_alltoallw_module, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

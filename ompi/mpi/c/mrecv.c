@@ -121,6 +121,7 @@ int MPI_Mrecv(void *buf, int count, MPI_Datatype type,
 #else
     rc = MCA_PML_CALL(mrecv(buf, count, type, message, status, &item));
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     /* Per MPI-1, the MPI_ERROR field is not defined for
        single-completion calls */

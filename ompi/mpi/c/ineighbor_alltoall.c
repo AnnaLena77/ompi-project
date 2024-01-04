@@ -169,6 +169,7 @@ int MPI_Ineighbor_alltoall(const void *sendbuf, int sendcount, MPI_Datatype send
     err = comm->c_coll->coll_ineighbor_alltoall(sendbuf, sendcount, sendtype,
                                                recvbuf, recvcount, recvtype, comm,
                                                request, comm->c_coll->coll_ineighbor_alltoall_module, &item);
+     clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {

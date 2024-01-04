@@ -82,6 +82,7 @@ int MPI_Ibarrier(MPI_Comm comm, MPI_Request *request)
 #else
     err = comm->c_coll->coll_ibarrier(comm, request, comm->c_coll->coll_ibarrier_module, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
 
     /* All done */

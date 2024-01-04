@@ -265,6 +265,7 @@ int MPI_Scatterv(const void *sendbuf, const int sendcounts[], const int displs[]
                                      sendtype, recvbuf, recvcount, recvtype, root, comm,
                                      comm->c_coll->coll_scatterv_module, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

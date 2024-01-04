@@ -135,6 +135,7 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
     rc = MCA_PML_CALL(irecv(buf,count,type,source,tag,comm,request));
 #else
     rc = MCA_PML_CALL(irecv(buf,count,type,source,tag,comm,request, &item));
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);

@@ -275,6 +275,7 @@ int MPI_Iscatterv(const void *sendbuf, const int sendcounts[], const int displs[
         ompi_coll_base_retain_datatypes(*request, sendtype, recvtype);
     }
 #ifdef ENABLE_ANALYSIS
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);

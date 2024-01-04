@@ -34,6 +34,7 @@ typedef struct qentry {
     int foundMatchWild;
     char usedAlgorithm[30];
     struct timespec start;
+    struct timespec end;
     //struct timeval start;
     struct timeval initializeRequest;
     struct timeval startRequest;
