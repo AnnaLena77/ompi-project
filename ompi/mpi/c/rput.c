@@ -153,6 +153,7 @@ int MPI_Rput(const void *origin_addr, int origin_count, MPI_Datatype origin_data
                                      target_rank, target_disp, target_count,
                                      target_datatype, win, request, &item);
         //qentryIntoQueue(&item);
+        clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, win, rc, FUNC_NAME);
 }

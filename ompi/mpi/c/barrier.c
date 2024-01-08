@@ -92,6 +92,7 @@ int MPI_Barrier(MPI_Comm comm)
 #else
       err = comm->c_coll->coll_barrier(comm, comm->c_coll->coll_barrier_module, &item);
       //qentryIntoQueue(&item);
+      clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     }
   }
@@ -105,6 +106,7 @@ int MPI_Barrier(MPI_Comm comm)
 #else
       err = comm->c_coll->coll_barrier(comm, comm->c_coll->coll_barrier_module, &item);
       //qentryIntoQueue(&item);
+      clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
   }
 

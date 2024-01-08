@@ -220,6 +220,7 @@ int MPI_Allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                                        (int *) displs, recvtype, comm,
                                        comm->c_coll->coll_allgatherv_module, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

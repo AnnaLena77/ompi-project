@@ -14,10 +14,10 @@
 #include "btl_uct_rdma.h"
 
 
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
 #include "ompi/mpi/c/init.h"
 #include <time.h>
-#endif
+#endif*/
 
 /**
  * Allocate a segment.

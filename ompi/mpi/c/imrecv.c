@@ -111,6 +111,7 @@ int MPI_Imrecv(void *buf, int count, MPI_Datatype type,
     rc = MCA_PML_CALL(imrecv(buf, count, type, message, request));
 #else
     rc = MCA_PML_CALL(imrecv(buf, count, type, message, request, &item));
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);

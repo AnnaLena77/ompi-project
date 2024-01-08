@@ -21,9 +21,9 @@
  * Copyright (c) 2018      Sandia National Laboratories
  *                         All rights reserved.
  * Copyright (c) 2020      Google, LLC. All rights reserved.
+ * Copyright (c) 2022      Amazon.com, Inc. or its affiliates.  All Rights reserved.
  * Copyright (c) 2021      Triad National Security, LLC. All rights
  *                         reserved.
- * Copyright (c) 2022      Amazon.com, Inc. or its affiliates.  All Rights reserved.
  * $COPYRIGHT$
  *
  * Additional copyrights may follow
@@ -47,9 +47,9 @@
 #include "ompi/mca/bml/base/base.h"
 
 
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
 #   include "ompi/mpi/c/init.h"
-#endif
+#endif*/
 
 int mca_pml_ob1_accelerator_need_buffers(mca_pml_ob1_recv_request_t* recvreq,
                                          mca_btl_base_module_t* btl);

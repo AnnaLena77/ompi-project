@@ -216,6 +216,7 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
 #endif
 
 #ifdef ENABLE_ANALYSIS
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
 

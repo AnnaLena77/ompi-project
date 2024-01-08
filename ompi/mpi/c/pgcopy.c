@@ -77,15 +77,16 @@ void timestampToBinary(struct timespec time, char* buffer, int* offset){
     
     off += 4;
     *offset += 4;
+    
+    //int utc_offset_seconds = 2 * 3600;
 
     //count of seconds since 01.01.2000
-    time_t seconds_since_2000 = time.tv_sec - 946684800;
+    time_t seconds_since_2000 = time.tv_sec - 946684800; // + utc_offset_seconds;
     //cast into microseconds
     long microseconds = (time.tv_nsec / 1000);
     long long timestamp_micro = seconds_since_2000 * 1000000LL + microseconds;
     
-    int utc_offset_seconds = 2 * 3600;
-    timestamp_micro += utc_offset_seconds * 1000000LL;
+    //timestamp_micro += utc_offset_seconds * 1000000LL;
     
     buffer[off] = (timestamp_micro >> 56) & 0xff;
     buffer[off+1] = (timestamp_micro >> 48) & 0xff;

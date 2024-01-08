@@ -163,6 +163,7 @@ int MPI_Reduce_scatter_block(const void *sendbuf, void *recvbuf, int recvcount,
                                                  datatype, op, comm,
                                                  comm->c_coll->coll_reduce_scatter_block_module, &item); 
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     OBJ_RELEASE(op);
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);

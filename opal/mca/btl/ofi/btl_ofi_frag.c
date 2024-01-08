@@ -16,7 +16,9 @@
 #include "btl_ofi.h"
 #include "btl_ofi_endpoint.h"
 #include "btl_ofi_rdma.h"
+/*#ifdef ENABLE_ANALYSIS
 #include "ompi/mpi/c/init.h"
+#endif*/
 
 static void mca_btl_ofi_base_frag_constructor(mca_btl_ofi_base_frag_t *frag)
 {

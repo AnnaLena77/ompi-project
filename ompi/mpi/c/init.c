@@ -47,6 +47,10 @@
 #include "ompi/constants.h"
 #include "ompi/mpi/c/pgcopy.h"
 
+#ifdef ENABLE_ANALYSIS
+#include "ompi/mpi/c/init.h"
+#endif
+
 
 #if OMPI_BUILD_MPI_PROFILING
 #if OPAL_HAVE_WEAK_SYMBOLS
@@ -240,7 +244,7 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         qentry *item = &q;
         int offset = *off;
         
-        newRow(buffer, 9, &offset);
+        newRow(buffer, 11, &offset);
 
         stringToBinary(item->function, buffer, &offset);
         
@@ -257,8 +261,17 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         intToBinary(item->processrank, buffer, &offset);
         
         intToBinary(item->partnerrank, buffer, &offset);
+        
+        stringToBinary(item->usedAlgorithm, buffer, &offset);
 
         timestampToBinary(item->start, buffer, &offset);
+        
+        timestampToBinary(item->end, buffer, &offset);
+        
+        /*struct timespec time_end;
+        clock_gettime(CLOCK_REALTIME, &time_end);
+        
+        timestampToBinary(time_end, buffer, &offset);*/
         
         *off = offset;
         //fwrite(buffer, offset, 1, file);
@@ -276,7 +289,7 @@ static void* SQLMonitorFunc(void* _arg){
         PQfinish(conn);
         exit(1);
     } else {
-       char proc_rank[3];
+       char proc_rank[4];
        sprintf(proc_rank, "%d", processrank);
        const char *query = "INSERT INTO cluster_information (processorname, rank) VALUES ($1, $2)";
        const char *paramValues[2] = {proc_name, proc_rank};
@@ -530,12 +543,14 @@ void initializeQueue()
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
+#ifdef ENABLE_ANALYSIS
     run_thread = 1;
     counter = 0;
     ringbuffer = (qentry*)malloc(sizeof(qentry)*MAX_RINGSIZE);
     writer_pos = -1;
     reader_pos = -1;
     q_qentry = (qentry*)malloc(sizeof(qentry));
+#endif
     //buffer = (char*)malloc(2000000);
     //offset = 0;
     #ifdef ENABLE_ANALYSIS

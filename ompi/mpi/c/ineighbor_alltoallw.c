@@ -186,6 +186,7 @@ int MPI_Ineighbor_alltoallw(const void *sendbuf, const int sendcounts[], const M
     err = comm->c_coll->coll_ineighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes,
                                                 recvbuf, recvcounts, rdispls, recvtypes, comm, request,
                                                 comm->c_coll->coll_ineighbor_alltoallw_module, &item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {

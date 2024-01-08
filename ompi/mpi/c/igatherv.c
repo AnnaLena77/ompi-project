@@ -281,6 +281,7 @@ int MPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     }
 #ifdef ENABLE_ANALYSIS
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif  
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

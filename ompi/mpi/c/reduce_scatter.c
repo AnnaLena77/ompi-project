@@ -191,6 +191,7 @@ int MPI_Reduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[
     err = comm->c_coll->coll_reduce_scatter(sendbuf, recvbuf, recvcounts,
                                            datatype, op, comm,
                                            comm->c_coll->coll_reduce_scatter_module, &item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     OBJ_RELEASE(op);

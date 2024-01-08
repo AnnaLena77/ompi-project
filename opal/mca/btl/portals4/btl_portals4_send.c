@@ -29,9 +29,9 @@
 #include "btl_portals4.h"
 #include "btl_portals4_frag.h"
 
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
 #	include "ompi/mpi/c/init.h"
-#endif
+#endif*/
 
 int mca_btl_portals4_send(struct mca_btl_base_module_t *btl_base,
                           struct mca_btl_base_endpoint_t *endpoint,

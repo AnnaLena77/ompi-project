@@ -176,6 +176,8 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
                                   comm->c_coll->coll_bcast_module, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
+
     OMPI_ERRHANDLER_RETURN(err, comm, err, FUNC_NAME);
 }

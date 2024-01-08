@@ -160,6 +160,7 @@ int MPI_Iallreduce(const void *sendbuf, void *recvbuf, int count,
 #else
     err = comm->c_coll->coll_iallreduce(sendbuf, recvbuf, count, datatype,
                                        op, comm, request, comm->c_coll->coll_iallreduce_module, &item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
     //qentryIntoQueue(&item);
 #endif
     if (OPAL_LIKELY(OMPI_SUCCESS == err)) {

@@ -141,6 +141,7 @@ int MPI_Ibsend(const void *buf, int count, MPI_Datatype type, int dest,
 #else
     rc = MCA_PML_CALL(isend(buf, count, type, dest, tag, MCA_PML_BASE_SEND_BUFFERED, comm, request, &item));
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, comm, rc, FUNC_NAME);
 }

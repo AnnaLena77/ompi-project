@@ -1444,7 +1444,6 @@ int ompi_coll_tuned_allgather_intra_dec_fixed(const void *sbuf, int scount,
             alg = 5;
         }
     }
-
     OPAL_OUTPUT((ompi_coll_tuned_stream, "ompi_coll_tuned_allgather_intra_dec_fixed"
                  " rank %d com_size %d", ompi_comm_rank(comm), communicator_size));
 #ifndef ENABLE_ANALYSIS

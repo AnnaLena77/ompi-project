@@ -34,7 +34,7 @@
 #include "pml_ob1_rdmafrag.h"
 #include "ompi/mca/bml/bml.h"
 #include "ompi/memchecker.h"
-#include "ompi/mpi/c/init.h"
+//#include "ompi/mpi/c/init.h"
 
 BEGIN_C_DECLS
 
@@ -578,11 +578,11 @@ mca_pml_ob1_send_request_start_btl( mca_pml_ob1_send_request_t* sendreq,
                 return mca_pml_ob1_send_request_start_accelerator(sendreq, bml_btl, size);
             }
 
-#ifdef ENABLE_ANALYSIS
+#ifndef ENABLE_ANALYSIS
+            rc = mca_pml_ob1_send_request_start_rndv(sendreq, bml_btl, size, 0);
+#else
             if(item!=NULL) strcpy(item->usedProtocol, "rendevous");
             rc = mca_pml_ob1_send_request_start_rndv(sendreq, bml_btl, size, 0, &item);
-#else
-            rc = mca_pml_ob1_send_request_start_rndv(sendreq, bml_btl, size, 0);
 #endif
         }
     }

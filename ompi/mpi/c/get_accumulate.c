@@ -222,6 +222,7 @@ int MPI_Get_accumulate(const void *origin_addr, int origin_count, MPI_Datatype o
                                                     target_datatype,
                                                     op, win, &item);
     //qentryIntoQueue(&item);
+    clock_gettime(CLOCK_REALTIME, &item->end);
 #endif
     OMPI_ERRHANDLER_RETURN(rc, win, rc, FUNC_NAME);
 }

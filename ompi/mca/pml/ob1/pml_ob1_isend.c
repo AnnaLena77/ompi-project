@@ -43,7 +43,10 @@
 #include "ompi/mca/pml/base/pml_base_sendreq.h"
 #endif
 
+/*#ifdef ENABLE_ANALYSIS
 #include "ompi/mpi/c/init.h"
+#endif*/
+
 
 /**
  * Single usage request. As we allow recursive calls (as an
@@ -499,7 +502,6 @@ int mca_pml_ob1_send(const void *buf,
     }
     sendreq->req_send.req_base.req_proc = dst_proc;
     sendreq->rdma_frag = NULL;
-
 
     MCA_PML_OB1_SEND_REQUEST_INIT(sendreq, buf, count, datatype, dst, tag,
                                   comm, sendmode, false, ob1_proc);
