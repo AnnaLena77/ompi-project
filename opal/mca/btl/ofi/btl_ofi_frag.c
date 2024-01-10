@@ -161,7 +161,7 @@ int mca_btl_ofi_send(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpoi
 
     MCA_BTL_OFI_NUM_SEND_INC(ofi_btl);
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) item->sent = time(NULL);
+    if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->sent);
 #endif
     return OPAL_SUCCESS;
 }
