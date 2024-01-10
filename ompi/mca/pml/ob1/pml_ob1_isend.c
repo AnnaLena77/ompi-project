@@ -218,7 +218,7 @@ int mca_pml_ob1_isend(const void *buf,
 {
 #endif
 #ifdef ENABLE_ANALYSIS
-    printf("Funktion: Ob1_isend\n");
+    //printf("Funktion: Ob1_isend\n");
     qentry *item;
     //if q is NULL, isend is not called from a normal operation
     if(q!=NULL){
@@ -314,7 +314,7 @@ int mca_pml_ob1_isend(const void *buf,
                                   comm, sendmode, false, ob1_proc);
 
     #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) gettimeofday(&item->initializeRequest, NULL);
+    if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->initializeRequest);
     #endif
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &(sendreq)->req_send.req_base,
@@ -394,7 +394,7 @@ int mca_pml_ob1_send(const void *buf,
         item = NULL;
     }
 #endif
-    printf("Funktion: Ob1_send\n");
+    //printf("Funktion: Ob1_send\n");
     mca_pml_ob1_comm_proc_t *ob1_proc = mca_pml_ob1_peer_lookup (comm, dst);
     ompi_proc_t *dst_proc = ob1_proc->ompi_proc;
     mca_bml_base_endpoint_t* endpoint = mca_bml_base_get_endpoint (dst_proc);
@@ -507,7 +507,7 @@ int mca_pml_ob1_send(const void *buf,
                                   comm, sendmode, false, ob1_proc);
                                   
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) gettimeofday(&item->initializeRequest, NULL);
+    if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->initializeRequest);
 #endif
     
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
@@ -520,7 +520,7 @@ int mca_pml_ob1_send(const void *buf,
 #endif
     if (OPAL_LIKELY(rc == OMPI_SUCCESS)) {
 #ifdef ENABLE_ANALYSIS
-        if(item!=NULL) gettimeofday(&item->requestWaitCompletion, NULL);
+        if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->requestWaitCompletion);
 #endif
         ompi_request_wait_completion(&sendreq->req_send.req_base.req_ompi);
 
@@ -535,7 +535,7 @@ int mca_pml_ob1_send(const void *buf,
     }
 #ifdef ENABLE_ANALYSIS
     if(item!=NULL){ 
-        gettimeofday(&item->requestFini, NULL);
+        clock_gettime(CLOCK_REALTIME, &item->requestFini);
         //qentryIntoQueue(&item);
     }
 #endif

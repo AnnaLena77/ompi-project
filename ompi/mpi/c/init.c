@@ -156,14 +156,14 @@ void initQentry(qentry **q){
         item->foundMatchWild = -1;
         memcpy(item->usedAlgorithm, "", 0);
         //item->start = (struct timeval){0};
-        item->initializeRequest = (struct timeval){0};
-        item->startRequest = (struct timeval){0};
-        item->requestCompletePmlLevel = (struct timeval){0};
-        item->requestWaitCompletion = (struct timeval){0};
-        item->requestFini = (struct timeval){0};
-        item->sent = (struct timeval){0};        
-        item->bufferFree = (struct timeval){0};
-        item->intoQueue = (struct timeval){0};
+        //item->initializeRequest = (struct timeval){0};
+        //item->startRequest = (struct timeval){0};
+        //item->requestCompletePmlLevel = (struct timeval){0};
+        //item->requestWaitCompletion = (struct timeval){0};
+        //item->requestFini = (struct timeval){0};
+        //item->sent = (struct timeval){0};        
+        //item->bufferFree = (struct timeval){0};
+        //item->intoQueue = (struct timeval){0};
     }
 }
 

@@ -36,16 +36,16 @@ typedef struct qentry {
     struct timespec start;
     struct timespec end;
     //struct timeval start;
-    struct timeval initializeRequest;
-    struct timeval startRequest;
+    struct timespec initializeRequest;
+    struct timespec startRequest;
     //Completion of the first fragment of a long message that requires an acknowledgement
-    struct timeval requestCompletePmlLevel;
+    struct timespec requestCompletePmlLevel;
     //Warten auf Recv-Request
-    struct timeval requestWaitCompletion;
-    struct timeval requestFini;
-    struct timeval sent;//later
-    struct timeval bufferFree; //later
-    struct timeval intoQueue;
+    struct timespec requestWaitCompletion;
+    struct timespec requestFini;
+    struct timespec sent;//later
+    struct timespec bufferFree; //later
+    struct timespec intoQueue;
     //struct collective_p2p collectives;
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
@@ -59,7 +59,7 @@ typedef struct {
     int datasize;
     int processrank;
     int partnerrank;
-    struct timeval start;
+    struct timespec start;
 } collective_p2p;
 #endif
 

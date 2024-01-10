@@ -278,7 +278,7 @@ send_request_pml_complete(mca_pml_ob1_send_request_t *sendreq
         } else item = NULL;
     } else item = NULL;
     
-    if(item !=NULL) gettimeofday(&item->requestCompletePmlLevel, NULL);
+    if(item !=NULL) clock_gettime(CLOCK_REALTIME, &item->requestCompletePmlLevel);
 #endif
     if(false == sendreq->req_send.req_base.req_pml_complete) {
         if(sendreq->req_send.req_bytes_packed > 0) {

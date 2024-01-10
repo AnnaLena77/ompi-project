@@ -226,7 +226,7 @@ int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t
                     /* send is complete */
                     mca_btl_uct_frag_complete(frag, OPAL_SUCCESS);
 #ifdef ENABLE_ANALYSIS
-                    if(item!=NULL) gettimeofday(&item->sent, NULL);
+                    if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->sent);
 #endif
                     return 1;
                 }
@@ -240,7 +240,7 @@ int mca_btl_uct_send_frag(mca_btl_uct_module_t *uct_btl, mca_btl_uct_base_frag_t
                 /* send is complete */
                 mca_btl_uct_frag_complete(frag, OPAL_SUCCESS);
 #ifdef ENABLE_ANALYSIS
-    if(item!=NULL) gettimeofday(&item->sent, NULL);
+    if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->sent);
 #endif
                 return 1;
             }
@@ -419,7 +419,7 @@ int mca_btl_uct_sendi(mca_btl_base_module_t *btl, mca_btl_base_endpoint_t *endpo
     }
 #ifdef ENABLE_ANALYSIS
     if(item!=NULL){
-        gettimeofday(&item->sent, NULL);
+        clock_gettime(CLOCK_REALTIME, &item->sent);
         item->immediate = 1;
     }
 #endif
