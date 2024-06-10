@@ -31,7 +31,11 @@ mca_coll_han_set_reduce_args(mca_coll_han_reduce_args_t * args, mca_coll_task_t 
                              struct ompi_communicator_t *up_comm,
                              struct ompi_communicator_t *low_comm,
                              int num_segments, int cur_seg, int w_rank, int last_seg_count,
-                             bool noop, bool is_tmp_rbuf)
+                             bool noop, bool is_tmp_rbuf
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             )
 {
     args->cur_task = cur_task;
     args->sbuf = sbuf;
@@ -49,6 +53,9 @@ mca_coll_han_set_reduce_args(mca_coll_han_reduce_args_t * args, mca_coll_task_t 
     args->last_seg_count = last_seg_count;
     args->noop = noop;
     args->is_tmp_rbuf = is_tmp_rbuf;
+#ifdef ENABLE_ANALYSIS
+    args->q = q;
+#endif
 }
 
 /*
@@ -180,7 +187,11 @@ mca_coll_han_reduce_intra(const void *sbuf,
     mca_coll_han_set_reduce_args(t, t0, (char *) sbuf, (char *) tmp_rbuf, seg_count, dtype,
                                  op, root_up_rank, root_low_rank, up_comm, low_comm,
                                  num_segments, 0, w_rank, count - (num_segments - 1) * seg_count,
-                                 low_rank != root_low_rank, (NULL != tmp_rbuf_to_free));
+                                 low_rank != root_low_rank, (NULL != tmp_rbuf_to_free)
+#ifdef ENABLE_ANALYSIS
+                                 , &item
+#endif
+                                 );
     /* Init the first task */
     init_task(t0, mca_coll_han_reduce_t0_task, (void *) t);
     issue_task(t0);
@@ -232,6 +243,20 @@ mca_coll_han_reduce_intra(const void *sbuf,
 int mca_coll_han_reduce_t0_task(void *task_args)
 {
     mca_coll_han_reduce_args_t *t = (mca_coll_han_reduce_args_t *) task_args;
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(t->q!=NULL){
+        if(*(t->q)!=NULL) {
+            item = *(t->q);
+        }
+        else{
+             item = NULL;
+         }
+    }
+    else {
+         item = NULL;
+    }
+#endif
     OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output, "[%d]: in t0 %d\n", t->w_rank,
                          t->cur_seg));
     OBJ_RELEASE(t->cur_task);
@@ -244,7 +269,7 @@ int mca_coll_han_reduce_t0_task(void *task_args)
 #else
     t->low_comm->c_coll->coll_reduce((char *) t->sbuf, (char *) t->rbuf, t->seg_count, t->dtype,
                                      t->op, t->root_low_rank, t->low_comm,
-                                     t->low_comm->c_coll->coll_reduce_module, NULL);
+                                     t->low_comm->c_coll->coll_reduce_module, &item);
 #endif
     return OMPI_SUCCESS;
 }
@@ -252,6 +277,20 @@ int mca_coll_han_reduce_t0_task(void *task_args)
 /* t1 task */
 int mca_coll_han_reduce_t1_task(void *task_args) {
     mca_coll_han_reduce_args_t *t = (mca_coll_han_reduce_args_t *) task_args;
+ #ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(t->q!=NULL){
+        if(*(t->q)!=NULL) {
+            item = *(t->q);
+        }
+        else{
+             item = NULL;
+         }
+    }
+    else {
+         item = NULL;
+    }
+#endif
     OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output, "[%d]: in t1 %d\n", t->w_rank,
                          t->cur_seg));
     OBJ_RELEASE(t->cur_task);
@@ -274,7 +313,7 @@ int mca_coll_han_reduce_t1_task(void *task_args) {
 #else
             t->up_comm->c_coll->coll_ireduce(MPI_IN_PLACE, (char *) t->rbuf, tmp_count, t->dtype,
                                              t->op, t->root_up_rank, t->up_comm, &ireduce_req,
-                                             t->up_comm->c_coll->coll_ireduce_module, NULL);
+                                             t->up_comm->c_coll->coll_ireduce_module, &item);
 #endif
         } else {
             /* this is a node leader that is not root so alternate between the two allocated segments */
@@ -286,7 +325,7 @@ int mca_coll_han_reduce_t1_task(void *task_args) {
 #else
             t->up_comm->c_coll->coll_ireduce(tmp_sbuf, NULL, tmp_count,
                                              t->dtype, t->op, t->root_up_rank, t->up_comm,
-                                             &ireduce_req, t->up_comm->c_coll->coll_ireduce_module, NULL);
+                                             &ireduce_req, t->up_comm->c_coll->coll_ireduce_module, &item);
 #endif
         }
     }
@@ -316,7 +355,7 @@ int mca_coll_han_reduce_t1_task(void *task_args) {
         t->low_comm->c_coll->coll_reduce((char *) tmp_sbuf,
                                          (char *) tmp_rbuf, tmp_count,
                                          t->dtype, t->op, t->root_low_rank, t->low_comm,
-                                         t->low_comm->c_coll->coll_reduce_module, NULL);
+                                         t->low_comm->c_coll->coll_reduce_module, &item);
 #endif
 
     }

@@ -629,6 +629,7 @@ int ompi_coll_tuned_bcast_intra_dec_fixed(void *buff, int count,
     }
     else item = NULL;
 #endif
+//printf("Test auf NULL 1: %d\n", item == NULL);
     size_t total_dsize, dsize;
     int communicator_size, alg;
 	communicator_size = ompi_comm_size(comm);

@@ -44,7 +44,11 @@ mca_coll_han_set_gather_args(mca_coll_han_gather_args_t * args,
                              int root_low_rank,
                              struct ompi_communicator_t *up_comm,
                              struct ompi_communicator_t *low_comm,
-                             int w_rank, bool noop, bool is_mapbycore, ompi_request_t * req)
+                             int w_rank, bool noop, bool is_mapbycore, ompi_request_t * req
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             )
 {
     args->cur_task = cur_task;
     args->sbuf = sbuf;
@@ -63,6 +67,10 @@ mca_coll_han_set_gather_args(mca_coll_han_gather_args_t * args,
     args->noop = noop;
     args->is_mapbycore = is_mapbycore;
     args->req = req;
+#ifdef ENABLE_ANALYSIS
+    args->q = q;
+#endif
+    
 }
 
 
@@ -206,7 +214,11 @@ mca_coll_han_gather_intra(const void *sbuf, int scount,
     mca_coll_han_gather_args_t *lg_args = malloc(sizeof(mca_coll_han_gather_args_t));
     mca_coll_han_set_gather_args(lg_args, lg, (char *) sbuf, NULL, scount, sdtype, reorder_rbuf,
                                  rcount, rdtype, root, root_up_rank, root_low_rank, up_comm,
-                                 low_comm, w_rank, low_rank != root_low_rank, han_module->is_mapbycore, temp_request);
+                                 low_comm, w_rank, low_rank != root_low_rank, han_module->is_mapbycore, temp_request
+#ifdef ENABLE_ANALYSIS
+                                 , &item
+#endif
+                                 );
     /* Init lg task */
     init_task(lg, mca_coll_han_gather_lg_task, (void *) (lg_args));
     /* Issure lg task */
@@ -235,6 +247,20 @@ mca_coll_han_gather_intra(const void *sbuf, int scount,
 int mca_coll_han_gather_lg_task(void *task_args)
 {
     mca_coll_han_gather_args_t *t = (mca_coll_han_gather_args_t *) task_args;
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(t->q!=NULL){
+        if(*(t->q)!=NULL) {
+            item = *(t->q);
+        }
+        else{
+             item = NULL;
+         }
+    }
+    else {
+         item = NULL;
+    }
+#endif
     OPAL_OUTPUT_VERBOSE((30, mca_coll_han_component.han_output, "[%d] Han Gather:  lg\n",
                          t->w_rank));
     ompi_datatype_t* dtype = (t->w_rank == t->root) ? t->rdtype : t->sdtype;
@@ -287,7 +313,7 @@ int mca_coll_han_gather_lg_task(void *task_args)
                                      dtype,
                                      t->root_low_rank,
                                      t->low_comm,
-                                     t->low_comm->c_coll->coll_gather_module, NULL);
+                                     t->low_comm->c_coll->coll_gather_module, &item);
 #endif
 
     /* Prepare up comm gather */
@@ -308,6 +334,20 @@ int mca_coll_han_gather_lg_task(void *task_args)
 int mca_coll_han_gather_ug_task(void *task_args)
 {
     mca_coll_han_gather_args_t *t = (mca_coll_han_gather_args_t *) task_args;
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(t->q!=NULL){
+        if(*(t->q)!=NULL) {
+            item = *(t->q);
+        }
+        else{
+             item = NULL;
+         }
+    }
+    else {
+         item = NULL;
+    }
+#endif
     OBJ_RELEASE(t->cur_task);
 
     if (t->noop) {
@@ -339,7 +379,7 @@ int mca_coll_han_gather_ug_task(void *task_args)
                                         dtype,
                                         t->root_up_rank,
                                         t->up_comm,
-                                        t->up_comm->c_coll->coll_gather_module, NULL);
+                                        t->up_comm->c_coll->coll_gather_module, &item);
 #endif
 
         if (t->sbuf_inter_free != NULL) {

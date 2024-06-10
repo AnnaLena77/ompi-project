@@ -950,14 +950,16 @@ int mca_pml_ucx_isend(const void *buf, size_t count, ompi_datatype_t *datatype,
                       )
 {
 #ifdef ENABLE_ANALYSIS
-    //printf("UCX_Isend\n");
     qentry *item;
     if(q!=NULL){
         if(*q!=NULL){
             item = *q;
             item->blocking = 0;
+            strcpy(item->usedBtl,"ucx");
             item->sendcount = item->sendcount + count;
         	   item->sendDatasize = item->sendDatasize + count*sizeof(datatype);
+        	   //printf("Datasize: %d\n", item->sendDatasize);
+        	   
             //int ranki;
             //MPI_Comm_rank(comm, &ranki);
             //printf("UXC_ISEND Kommt von: %s\n Rank %d sendet an Rank %d\n", item->function, ranki, dst);

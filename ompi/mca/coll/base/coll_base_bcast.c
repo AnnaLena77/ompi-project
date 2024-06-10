@@ -59,6 +59,8 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
     }
     else item = NULL;
 #endif
+//printf("Test auf NULL 1: %d\n", item == NULL);
+//printf("Test auf NULL 1: %d\n", item == NULL);
     int err = 0, line, i, rank, segindex, req_index;
     int num_segments; /* Number of segments */
     int sendcount;    /* number of elements sent in this segment */
@@ -108,6 +110,7 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
                                          MCA_PML_BASE_SEND_STANDARD, comm,
                                          &send_reqs[i]));
 #else
+                //printf("Test auf NULL 2: %d\n", item == NULL);
                 err = MCA_PML_CALL(isend(tmpbuf, sendcount, datatype,
                                          tree->tree_next[i],
                                          MCA_COLL_BASE_TAG_BCAST,

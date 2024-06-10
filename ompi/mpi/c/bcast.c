@@ -173,6 +173,7 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
                                   comm->c_coll->coll_bcast_module);
 #else
     //printf("%s, %d\n", item->operation, strcmp(item->operation, "MPI_Bcast"));
+    //printf("Test auf NULL 1: %d\n", item == NULL);
     err = comm->c_coll->coll_bcast(buffer, count, datatype, root, comm,
                                   comm->c_coll->coll_bcast_module, &item);
     //qentryIntoQueue(&item);

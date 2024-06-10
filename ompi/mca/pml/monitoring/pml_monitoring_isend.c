@@ -42,6 +42,7 @@ int mca_pml_monitoring_isend(const void *buf,
                              )
 {
 #ifdef ENABLE_ANALYSIS
+printf("hello from monitoring isend\n");
     qentry *item;
     if(q!=NULL){
         if(*q!=NULL){

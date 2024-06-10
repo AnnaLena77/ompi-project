@@ -66,6 +66,8 @@ static struct timeval init_sql_finished;
 static struct timeval init_sql_start;
 
 static ID=0;
+static char *job_id;
+static struct timespec start_runtime;
 static count_q_entry = 0;
 static int queue_lock;
 static TAILQ_HEAD(tailhead, qentry) head;
@@ -155,15 +157,6 @@ void initQentry(qentry **q){
         item->withinEagerLimit = -1;
         item->foundMatchWild = -1;
         memcpy(item->usedAlgorithm, "", 0);
-        //item->start = (struct timeval){0};
-        //item->initializeRequest = (struct timeval){0};
-        //item->startRequest = (struct timeval){0};
-        //item->requestCompletePmlLevel = (struct timeval){0};
-        //item->requestWaitCompletion = (struct timeval){0};
-        //item->requestFini = (struct timeval){0};
-        //item->sent = (struct timeval){0};        
-        //item->bufferFree = (struct timeval){0};
-        //item->intoQueue = (struct timeval){0};
     }
 }
 
@@ -210,9 +203,10 @@ static void registerCluster(){
     MPI_Get_processor_name(processorname, &proc_name_length);
 }
 
-static void writeToPostgres(PGconn *conn, char* buffer, int offset){
+/*static void writeToPostgres(PGconn *conn, char* buffer, int offset){
     counter ++;
-    const char *copyQuery = "COPY mpi_information FROM STDIN (FORMAT binary)";
+    const char copyQuery[256];
+    snprintf("COPY " + db_name + " FROM STDIN (FORMAT binary)";
     PGresult *res;
     res = PQexec(conn, copyQuery);
     if (PQresultStatus(res) != PGRES_COPY_IN) {
@@ -236,7 +230,7 @@ static void writeToPostgres(PGconn *conn, char* buffer, int offset){
     }
     PQflush(conn);
     
-}
+}*/
 
 void qentryToBinary(qentry q, char *buffer, int *off){
         counter ++;
@@ -244,7 +238,12 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         qentry *item = &q;
         int offset = *off;
         
-        newRow(buffer, 11, &offset);
+        
+        newRow(buffer, 12, &offset);
+        
+        
+        int job = atoi(job_id);
+        intToBinary(job, buffer, &offset);
 
         stringToBinary(item->function, buffer, &offset);
         
@@ -275,6 +274,9 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         
         *off = offset;
         //fwrite(buffer, offset, 1, file);
+        /*if(item->function != "MPI_Bcast"){
+            printf("Item: %s, BTL: %s, Datasize: UsedProtocol: %s\n", item->function, item->usedBtl, item->recvDatasize, item->usedAlgorithm); 
+        }*/
 }
 
 #define TIME_TO_WAIT 0.5
@@ -282,31 +284,65 @@ void qentryToBinary(qentry q, char *buffer, int *off){
 //Monitor-Function for SQL-Connection
 static void* SQLMonitorFunc(void* _arg){
     
-    char* conninfo = "host=10.35.8.10 port=5432 dbname=tsdb user=postgres password=postgres";
+    char *db_host = getenv("DB_HOST");
+    char *db_port = getenv("DB_PORT");
+    char *db_user = getenv("DB_USER");
+    char *db_name = getenv("DB_NAME");
+    char *db_pw = getenv("DB_PW");
+    
+    if (db_host == NULL || db_port == NULL || db_name == NULL || db_user == NULL || db_pw == NULL) {
+        fprintf(stderr, "One or more environment variables are not set\n");
+        return 1;
+    }
+    
+    int conninfo_size=(36 + strlen(db_host) + strlen(db_port) + strlen(db_name) + strlen(db_user) + strlen(db_pw));
+    char *conninfo = malloc(conninfo_size);
+    
+    strcpy(conninfo, "host=");
+    strcat(conninfo, db_host);
+    strcat(conninfo, " port=");
+    strcat(conninfo, db_port);
+    strcat(conninfo, " dbname=");
+    strcat(conninfo, db_name);
+    strcat(conninfo, " user=");
+    strcat(conninfo, db_user);
+    strcat(conninfo, " password=");
+    strcat(conninfo, db_pw);
+    
+
     PGconn *conn = PQconnectdb(conninfo);
-    if (PQstatus(conn) != CONNECTION_OK){
-        fprintf(stderr, "Connection to database failed: %s\n", PQerrorMessage(conn));
-        PQfinish(conn);
-        exit(1);
-    } else {
+    bool check_job_id=0;
+       
+    if(processrank==0){
+        char start_time_str[30]; // Platz für den Zeitstempel
+        strftime(start_time_str, sizeof(start_time_str), "%Y-%m-%d %H:%M:%S", localtime(&(start_runtime.tv_sec)));
+        const char *query = "INSERT INTO edumpi_runs (edumpi_run_id, start_time) VALUES ($1, $2)";
+        const char *paramValues[2] = {job_id, start_time_str};
+        PGresult *res = PQexecParams(conn, query, 2, NULL, paramValues, strlen(job_id)+strlen(start_time_str), NULL, 0);  
+    }
+    else {     
+       while(!check_job_id){
+           const char *query = "SELECT edumpi_run_id FROM edumpi_runs WHERE edumpi_run_id = $1";
+	  const char *paramValues[1] = {job_id};
+           PGresult *res = PQexecParams(conn, query, 1, NULL, paramValues, strlen(job_id), NULL, 0);
+           check_job_id = (PQntuples(res));
+  
+       }
+   }
+
+    
        char proc_rank[4];
        sprintf(proc_rank, "%d", processrank);
-       const char *query = "INSERT INTO cluster_information (processorname, rank) VALUES ($1, $2)";
-       const char *paramValues[2] = {proc_name, proc_rank};
-       PGresult *res = PQexecParams(conn, query, 2, NULL, paramValues, strlen(proc_name)+strlen(proc_rank), NULL, 0);
-    }
+       const char *query = "INSERT INTO edumpi_cluster_info (edumpi_run_id, processorname, processrank) VALUES ($1, $2, $3)";
+       const char *paramValues[3] = {job_id ,proc_name, proc_rank};
+       PGresult *res_ = PQexecParams(conn, query, 3, NULL, paramValues, strlen(job_id)+strlen(proc_name)+strlen(proc_rank), NULL, 0);
+       
     
     clock_t start = clock();
     
-    const char *copyQuery = "COPY mpi_information FROM STDIN (FORMAT binary)";
+    const char *copyQuery = "COPY edumpi_running_data FROM STDIN (FORMAT binary)";
     PGresult *res;
     res = PQexec(conn, copyQuery);
-    if (PQresultStatus(res) != PGRES_COPY_IN) {
-        printf("Fehler beim Starten des COPY-Befehls: %s\n", PQresultErrorMessage(res));
-        PQclear(res);
-        PQfinish(conn);
-        return;
-    }
     PQclear(res);
     PQputCopyData(conn, PGCOPY_HEADER, 19);
     
@@ -338,7 +374,22 @@ static void* SQLMonitorFunc(void* _arg){
         if(current>=(start + TIME_TO_WAIT * CLOCKS_PER_SEC)){
             PQputCopyEnd(conn, NULL);
             PQflush(conn);
+            
+            /*struct timespec startii;
+            clock_gettime(CLOCK_MONOTONIC, &startii);*/
+            
             res = PQexec(conn, copyQuery);
+            
+            /*struct timespec endii;
+            clock_gettime(CLOCK_MONOTONIC, &endii);
+            
+            long long startii_ns = startii.tv_sec * 1000000000LL + startii.tv_nsec;
+            long long endii_ns = endii.tv_sec * 1000000000LL + endii.tv_nsec;
+            double time_spentii = (endii_ns - startii_ns) / 1e9;
+
+            // Zeit ausgeben
+            printf("Process. %d, Time spent: %.6f seconds\n", processrank, time_spentii);		*/
+            
             PQclear(res);
             PQputCopyData(conn, PGCOPY_HEADER, 19);
             
@@ -550,7 +601,10 @@ int MPI_Init(int *argc, char ***argv)
     writer_pos = -1;
     reader_pos = -1;
     q_qentry = (qentry*)malloc(sizeof(qentry));
+    job_id = getenv("SLURM_JOBID");
+    clock_gettime(CLOCK_REALTIME, &start_runtime); 
 #endif
+
     //buffer = (char*)malloc(2000000);
     //offset = 0;
     #ifdef ENABLE_ANALYSIS
