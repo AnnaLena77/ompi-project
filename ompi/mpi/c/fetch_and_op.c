@@ -47,54 +47,11 @@ static const char FUNC_NAME[] = "MPI_Fetch_and_op";
 int MPI_Fetch_and_op(const void *origin_addr, void *result_addr, MPI_Datatype datatype,
                      int target_rank, MPI_Aint target_disp, MPI_Op op, MPI_Win win)
 {
-#ifdef ENABLE_ANALYSIS
-    /*qentry *item = (qentry*)malloc(sizeof(qentry));
-    initQentry(&item);
-    gettimeofday(&item->start, NULL);*/
+    #ifdef ENABLE_ANALYSIS
     qentry *item = getWritingRingPos();
-    initQentry(&item);
-    //item->start
     clock_gettime(CLOCK_REALTIME, &item->start);
-    //Basic information
-    strcpy(item->function, "MPI_Fetch_and_op");
-    strcpy(item->communicationType, "one-sided");
-    item->blocking = 0; //One-Sided-Communication is always non-blocking!
-    /*Datatype --> if there is a difference between the origin_datatype and the target_datatype, 
-    write both into database*/
-    char *origin_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int origin_name_length;
-    MPI_Type_get_name(datatype, origin_name, &origin_name_length);
-    strcpy(item->datatype, origin_name);
-    free(origin_name);
-    //count and datasize
-    item->sendcount = 1;
-    item->sendDatasize = sizeof(datatype);
-    //operation
-    strcpy(item->operation, op->o_name);
-    //Name of communicator
-    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int comm_name_length;
-    ompi_win_get_communicator(win, comm_name, &comm_name_length);
-    strcpy(item->communicationArea, comm_name);
-    free(comm_name);
-    
-    MPI_Group wingroup;
-    MPI_Win_get_group(win, &wingroup);
-    //processrank and partnerrank
-    int processrank;
-    MPI_Group_rank(wingroup, &processrank);
-    item->processrank = processrank;
-    item->partnerrank = target_rank;
-    
-    MPI_Group_free(&wingroup);
-    
-    //item->processorname
-    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
-    int proc_name_length;
-    MPI_Get_processor_name(proc_name, &proc_name_length);
-    strcpy(item->processorname, proc_name);
-    free(proc_name);
-#endif 
+    initQentry(&item, target_rank, "MPI_Fetch_and_op", 16, 1, 0, "one-sided", 9, datatype, NULL, NULL, 0, op);
+    #endif
     int rc;
 
     if (MPI_PARAM_CHECK) {

@@ -49,55 +49,9 @@ int MPI_Iscatterv(const void *sendbuf, const int sendcounts[], const int displs[
 {
 
 #ifdef ENABLE_ANALYSIS
-    /*qentry *item = (qentry*)malloc(sizeof(qentry));
-    initQentry(&item);
-    gettimeofday(&item->start, NULL);*/
-    
     qentry *item = getWritingRingPos();
-    initQentry(&item);
-    //item->start
     clock_gettime(CLOCK_REALTIME, &item->start);
-    
-    strcpy(item->function, "MPI_Iscatterv");
-    strcpy(item->communicationType, "collective");
-    int processrank;
-    MPI_Comm_rank(comm, &processrank);
-    item->processrank = processrank;
-    //item->partnerrank
-    if(processrank==root){
-    	item->partnerrank = -1;
-    	//item->datatype
-         char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-         int type_name_length;
-         MPI_Type_get_name(sendtype, type_name, &type_name_length);
-         strcpy(item->datatype, type_name);
-         free(type_name);
-    }
-    else{
-    	item->partnerrank = root;
-    	//item->datatype
-         char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-         int type_name_length;
-         MPI_Type_get_name(recvtype, type_name, &type_name_length);
-         strcpy(item->datatype, type_name);
-         free(type_name);
-    }
-    
-    //item->communicator
-    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int comm_name_length;
-    MPI_Comm_get_name(comm, comm_name, &comm_name_length);
-    strcpy(item->communicationArea, comm_name);
-    free(comm_name);
-    item->blocking = 0;
-    
-    //item->processorname
-    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
-    int proc_name_length;
-    MPI_Get_processor_name(proc_name, &proc_name_length);
-    strcpy(item->processorname, proc_name);
-    free(proc_name);
-    
+    initQentry(&item, -1, "MPI_Iscatterv", 13, 0, 0, "collective", 10, sendbuf, recvbuf, comm, 0, NULL);
 #endif 
 
     int i, size, err;

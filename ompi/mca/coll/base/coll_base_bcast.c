@@ -48,7 +48,7 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
 #endif
                                      )
 {
-//printf("Hello from ompi_coll_base_bcast_intra_generic\n");
+//printf("ompi_coll_base_bcast_intra_generic\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -59,8 +59,6 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
     }
     else item = NULL;
 #endif
-//printf("Test auf NULL 1: %d\n", item == NULL);
-//printf("Test auf NULL 1: %d\n", item == NULL);
     int err = 0, line, i, rank, segindex, req_index;
     int num_segments; /* Number of segments */
     int sendcount;    /* number of elements sent in this segment */
@@ -274,15 +272,12 @@ ompi_coll_base_bcast_intra_generic( void* buffer,
             if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
         }
         
-
-        //FEHLER! Hier bleibt einer stehen
         err = ompi_request_wait( &recv_reqs[req_index], MPI_STATUS_IGNORE );
         
         
         if (err != MPI_SUCCESS) { line = __LINE__; goto error_hndl; }
     }
     
-    //root bekommt den Success!!!
     return (MPI_SUCCESS);
 
  error_hndl:

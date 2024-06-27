@@ -43,6 +43,10 @@
 #include "ompi/constants.h"
 #include "ompi/runtime/params.h"
 
+#ifdef ENABLE_ANALYSIS 
+#include "ompi/mpi/c/init.h"
+#endif
+
 BEGIN_C_DECLS
 
 /**
@@ -307,8 +311,13 @@ typedef int (*ompi_request_test_some_fn_t)(size_t count,
  * @return                OMPI_SUCCESS or failure status.
  *
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*ompi_request_wait_fn_t)(ompi_request_t ** req_ptr,
                                       ompi_status_public_t * status);
+#else
+typedef int (*ompi_request_wait_fn_t)(ompi_request_t ** req_ptr,
+                                      ompi_status_public_t * status, qentry **q, int req_type);
+#endif
 /**
  * Wait (blocking-mode) for one of N requests to complete. This function is
  * slightly different from the MPI counter-part as it does not release the
@@ -322,10 +331,17 @@ typedef int (*ompi_request_wait_fn_t)(ompi_request_t ** req_ptr,
  * @return                OMPI_SUCCESS or failure status.
  *
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*ompi_request_wait_any_fn_t)(size_t count,
                                           ompi_request_t ** requests,
                                           int *index,
                                           ompi_status_public_t * status);
+#else
+typedef int (*ompi_request_wait_any_fn_t)(size_t count,
+                                          ompi_request_t ** requests,
+                                          int *index,
+                                          ompi_status_public_t * status, qentry **q, int req_type);
+#endif
 /**
  * Wait (blocking-mode) for all of N requests to complete. This function is
  * slightly different from the MPI counter-part as it does not release the
@@ -338,9 +354,15 @@ typedef int (*ompi_request_wait_any_fn_t)(size_t count,
  * @return                OMPI_SUCCESS or failure status.
  *
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*ompi_request_wait_all_fn_t)(size_t count,
                                           ompi_request_t ** requests,
                                           ompi_status_public_t * statuses);
+#else
+typedef int (*ompi_request_wait_all_fn_t)(size_t count,
+                                          ompi_request_t ** requests,
+                                          ompi_status_public_t * statuses, qentry **q, int req_type);
+#endif
 /**
  * Wait (blocking-mode) for some of N requests to complete. This function is
  * slightly different from the MPI counter-part as it does not release the
@@ -355,11 +377,19 @@ typedef int (*ompi_request_wait_all_fn_t)(size_t count,
  * @return                  OMPI_SUCCESS, OMPI_ERR_IN_STATUS or failure status.
  *
  */
+#ifndef ENABLE_ANALYSIS
 typedef int (*ompi_request_wait_some_fn_t)(size_t count,
                                            ompi_request_t ** requests,
                                            int * outcount,
                                            int * indices,
                                            ompi_status_public_t * statuses);
+#else
+typedef int (*ompi_request_wait_some_fn_t)(size_t count,
+                                           ompi_request_t ** requests,
+                                           int * outcount,
+                                           int * indices,
+                                           ompi_status_public_t * statuses, qentry **q, int req_type);
+#endif
 
 /**
  * Replaceable request functions
@@ -447,7 +477,11 @@ static inline bool ompi_request_tag_is_collective(int tag) {
  * Wait a particular request for completion
  */
 
-static inline void ompi_request_wait_completion(ompi_request_t *req)
+static inline void ompi_request_wait_completion(ompi_request_t *req
+#ifdef ENABLE_ANALYSIS
+    , qentry **q, int req_type
+#endif
+)
 {
     if (opal_using_threads ()) {
         if(!REQUEST_COMPLETE(req)) {

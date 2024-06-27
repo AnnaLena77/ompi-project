@@ -1,6 +1,7 @@
 #include <sys/queue.h>
 #include <time.h>
 #include <sys/time.h>
+#include "ompi/mpi/c/bindings.h"
 
 extern void enqueue(char** operation, char** datatype, int count, int datasize, char** communicator, int processrank, int partnerrank, time_t ctime);
 extern void initializeMongoDB(void);
@@ -16,7 +17,8 @@ typedef struct qentry {
     char function[30];
     char communicationType[30];
     int blocking;
-    char datatype[64];
+    char sendDatatype[64];
+    char recvDatatype[64];
     int sendcount;
     int sendDatasize;
     int recvcount;
@@ -35,6 +37,8 @@ typedef struct qentry {
     char usedAlgorithm[30];
     struct timespec start;
     struct timespec end;
+    double sendWaitingTime;
+    double recvWaitingTime;
     //struct timeval start;
     struct timespec initializeRequest;
     struct timespec startRequest;
@@ -45,26 +49,13 @@ typedef struct qentry {
     struct timespec requestFini;
     struct timespec sent;//later
     struct timespec bufferFree; //later
-    struct timespec intoQueue;
     //struct collective_p2p collectives;
     TAILQ_ENTRY(qentry) pointers;
 } qentry;
 #endif
 
-#ifndef collective_p2p_H
-#define collective_p2p_H
-typedef struct {
-    char function[30];
-    int count;
-    int datasize;
-    int processrank;
-    int partnerrank;
-    struct timespec start;
-} collective_p2p;
-#endif
-
 extern void qentryIntoQueue(qentry **q);
-extern void initQentry(qentry **q);
+extern void initQentry(qentry **q, int dest, char *function, int function_len, int sendCount, int recvCount, char *commType, int commType_len, MPI_Datatype sendType, MPI_Datatype recvType, MPI_Comm comm, int blocking, MPI_Op op);
 //extern void writeIntoFile(qentry q);
 
 extern qentry *q_qentry;

@@ -50,70 +50,12 @@ int MPI_Get_accumulate(const void *origin_addr, int origin_count, MPI_Datatype o
                        MPI_Datatype target_datatype, MPI_Op op, MPI_Win win)
 {
 //Remote Daten werden an den Caller zurueckgegeben, bevor die gesendeten Daten in den entfernten Daten akkumuliert werden -> Kombiniert Get-Daten mit vorhandenen Daten
-#ifdef ENABLE_ANALYSIS
-
-    /*qentry *item = (qentry*)malloc(sizeof(qentry));
-    initQentry(&item);
-    gettimeofday(&item->start, NULL);*/
+    #ifdef ENABLE_ANALYSIS
     qentry *item = getWritingRingPos();
-    initQentry(&item);
-    //item->start
     clock_gettime(CLOCK_REALTIME, &item->start);
+    initQentry(&item, target_rank, "MPI_Get_accumulate", 17, origin_count, target_count, "one-sided", 9, origin_datatype, target_datatype, NULL, 0, op);
+    #endif
     
-    //Basic information
-    strcpy(item->function, "MPI_Get_accumulate");
-    strcpy(item->communicationType, "one-sided");
-    item->blocking = 0; //One-Sided-Communication is always non-blocking!
-    /*Datatype --> if there is a difference between the origin_datatype and the target_datatype, 
-    write both into database*/
-    char *origin_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int origin_name_length;
-    MPI_Type_get_name(origin_datatype, origin_name, &origin_name_length);
-    char *target_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int target_name_length;
-    MPI_Type_get_name(target_datatype, target_name, &target_name_length);
-    if(strcmp(origin_name, target_name)==0){
-        strcpy(item->datatype, origin_name);
-        free(origin_name);
-        free(target_name);
-    }
-    else {
-        strcat(origin_name, ", ");
-        strcat(origin_name, target_name);
-        strcpy(item->datatype, origin_name);
-        free(origin_name);
-        free(target_name);
-    }
-    //count and datasize
-    item->sendcount = target_count;
-    item->sendDatasize = target_count*sizeof(target_datatype);
-    //operation
-    strcpy(item->operation, op->o_name);
-    //Name of communicator
-    char *comm_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int comm_name_length;
-    ompi_win_get_communicator(win, comm_name, &comm_name_length);
-    strcpy(item->communicationArea, comm_name);
-    free(comm_name);
-    
-    MPI_Group wingroup;
-    MPI_Win_get_group(win, &wingroup);
-    //processrank and partnerrank
-    int processrank;
-    MPI_Group_rank(wingroup, &processrank);
-    item->processrank = processrank;
-    item->partnerrank = target_rank;
-    
-    MPI_Group_free(&wingroup);
-    
-    //item->processorname
-    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
-    int proc_name_length;
-    MPI_Get_processor_name(proc_name, &proc_name_length);
-    strcpy(item->processorname, proc_name);
-    free(proc_name);
-    
-#endif  
     int rc;
     ompi_win_t *ompi_win = (ompi_win_t*) win;
 

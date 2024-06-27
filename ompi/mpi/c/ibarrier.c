@@ -42,25 +42,11 @@ static const char FUNC_NAME[] = "MPI_Ibarrier";
 int MPI_Ibarrier(MPI_Comm comm, MPI_Request *request)
 {
 #ifdef ENABLE_ANALYSIS
-    /*qentry *item = (qentry*)malloc(sizeof(qentry));
-    initQentry(&item);
-    gettimeofday(&item->start, NULL);*/
     qentry *item = getWritingRingPos();
-    initQentry(&item);
-    //item->start
     clock_gettime(CLOCK_REALTIME, &item->start);
-    //
-    strcpy(item->function, "MPI_Barrier");
-    strcpy(item->communicationType, "collective");
-    
-    //item->processorname
-    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
-    int proc_name_length;
-    MPI_Get_processor_name(proc_name, &proc_name_length);
-    strcpy(item->processorname, proc_name);
-    free(proc_name);
-    
+    initQentry(&item, -1, "MPI_Ibarrier", 11, 0, 0, "collective", 10, NULL, NULL, comm, 0, NULL);
 #endif 
+
     int err = MPI_SUCCESS;
 
     SPC_RECORD(OMPI_SPC_IBARRIER, 1);

@@ -47,40 +47,11 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
                          MPI_Comm comm, MPI_Status *status)
 
 {
-#ifdef ENABLE_ANALYSIS
-    /*qentry *item = (qentry*)malloc(sizeof(qentry));
-    //item->start
-    gettimeofday(&item->start, NULL);*/
-    
+    #ifdef ENABLE_ANALYSIS
     qentry *item = getWritingRingPos();
-    initQentry(&item);
-    //item->start
     clock_gettime(CLOCK_REALTIME, &item->start);
-    
-    //item->operation
-    strcpy(item->operation, "MPI_Sendrecv_replace");
-    //item->blocking
-    item->blocking = 1;
-    //item->datatype
-    /*char *type_name = (char*) malloc(MPI_MAX_OBJECT_NAME);
-    int type_name_length;
-    MPI_Type_get_name(type, type_name, &type_name_length);
-    strcpy(item->datatype, type_name);
-    free(type_name);
-
-    //item->processrank
-    int processrank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &processrank);
-    item->processrank = processrank;*/
-    
-    //item->processorname
-    char *proc_name = (char*)malloc(MPI_MAX_PROCESSOR_NAME);
-    int proc_name_length;
-    MPI_Get_processor_name(proc_name, &proc_name_length);
-    strcpy(item->processorname, proc_name);
-    free(proc_name);
-    
-#endif
+    initQentry(&item, dest, "MPI_Sendrecv_replace", 20, 0, 0, "p2p", 3, datatype, datatype, comm, 1, NULL);
+    #endif
     ompi_request_t* req;
     int rc = MPI_SUCCESS;
 #if OPAL_ENABLE_FT_MPI

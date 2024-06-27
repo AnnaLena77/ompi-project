@@ -97,59 +97,97 @@ qentry *ringbuffer;
 int writer_pos;
 int reader_pos;
 
-float timeDifference(struct timeval a, struct timeval b){
-    float seconds = a.tv_sec-b.tv_sec;
-    float microseconds = (a.tv_usec-b.tv_usec)*0.000001;
-    return seconds+microseconds;
+const char* get_mpi_op_name(MPI_Op op) {
+    if (op == MPI_SUM) {
+        return "MPI_SUM";
+    } else if (op == MPI_MAX) {
+        return "MPI_MAX";
+    } else if (op == MPI_MIN) {
+        return "MPI_MIN";
+    } else if (op == MPI_PROD) {
+        return "MPI_PROD";
+    } else if (op == MPI_LAND) {
+        return "MPI_LAND";
+    } else if (op == MPI_BAND) {
+        return "MPI_BAND";
+    } else if (op == MPI_LOR) {
+        return "MPI_LOR";
+    } else if (op == MPI_BOR) {
+        return "MPI_BOR";
+    } else if (op == MPI_LXOR) {
+        return "MPI_LXOR";
+    } else if (op == MPI_BXOR) {
+        return "MPI_BXOR";
+    } else {
+        return "UNKNOWN_OP";
+    }
 }
 
-static void createTimeString(struct timeval time, char* timeString){
-    if(time.tv_usec==NULL){
-        if(time.tv_sec==NULL){
-            sprintf(timeString, "NULL");
-        } else {
-            struct tm tm = *localtime(&time.tv_sec);
-           sprintf(timeString, "'%d-%02i-%02i %02i:%02i:%02i'", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-        }
-    }
-    else {
-        struct tm tm = *localtime(&time.tv_sec);
-        sprintf(timeString, "'%d-%02i-%02i %02i:%02i:%02i.%06li'", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, time.tv_usec);
+void convert_MPI_datatype(MPI_Datatype type, char *datatype_field){
+    if(type == MPI_INT) {
+        memcpy(datatype_field, "MPI_INT", 7);
+    } else if(type == MPI_CHAR){
+        memcpy(datatype_field, "MPI_CHAR", 8);
+    } else if (type == MPI_DOUBLE){
+        memcpy(datatype_field, "MPI_DOUBLE", 10);
+    } else if (type == MPI_LONG){
+        memcpy(datatype_field, "MPI_LONG", 8);
+    } else {
+        int type_name_length;
+        MPI_Type_get_name(type, datatype_field, &type_name_length);
+        datatype_field[type_name_length] = '\0'; 
     }
 }
 
-static char *getTimeString(struct timespec time){
-    time_t seconds = time.tv_sec;
-    long nanoseconds = time.tv_nsec;
-    if(seconds==0 && nanoseconds==0){
-        return NULL;
-    }
-    
-    struct tm local_time;
-    localtime_r(&seconds, &local_time);
-    char *timestamp = (char*)malloc(100);
-    
-    return timestamp;
-}
-
-void initQentry(qentry **q){
+void initQentry(qentry **q, int dest, char *function, int function_len, int sendCount, int recvCount, char *commType, int commType_len, MPI_Datatype sendType, MPI_Datatype recvType, MPI_Comm comm, int blocking, MPI_Op op){
     if(q==NULL || *q==NULL){
     	return;
     } else {
         qentry *item = *q;
         item->id = 0;
-        memcpy(item->function, "", 0);
-        item->blocking = -1;
-        memcpy(item->datatype, "", 0);
-        item->sendcount = 0;
-        item->sendDatasize = 0;
-        item->recvcount = 0;
-        item->recvDatasize = 0;
-        memcpy(item->operation, "", 0);
-        memcpy(item->communicationArea, "", 0);
+        memcpy(item->function, function, function_len);
+        item->blocking = blocking;
+        
+        if(sendType == NULL){
+            memcpy(item->sendDatatype, "", 0);
+        } else {
+            convert_MPI_datatype(sendType, item->sendDatatype);
+        }
+        if(recvType == NULL){
+            memcpy(item->recvDatatype, "", 0);
+        } else {
+            convert_MPI_datatype(recvType, item->recvDatatype);
+        }
+        
+        memcpy(item->communicationType, commType, commType_len);
+        
+        item->sendcount = sendCount;
+        item->sendDatasize = sendCount * sizeof(sendType);
+        item->recvcount = recvCount;
+        item->recvDatasize = recvCount * sizeof(recvType);
+        
+        if(op == NULL){
+            memcpy(item->operation, "", 0);
+        } else {
+            memcpy(item->operation, get_mpi_op_name(op), 10);
+        }
+        
+        if(comm == NULL){
+            memcpy(item->communicationArea, "", 0);
+        }
+        else if(comm == MPI_COMM_WORLD){
+            memcpy(item->communicationArea, "MPI_COMM_WORLD", 14);
+        } else {
+            int comm_name_length;
+            MPI_Comm_get_name(comm, item->communicationArea, &comm_name_length);
+        }
         memcpy(item->processorname, proc_name, proc_name_length);
         item->processrank = processrank;
-        item->partnerrank = -1;
+        item->partnerrank = dest;
+        
+        item->recvWaitingTime = 0.0;
+        item->sendWaitingTime = 0.0;
+       
         memcpy(item->sendmode, "", 0);
         item->immediate = 0;
         memcpy(item->usedBtl, "", 0);
@@ -159,6 +197,7 @@ void initQentry(qentry **q){
         memcpy(item->usedAlgorithm, "", 0);
     }
 }
+
 
 void qentryIntoQueue(qentry **q){
     //printf("IntoQueue: %d\n", count_q_entry++);
@@ -240,6 +279,8 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         
         
         newRow(buffer, 12, &offset);
+        
+        //printf("%.9f Seconds\n", item->sendWaitingTime);
         
         
         int job = atoi(job_id);

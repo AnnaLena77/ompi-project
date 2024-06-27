@@ -323,7 +323,7 @@ mca_coll_han_bcast_intra_simple(void *buf,
 #endif
                                 )
 {
-printf("hello from coll_han_bcast_intra_simple\n");
+//printf("hello from coll_han_bcast_intra_simple\n");
 #ifdef ENABLE_ANALYSIS
     qentry *item;
     if(q!=NULL){
@@ -331,6 +331,7 @@ printf("hello from coll_han_bcast_intra_simple\n");
             item = *q;
         } else item = NULL;
     } else item = NULL;
+    //if(item == NULL) printf("In han_bcast_intra_simple NULL!\n");
 #endif
     /* create the subcommunicators */
     mca_coll_han_module_t *han_module = (mca_coll_han_module_t *)module;
