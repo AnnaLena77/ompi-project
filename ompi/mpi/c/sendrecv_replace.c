@@ -169,6 +169,7 @@ int MPI_Sendrecv_replace(void * buf, int count, MPI_Datatype datatype,
 #endif  /* OPAL_ENABLE_FT_MPI */
 
     rc = ompi_request_wait(&req, status);
+
 #if OPAL_ENABLE_FT_MPI
     /* Sendrecv_replace never returns ERR_PROC_FAILED_PENDING because it is
      * blocking. Lets complete now that irecv and promote the error

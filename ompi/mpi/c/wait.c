@@ -73,8 +73,7 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status)
         }
         return MPI_SUCCESS;
     }
-
-    if (OMPI_SUCCESS == ompi_request_wait(request, status)) {
+    if (OMPI_SUCCESS == ompi_request_wait(request, status)){
         /*
          * Per MPI-1, the MPI_ERROR field is not defined for single-completion calls
          */

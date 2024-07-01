@@ -123,6 +123,7 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 
     if (source != MPI_PROC_NULL) { /* wait for recv */
         rc = ompi_request_wait(&req, status);
+
 #if OPAL_ENABLE_FT_MPI
         /* Sendrecv never returns ERR_PROC_FAILED_PENDING because it is
          * blocking. Lets cancel that irecv to complete it NOW and promote
