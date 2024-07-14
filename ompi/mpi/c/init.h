@@ -37,6 +37,8 @@ typedef struct qentry {
     char usedAlgorithm[30];
     struct timespec start;
     struct timespec end;
+    double lateSenderTime;
+    double lateReceiverTime;
     double sendWaitingTime;
     double recvWaitingTime;
     //struct timeval start;
@@ -56,6 +58,7 @@ typedef struct qentry {
 
 extern void qentryIntoQueue(qentry **q);
 extern void initQentry(qentry **q, int dest, char *function, int function_len, int sendCount, int recvCount, char *commType, int commType_len, MPI_Datatype sendType, MPI_Datatype recvType, MPI_Comm comm, int blocking, MPI_Op op);
+extern double timespec_diff(struct timespec start, struct timespec end);
 //extern void writeIntoFile(qentry q);
 
 extern qentry *q_qentry;

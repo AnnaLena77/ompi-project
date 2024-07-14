@@ -49,6 +49,7 @@
 
 #ifdef ENABLE_ANALYSIS
 #include "ompi/mpi/c/init.h"
+#include "ompi/peruse/peruse.h"
 #endif
 
 
@@ -96,6 +97,11 @@ qentry *q_qentry;
 qentry *ringbuffer;
 int writer_pos;
 int reader_pos;
+
+double timespec_diff(struct timespec start, struct timespec end){
+    long long elapsed_ns = (end.tv_sec - start.tv_sec) * 1000000000LL + (end.tv_nsec - start.tv_nsec);
+    return (double)elapsed_ns / 1e9;
+}
 
 const char* get_mpi_op_name(MPI_Op op) {
     if (op == MPI_SUM) {
@@ -185,8 +191,13 @@ void initQentry(qentry **q, int dest, char *function, int function_len, int send
         item->processrank = processrank;
         item->partnerrank = dest;
         
+        //printf("Test Rank: %d, WriterPos: %d, Bcast: %p\n", processrank, writer_pos, item);
+        
         item->recvWaitingTime = 0.0;
         item->sendWaitingTime = 0.0;
+
+        item->lateSenderTime = 0.0;
+        item->lateReceiverTime = 0.0;
        
         memcpy(item->sendmode, "", 0);
         item->immediate = 0;
@@ -230,7 +241,6 @@ int run_thread;
 int counter;
 
 static void registerCluster(){
-    //Hier Slurm integrieren!
     
     MPI_Comm comm = MPI_COMM_WORLD;
     int size, processrank;
@@ -270,6 +280,24 @@ static void registerCluster(){
     PQflush(conn);
     
 }*/
+
+void print_timespec(struct timespec ts) {
+    // Zeit in Sekunden in eine tm-Struktur umwandeln
+    struct tm *timeinfo;
+    timeinfo = localtime(&ts.tv_sec);
+    
+    // Stunden, Minuten und Sekunden aus der tm-Struktur
+    int hours = timeinfo->tm_hour;
+    int minutes = timeinfo->tm_min;
+    int seconds = timeinfo->tm_sec;
+    
+    // Ausgabe im Format yyyy-mm-dd hh:mm:ss.nnnnnnnnn
+    printf(" %04d-%02d-%02d %02d:%02d:%02d.%09ld\n",
+           timeinfo->tm_year + 1900,
+           timeinfo->tm_mon + 1,
+           timeinfo->tm_mday,
+           hours, minutes, seconds, ts.tv_nsec);
+}
 
 void qentryToBinary(qentry q, char *buffer, int *off){
         counter ++;
@@ -318,6 +346,17 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         /*if(item->function != "MPI_Bcast"){
             printf("Item: %s, BTL: %s, Datasize: UsedProtocol: %s\n", item->function, item->usedBtl, item->recvDatasize, item->usedAlgorithm); 
         }*/
+        
+        /*printf("Rank: %d, Function: %s, \n", processrank, item->function);
+        //printf("Start:");
+        //print_timespec(item->start);
+        //printf("End:");
+        //print_timespec(item->end);
+        printf("LateSender: %.9f Seconds\n", item->lateSenderTime);
+        printf("LateReceiver: %.9f Seconds\n", item->lateReceiverTime);
+        //printf("Test Request: %.9f Seconds\n", item->sendWaitingTime);
+        printf("\n");*/
+        
 }
 
 #define TIME_TO_WAIT 0.5
@@ -547,6 +586,7 @@ qentry* getWritingRingPos(){
        writer_pos++;
        //printf("writing\n");
     }
+    //printf("Adressen-Test; %p\n", &ringbuffer[writer_pos]);
     return &ringbuffer[writer_pos];
 }
 

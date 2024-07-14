@@ -116,11 +116,10 @@ int mca_pml_ob1_irecv(void *addr,
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &((recvreq)->req_recv.req_base),
                              PERUSE_RECV);
-#ifndef ENABLE_ANALYSIS
-    MCA_PML_OB1_RECV_REQUEST_START(recvreq);
-#else
-    MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
+#ifdef ENABLE_ANALYSIS
+    recvreq->q = item;
 #endif
+    MCA_PML_OB1_RECV_REQUEST_START(recvreq);
     *request = (ompi_request_t *) recvreq;
     return OMPI_SUCCESS;
 }
@@ -176,15 +175,15 @@ int mca_pml_ob1_recv(void *addr,
     recvreq->req_recv.req_base.req_type = MCA_PML_REQUEST_RECV;
     MCA_PML_OB1_RECV_REQUEST_INIT(recvreq, addr, count, datatype,
                                   src, tag, comm, false);
+#ifdef ENABLE_ANALYSIS
+    recvreq->q = item;
+    if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->initializeRequest);
+#endif
 
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &(recvreq->req_recv.req_base),
                              PERUSE_RECV);
-#ifndef ENABLE_ANALYSIS
     MCA_PML_OB1_RECV_REQUEST_START(recvreq);
-#else
-    MCA_PML_OB1_RECV_REQUEST_START(recvreq, &item);
-#endif
 #ifdef ENABLE_ANALYSIS
     if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->requestWaitCompletion);
 #endif
@@ -298,6 +297,10 @@ mca_pml_ob1_imrecv( void *buf,
                                   src, tag, comm, false);
     OBJ_RELEASE(comm);
 
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->initializeRequest);
+#endif
+
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &((recvreq)->req_recv.req_base),
                              PERUSE_RECV);
@@ -310,6 +313,10 @@ mca_pml_ob1_imrecv( void *buf,
     recvreq->req_rdma_idx = 0;
     recvreq->req_pending = false;
     recvreq->req_ack_sent = false;
+    
+#ifdef ENABLE_ANALSYIS
+    recvreq->q = item;
+#endif
 
     MCA_PML_BASE_RECV_START(&recvreq->req_recv);
 
@@ -408,6 +415,10 @@ mca_pml_ob1_mrecv( void *buf,
                                   count, datatype,
                                   src, tag, comm, false);
     OBJ_RELEASE(comm);
+
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL) clock_gettime(CLOCK_REALTIME, &item->initializeRequest);
+#endif
 
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &((recvreq)->req_recv.req_base),
