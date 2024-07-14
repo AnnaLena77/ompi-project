@@ -22,10 +22,25 @@ int mca_pml_monitoring_isend_init(const void *buf,
                                   int tag,
                                   mca_pml_base_send_mode_t mode,
                                   struct ompi_communicator_t* comm,
-                                  struct ompi_request_t **request)
+                                  struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+    return pml_selected_module.pml_isend_init(buf, count, datatype,
+                                              dst, tag, mode, comm, request, &item);
+#else
     return pml_selected_module.pml_isend_init(buf, count, datatype,
                                               dst, tag, mode, comm, request);
+#endif
 }
 
 int mca_pml_monitoring_isend(const void *buf,
@@ -42,7 +57,6 @@ int mca_pml_monitoring_isend(const void *buf,
                              )
 {
 #ifdef ENABLE_ANALYSIS
-printf("hello from monitoring isend\n");
     qentry *item;
     if(q!=NULL){
         if(*q!=NULL){

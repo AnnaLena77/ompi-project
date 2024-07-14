@@ -600,7 +600,11 @@ int mca_pml_ucx_del_comm(struct ompi_communicator_t* comm)
 
 int mca_pml_ucx_irecv_init(void *buf, size_t count, ompi_datatype_t *datatype,
                              int src, int tag, struct ompi_communicator_t* comm,
-                             struct ompi_request_t **request)
+                             struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                             , qentry **q
+#endif
+                             )
 {
     mca_pml_ucx_persistent_request_t *req;
 
@@ -771,7 +775,11 @@ static inline const char *mca_pml_ucx_send_mode_name(mca_pml_base_send_mode_t mo
 int mca_pml_ucx_isend_init(const void *buf, size_t count, ompi_datatype_t *datatype,
                            int dst, int tag, mca_pml_base_send_mode_t mode,
                            struct ompi_communicator_t* comm,
-                           struct ompi_request_t **request)
+                           struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+			, qentry **q
+#endif
+                           )
 {
     mca_pml_ucx_persistent_request_t *req;
     ucp_ep_h ep;

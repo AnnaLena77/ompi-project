@@ -82,7 +82,11 @@ extern int mca_pml_monitoring_isend_init(const void *buf,
                                          int tag,
                                          mca_pml_base_send_mode_t mode,
                                          struct ompi_communicator_t* comm,
-                                         struct ompi_request_t **request);
+                                         struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         );
 
 extern int mca_pml_monitoring_isend(const void *buf,
                                     size_t count,
@@ -115,7 +119,11 @@ extern int mca_pml_monitoring_irecv_init(void *buf,
                                          int src,
                                          int tag,
                                          struct ompi_communicator_t* comm,
-                                         struct ompi_request_t **request);
+                                         struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                         , qentry **q
+#endif
+                                         );
 
 extern int mca_pml_monitoring_irecv(void *buf,
                                     size_t count,

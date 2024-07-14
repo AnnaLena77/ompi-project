@@ -24,10 +24,25 @@ int mca_pml_monitoring_irecv_init(void *buf,
                                   int src,
                                   int tag,
                                   struct ompi_communicator_t* comm,
-                                  struct ompi_request_t **request)
+                                  struct ompi_request_t **request
+#ifdef ENABLE_ANALYSIS
+                                  , qentry **q
+#endif
+                                  )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+        } else item = NULL;
+    } else item = NULL;
+    return pml_selected_module.pml_irecv_init(buf, count, datatype,
+                                              src, tag, comm, request, &item);
+#else
     return pml_selected_module.pml_irecv_init(buf, count, datatype,
                                               src, tag, comm, request);
+#endif
 }
 
 

@@ -70,8 +70,22 @@ int mca_pml_ob1_isend_init(const void *buf,
                            int tag,
                            mca_pml_base_send_mode_t sendmode,
                            ompi_communicator_t * comm,
-                           ompi_request_t ** request)
+                           ompi_request_t ** request
+#ifdef ENABLE_ANALYSIS
+                           , qentry **q
+#endif
+                           )
 {
+#ifdef ENABLE_ANALYSIS
+    qentry *item;
+    if(q!=NULL){
+        if(*q!=NULL){
+            item = *q;
+            } else item = NULL;
+    } else {
+        item = NULL;
+    }
+#endif
     mca_pml_ob1_comm_proc_t *ob1_proc = mca_pml_ob1_peer_lookup (comm, dst);
     mca_pml_ob1_send_request_t *sendreq = NULL;
     MCA_PML_OB1_SEND_REQUEST_ALLOC(comm, dst, sendreq);
@@ -81,6 +95,12 @@ int mca_pml_ob1_isend_init(const void *buf,
     MCA_PML_OB1_SEND_REQUEST_INIT(sendreq, buf, count, datatype, dst, tag,
                                   comm, sendmode, true, ob1_proc);
 
+#ifdef ENABLE_ANALYSIS
+    if(item!=NULL){ 
+        sendreq->q = item;
+        clock_gettime(CLOCK_REALTIME, &sendreq->activate);
+    }
+#endif
     PERUSE_TRACE_COMM_EVENT (PERUSE_COMM_REQ_ACTIVATE,
                              &(sendreq)->req_send.req_base,
                              PERUSE_SEND);

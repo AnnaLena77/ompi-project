@@ -51,7 +51,7 @@ int MPI_Iscatterv(const void *sendbuf, const int sendcounts[], const int displs[
 #ifdef ENABLE_ANALYSIS
     qentry *item = getWritingRingPos();
     clock_gettime(CLOCK_REALTIME, &item->start);
-    initQentry(&item, -1, "MPI_Iscatterv", 13, 0, 0, "collective", 10, sendbuf, recvbuf, comm, 0, NULL);
+    initQentry(&item, -1, "MPI_Iscatterv", 13, 0, 0, "collective", 10, sendtype, recvtype, comm, 0, NULL);
 #endif 
 
     int i, size, err;
