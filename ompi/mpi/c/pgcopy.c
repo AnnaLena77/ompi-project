@@ -52,8 +52,6 @@ void intToBinary(int integer, char* buffer, int* offset){
 
 void doubleToBinary(double value, char* buffer, int* offset) {
     int off = *offset;
-    
-    printf("Late: %lf\n", value);
 
     buffer[off] = 0;
     buffer[off+1] = 0;
