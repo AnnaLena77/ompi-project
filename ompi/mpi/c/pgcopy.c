@@ -50,6 +50,33 @@ void intToBinary(int integer, char* buffer, int* offset){
     *offset += 8;
 }
 
+void doubleToBinary(double value, char* buffer, int* offset) {
+    int off = *offset;
+    
+    printf("Late: %lf\n", value);
+
+    buffer[off] = 0;
+    buffer[off+1] = 0;
+    buffer[off+2] = 0;
+    buffer[off+3] = 8; // 8 bytes für double
+
+    off += 4;
+
+    // Zeiger auf den double-Wert als uint64_t behandeln
+    uint64_t integer_value = *((uint64_t*)&value);
+    
+    buffer[off] = (integer_value >> 56) & 0xff;
+    buffer[off+1] = (integer_value >> 48) & 0xff;
+    buffer[off+2] = (integer_value >> 40) & 0xff;
+    buffer[off+3] = (integer_value >> 32) & 0xff;
+    buffer[off+4] = (integer_value >> 24) & 0xff;
+    buffer[off+5] = (integer_value >> 16) & 0xff;
+    buffer[off+6] = (integer_value >> 8) & 0xff;
+    buffer[off+7] = integer_value & 0xff;
+    
+    *offset += 12;  // 4 bytes für die Länge + 8 bytes für den double-Wert
+}
+
 void stringToBinary(char* string, char* buffer, int* offset){
     int off = *offset;
     int len = strlen(string);
