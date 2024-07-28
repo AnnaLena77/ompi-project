@@ -35,6 +35,7 @@ typedef struct qentry {
     int withinEagerLimit;
     int foundMatchWild;
     char usedAlgorithm[30];
+    MPI_Request *request;
     struct timespec start;
     struct timespec end;
     double lateSenderTime;

@@ -52,6 +52,7 @@ int MPI_Isend(const void *buf, int count, MPI_Datatype type, int dest,
     qentry *item = getWritingRingPos();
     clock_gettime(CLOCK_REALTIME, &item->start);
     initQentry(&item, dest, "MPI_Isend", 9, 0, 0, "p2p", 3, type, NULL, comm, 0, NULL);
+    item->request = request;
     #endif
     int rc = MPI_SUCCESS;
 

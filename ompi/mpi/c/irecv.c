@@ -48,6 +48,7 @@ int MPI_Irecv(void *buf, int count, MPI_Datatype type, int source,
     qentry *item = getWritingRingPos();
     clock_gettime(CLOCK_REALTIME, &item->start);
     initQentry(&item, source, "MPI_Irecv", 9, 0, 0, "p2p", 3, NULL, type, comm, 0, NULL);
+    item->request = request;
     #endif
 
     int rc = MPI_SUCCESS;

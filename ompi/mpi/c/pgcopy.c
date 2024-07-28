@@ -92,7 +92,7 @@ void stringToBinary(char* string, char* buffer, int* offset){
 
 }
 
-void timestampToBinary(struct timespec time, char* buffer, int* offset){
+void timestampToBinary(struct timespec time, char* buffer, int* offset, int round_seconds){
     int off = *offset;
     
     buffer[off] = 0;
@@ -107,10 +107,14 @@ void timestampToBinary(struct timespec time, char* buffer, int* offset){
 
     //count of seconds since 01.01.2000
     time_t seconds_since_2000 = time.tv_sec - 946684800; // + utc_offset_seconds;
+    long long timestamp_micro;
     //cast into microseconds
-    long microseconds = (time.tv_nsec / 1000);
-    long long timestamp_micro = seconds_since_2000 * 1000000LL + microseconds;
-    
+    if(!round_seconds){
+        long microseconds = (time.tv_nsec / 1000);
+        timestamp_micro = seconds_since_2000 * 1000000LL + microseconds;
+    } else {
+        timestamp_micro = seconds_since_2000 * 1000000LL; // Milliseconds and nanoseconds set to 0
+    }
     //timestamp_micro += utc_offset_seconds * 1000000LL;
     
     buffer[off] = (timestamp_micro >> 56) & 0xff;

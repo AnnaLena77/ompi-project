@@ -265,13 +265,13 @@ static inline void
 send_request_pml_complete(mca_pml_ob1_send_request_t *sendreq){
     if(false == sendreq->req_send.req_base.req_pml_complete) {
         if(sendreq->req_send.req_bytes_packed > 0) {
-#ifdef ENABLE_ANALYSIS
+/*#ifdef ENABLE_ANALYSIS
             qentry* item = NULL;
             if(sendreq->q != NULL){
                 item=sendreq->q;
                 item->sendDatasize += (int)sendreq->req_bytes_delivered;
             }
-#endif
+#endif*/
             PERUSE_TRACE_COMM_EVENT( PERUSE_COMM_REQ_XFER_END,
                                      &(sendreq->req_send.req_base), PERUSE_SEND);
         }

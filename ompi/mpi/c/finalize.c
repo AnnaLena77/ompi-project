@@ -64,7 +64,7 @@ int MPI_Finalize(void)
     //closeFile();
     pthread_join(MONITOR_THREAD, NULL);
     //clock_gettime(CLOCK_MONOTONIC, &end);
-    free(ringbuffer);
+    //free(ringbuffer);
     
     /*seconds = end.tv_sec - start.tv_sec;
     nanoseconds = end.tv_nsec - start.tv_nsec;

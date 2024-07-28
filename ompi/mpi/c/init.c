@@ -139,9 +139,9 @@ void convert_MPI_datatype(MPI_Datatype type, char *datatype_field){
     } else if (type == MPI_LONG){
         memcpy(datatype_field, "MPI_LONG", 8);
     } else {
-        int type_name_length;
-        MPI_Type_get_name(type, datatype_field, &type_name_length);
-        datatype_field[type_name_length] = '\0'; 
+        //int type_name_length;
+        //MPI_Type_get_name(type, datatype_field, &type_name_length);
+        //datatype_field[type_name_length] = '\0'; 
     }
 }
 
@@ -198,6 +198,8 @@ void initQentry(qentry **q, int dest, char *function, int function_len, int send
 
         item->lateSenderTime = 0.0;
         item->lateReceiverTime = 0.0;
+        
+        item->request = NULL;
        
         memcpy(item->sendmode, "", 0);
         item->immediate = 0;
@@ -306,7 +308,7 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         int offset = *off;
         
         
-        newRow(buffer, 14, &offset);
+        newRow(buffer, 15, &offset);
         
         //printf("%.9f Seconds\n", item->sendWaitingTime);
         
@@ -332,13 +334,16 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         
         stringToBinary(item->usedAlgorithm, buffer, &offset);
 
-        timestampToBinary(item->start, buffer, &offset);
+        timestampToBinary(item->start, buffer, &offset, 1);
         
-        timestampToBinary(item->end, buffer, &offset);
+        timestampToBinary(item->end, buffer, &offset, 0);
         
         doubleToBinary(item->lateSenderTime, buffer, &offset);
         
         doubleToBinary(item->lateReceiverTime, buffer, &offset);
+        
+        double time_diff = timespec_diff(item->start, item->end);
+        doubleToBinary(time_diff, buffer, &offset);
         
         /*struct timespec time_end;
         clock_gettime(CLOCK_REALTIME, &time_end);
@@ -452,6 +457,19 @@ static void* SQLMonitorFunc(void* _arg){
         
         char buffer[200];
         int offset = 0;
+        
+        
+        qentry *item = &ringbuffer[reader_pos];
+        MPI_Status status;
+        MPI_Request *request = item->request;
+        int flag = 0;
+        
+        if(request != MPI_REQUEST_NULL && request != NULL){
+            while (!flag) {
+                MPI_Test(request, &flag, &status);
+            } 
+        }
+
         qentryToBinary(ringbuffer[reader_pos], buffer, &offset);
         PQputCopyData(conn, buffer, offset);
         
