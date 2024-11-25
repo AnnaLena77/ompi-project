@@ -312,7 +312,9 @@ int ompi_mpi_finalize(void)
 
     ompi_hook_base_mpi_finalize_bottom();
 #ifdef ENABLE_ANALYSIS
-    free(ringbuffer);
+    if(ringbuffer != NULL){
+        free(ringbuffer);
+    }
 #endif
 
     return ret;

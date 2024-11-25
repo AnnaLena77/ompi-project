@@ -286,7 +286,6 @@ static inline void recv_req_matched(mca_pml_ob1_recv_request_t *req,
             struct timespec ts;
             clock_gettime(CLOCK_REALTIME, &ts);
             item->lateSenderTime += timespec_diff(req->activate, ts);
-            //printf("LateSender: %.9f \n", item->lateSenderTime);
         }
 #endif
         PERUSE_TRACE_COMM_EVENT(PERUSE_COMM_REQ_XFER_BEGIN,

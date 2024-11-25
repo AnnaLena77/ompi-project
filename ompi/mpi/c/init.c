@@ -200,6 +200,8 @@ void initQentry(qentry **q, int dest, char *function, int function_len, int send
         item->lateReceiverTime = 0.0;
         
         item->request = NULL;
+        item->end.tv_sec = 0;
+        item->end.tv_nsec = 0;
        
         memcpy(item->sendmode, "", 0);
         item->immediate = 0;
@@ -351,21 +353,21 @@ void qentryToBinary(qentry q, char *buffer, int *off){
         timestampToBinary(time_end, buffer, &offset);*/
         
         *off = offset;
+        //printf("Rank: %d, Function: %s, \n", item->processrank, item->function);
         item = NULL;
         //fwrite(buffer, offset, 1, file);
         /*if(item->function != "MPI_Bcast"){
             printf("Item: %s, BTL: %s, Datasize: UsedProtocol: %s\n", item->function, item->usedBtl, item->recvDatasize, item->usedAlgorithm); 
         }*/
         
-        /*printf("Rank: %d, Function: %s, \n", processrank, item->function);
         //printf("Start:");
         //print_timespec(item->start);
         //printf("End:");
         //print_timespec(item->end);
-        printf("LateSender: %.9f Seconds\n", item->lateSenderTime);
-        printf("LateReceiver: %.9f Seconds\n", item->lateReceiverTime);
+        //printf("LateSender: %.9f Seconds\n", item->lateSenderTime);
+        //printf("LateReceiver: %.9f Seconds\n", item->lateReceiverTime);
         //printf("Test Request: %.9f Seconds\n", item->sendWaitingTime);
-        printf("\n");*/
+        //printf("\n");
         
 }
 
@@ -404,11 +406,13 @@ static void* SQLMonitorFunc(void* _arg){
     bool check_job_id=0;
        
     if(processrank==0){
+        char *user_id = strrchr(getenv("HOME"), '/') + 1;
         char start_time_str[30]; // Platz für den Zeitstempel
         strftime(start_time_str, sizeof(start_time_str), "%Y-%m-%d %H:%M:%S", localtime(&(start_runtime.tv_sec)));
-        const char *query = "INSERT INTO edumpi_runs (edumpi_run_id, start_time) VALUES ($1, $2)";
-        const char *paramValues[2] = {job_id, start_time_str};
-        PGresult *res = PQexecParams(conn, query, 2, NULL, paramValues, strlen(job_id)+strlen(start_time_str), NULL, 0);  
+        const char *query = "INSERT INTO edumpi_runs (edumpi_run_id, start_time, user_id) VALUES ($1, $2, $3)";
+        const char *paramValues[3] = {job_id, start_time_str, user_id};
+        int paramlengths[3] = {strlen(job_id), strlen(start_time_str), strlen(user_id)};
+        PGresult *res = PQexecParams(conn, query, 3, NULL, paramValues, paramlengths, NULL, 0);  
     }
     else {     
        while(!check_job_id){
@@ -441,64 +445,65 @@ static void* SQLMonitorFunc(void* _arg){
     //char *buffer = (char*)malloc(sizeof(char)*20000000);
 
     while(run_thread){
-        while(writer_pos == -1 || reader_pos==writer_pos-1 || (reader_pos == MAX_RINGSIZE-1 && writer_pos == 0)){
+        if(writer_pos == -1 || reader_pos==writer_pos || (reader_pos == MAX_RINGSIZE-1 && writer_pos == 0)){
             //printf("Reader sleeps at Position %d, %d\n", reader_pos, writer_pos);
-            sleep(0.01);
+            sleep(0.1);
             //printf("Prozess: %d haengt beim Lesen\n", processrank);
             if(!run_thread) break;
         }
-        
-        if(reader_pos == MAX_RINGSIZE-1){
-            reader_pos = 0;
+        else {
+            if(reader_pos == MAX_RINGSIZE-1){
+                reader_pos = 0;
+            }
+            else{
+                reader_pos ++;
+            }
+            
+            char buffer[200];
+            int offset = 0;
+            qentry *item = &ringbuffer[reader_pos];
+            if(reader_pos == writer_pos){
+                while(item->end.tv_nsec == 0){
+                    sleep(0.01);
+                    //printf("Prozess: %d haengt beim Lesen\n", processrank);
+                    if(!run_thread) break;
+	   }
+            }
+            //printf("Datenbankvorbereitung fuer: %s, Rank: %d\n", item->function, processrank);
+            MPI_Status status;
+            MPI_Request *request = item->request;
+            int flag = 0;
+            if(request != MPI_REQUEST_NULL && request != NULL){
+                while (!flag) {
+	       MPI_Test(request, &flag, &status);
+	   } 
+            }
+            qentryToBinary(ringbuffer[reader_pos], buffer, &offset);
+            PQputCopyData(conn, buffer, offset);
         }
-        else{
-            reader_pos ++;
-        }
-        
-        char buffer[200];
-        int offset = 0;
-        
-        
-        qentry *item = &ringbuffer[reader_pos];
-        MPI_Status status;
-        MPI_Request *request = item->request;
-        int flag = 0;
-        
-        if(request != MPI_REQUEST_NULL && request != NULL){
-            while (!flag) {
-                MPI_Test(request, &flag, &status);
-            } 
-        }
-
-        qentryToBinary(ringbuffer[reader_pos], buffer, &offset);
-        PQputCopyData(conn, buffer, offset);
-        
+            
         clock_t current = clock();
         if(current>=(start + TIME_TO_WAIT * CLOCKS_PER_SEC)){
-            PQputCopyEnd(conn, NULL);
-            PQflush(conn);
-            
-            /*struct timespec startii;
-            clock_gettime(CLOCK_MONOTONIC, &startii);*/
-            
-            res = PQexec(conn, copyQuery);
-            
+        res = PQputCopyEnd(conn, NULL);
+            if(res != -1){
+                PQflush(conn);
+                res = PQexec(conn, copyQuery);
+            }
             /*struct timespec endii;
             clock_gettime(CLOCK_MONOTONIC, &endii);
             
             long long startii_ns = startii.tv_sec * 1000000000LL + startii.tv_nsec;
             long long endii_ns = endii.tv_sec * 1000000000LL + endii.tv_nsec;
             double time_spentii = (endii_ns - startii_ns) / 1e9;
-
+            
             // Zeit ausgeben
             printf("Process. %d, Time spent: %.6f seconds\n", processrank, time_spentii);		*/
             
             PQclear(res);
             PQputCopyData(conn, PGCOPY_HEADER, 19);
-            
             start = current;
         }
-        
+    }
         //printf("Reader: %d, Writer: %d\n", reader_pos, writer_pos);
         
         /*while(TAILQ_EMPTY(&head)){
@@ -541,7 +546,6 @@ static void* SQLMonitorFunc(void* _arg){
             memset(buffer, 0, 20000000);
             start = time(NULL);
         }*/
-    }
     
     while(reader_pos != writer_pos){
         if(reader_pos == MAX_RINGSIZE-1){
@@ -553,15 +557,6 @@ static void* SQLMonitorFunc(void* _arg){
         int offset = 0;
         qentryToBinary(ringbuffer[reader_pos], buffer, &offset);
         PQputCopyData(conn, buffer, offset);
-        //PQputCopyData(conn, buffer, offset);
-        //time_t dif = time(NULL)-start;
-        /*if(offset>=19990000 || dif>500000){
-            fwrite(buffer, offset, 1, file);
-            //writeToPostgres(conn, buffer, offset);
-            offset = 0;
-            memset(buffer, 0, 20000000);
-            start = time(NULL);
-        }*/
         clock_t current = clock();
         if(current>=(start + TIME_TO_WAIT * CLOCKS_PER_SEC)){
             PQputCopyEnd(conn, NULL);
@@ -575,8 +570,32 @@ static void* SQLMonitorFunc(void* _arg){
         }
     }
     PQputCopyEnd(conn, NULL);
+    
+    if(processrank == 0){
+        struct timespec end_runtime;
+        clock_gettime(CLOCK_REALTIME, &end_runtime);
+
+        // Zeitstempel für end_time als String erstellen
+        char end_time_str[30];
+        strftime(end_time_str, sizeof(end_time_str), "%Y-%m-%d %H:%M:%S", localtime(&(end_runtime.tv_sec)));
+
+        // SQL-Abfrage für UPDATE der end_time
+        const char *update_query = "UPDATE edumpi_runs SET end_time = $1 WHERE edumpi_run_id = $2";
+        const char *update_paramValues[2] = {end_time_str, job_id};
+        int update_paramLengths[2] = {strlen(end_time_str), strlen(job_id)};
+        int update_paramFormats[2] = {0, 0};
+
+        // PostgreSQL Abfrage für das Update
+        res = PQexecParams(conn, update_query, 2, NULL, update_paramValues, update_paramLengths, update_paramFormats, 0);
+        if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+            fprintf(stderr, "UPDATE failed: %s", PQerrorMessage(conn));
+        } 
+        PQclear(res);
+    }
+    
     PQflush(conn);
     PQfinish(conn);
+    //free(ringbuffer);
     //fwrite(buffer, offset, 1, file);
     //writeToPostgres(conn, buffer, offset);
 }
@@ -593,7 +612,7 @@ qentry* getWritingRingPos(){
     
     //Ringbuffer ist voll, es müssen erst Items ausgelesen werden
     //gettimeofday(&start_time, NULL);
-    while(writer_pos == reader_pos){
+    while(writer_pos == reader_pos-1 || (reader_pos == 0 && writer_pos == MAX_RINGSIZE)){
         printf("Writer sleeps at Position %d, %d\n", writer_pos, reader_pos);
         sleep(0.01);
     }
@@ -606,6 +625,9 @@ qentry* getWritingRingPos(){
     }
     //Solange Writer vor dem Reader kann nichts passieren
     else{
+       qentry* item = &ringbuffer[writer_pos+1];
+       item->end.tv_sec = 0;
+       item->end.tv_nsec = 0;
        writer_pos++;
        //printf("writing\n");
     }
