@@ -98,9 +98,17 @@ qentry *ringbuffer;
 int writer_pos;
 int reader_pos;
 
-double timespec_diff(struct timespec start, struct timespec end){
-    long long elapsed_ns = (end.tv_sec - start.tv_sec) * 1000000000LL + (end.tv_nsec - start.tv_nsec);
-    return (double)elapsed_ns / 1e9;
+double timespec_diff(struct timespec start, struct timespec end) {
+    long long elapsed_sec = end.tv_sec - start.tv_sec;
+    long long elapsed_ns = end.tv_nsec - start.tv_nsec;
+
+    // Korrigiere Nanosekunden, falls Überlauf auftritt
+    if (elapsed_ns < 0) {
+        elapsed_sec -= 1;  // Eine Sekunde abziehen
+        elapsed_ns += 1000000000;  // 1 Sekunde in Nanosekunden hinzufügen
+    }
+    // Gesamtzeit in Sekunden berechnen
+    return (double)elapsed_sec + (double)elapsed_ns / 1e9;
 }
 
 const char* get_mpi_op_name(MPI_Op op) {
@@ -470,14 +478,15 @@ static void* SQLMonitorFunc(void* _arg){
 	   }
             }
             //printf("Datenbankvorbereitung fuer: %s, Rank: %d\n", item->function, processrank);
-            MPI_Status status;
+            /*MPI_Status status;
             MPI_Request *request = item->request;
             int flag = 0;
-            if(request != MPI_REQUEST_NULL && request != NULL){
+            if(request != MPI_REQUEST_NULL && request != NULL && item->function!="MPI_Wait"){
                 while (!flag) {
 	       MPI_Test(request, &flag, &status);
+	       usleep(100);
 	   } 
-            }
+            }*/
             qentryToBinary(ringbuffer[reader_pos], buffer, &offset);
             PQputCopyData(conn, buffer, offset);
         }
