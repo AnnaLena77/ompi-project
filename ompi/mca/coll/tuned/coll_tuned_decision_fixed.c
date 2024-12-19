@@ -768,10 +768,11 @@ int ompi_coll_tuned_bcast_intra_dec_fixed(void *buff, int count,
         else if(alg == 2) memcpy(item->usedAlgorithm, "chain", 5);
         else if(alg == 3) memcpy(item->usedAlgorithm, "pipeline", 8);
         else if(alg == 4) memcpy(item->usedAlgorithm, "split_binary_tree", 17);
-        else if(alg == 5) memcpy(item->usedAlgorithm, "binomial", 8);
-        else if(alg == 6) memcpy(item->usedAlgorithm, "knomial", 7);
-        else if(alg == 7) memcpy(item->usedAlgorithm, "scatter_allgather", 17);
-        else if(alg == 8) memcpy(item->usedAlgorithm, "scatter_allgather_ring", 22);
+        else if(alg == 5) memcpy(item->usedAlgorithm, "binary_tree", 11);
+        else if(alg == 6) memcpy(item->usedAlgorithm, "binomial", 8);
+        else if(alg == 7) memcpy(item->usedAlgorithm, "knomial", 7);
+        else if(alg == 8) memcpy(item->usedAlgorithm, "scatter_allgather", 17);
+        else if(alg == 9) memcpy(item->usedAlgorithm, "scatter_allgather_ring", 22);
     }
     
     return ompi_coll_tuned_bcast_intra_do_this (buff, count, datatype, root,
