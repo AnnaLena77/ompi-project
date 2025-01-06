@@ -38,6 +38,7 @@
 #include <libpq-fe.h>
 #include <pthread.h>
 #include <sched.h>
+#include <hwloc.h>
 #endif
 
 #include "opal/util/show_help.h"
@@ -731,8 +732,14 @@ static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
 #ifdef ENABLE_ANALYSIS
-    const int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
-    printf("Num_cores: %d\n", num_cores);
+    const char *local_rank_env = getenv("OMPI_COMM_WORLD_LOCAL_RANK");
+    if (!local_rank_env) {
+        fprintf(stderr, "Environment variable OMPI_COMM_WORLD_LOCAL_RANK not found.\n");
+        return EXIT_FAILURE;
+    }
+    int local_rank = atoi(local_rank_env);
+    printf("Core: %d\n", local_rank);
+    
     run_thread = 1;
     counter = 0;
     ringbuffer = (qentry*)malloc(sizeof(qentry)*MAX_RINGSIZE);
