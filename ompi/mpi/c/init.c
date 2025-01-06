@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <semaphore.h>
 #include <string.h>
 #include <math.h>
@@ -37,6 +36,8 @@
 
 #ifdef ENABLE_ANALYSIS
 #include <libpq-fe.h>
+#include <pthread.h>
+#include <sched.h>
 #endif
 
 #include "opal/util/show_help.h"
@@ -730,6 +731,8 @@ static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
 #ifdef ENABLE_ANALYSIS
+    const int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+    printf("Num_cores: %d\n", num_cores);
     run_thread = 1;
     counter = 0;
     ringbuffer = (qentry*)malloc(sizeof(qentry)*MAX_RINGSIZE);
