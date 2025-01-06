@@ -794,7 +794,7 @@ void initializeQueue()
     CPU_SET(core_ids[1], &cpu_set_logging);
     pthread_attr_setaffinity_np(&attr_logging, sizeof(cpu_set_t), &cpu_set_logging);
     
-    pthread_create(&MONITOR_THREAD, &attr_logging, SQLMonitorFunc, &core_ids[1]) != 0);
+    pthread_create(&MONITOR_THREAD, &attr_logging, SQLMonitorFunc, &core_ids[1]);
     
     hwloc_bitmap_free(cpuset);
     hwloc_topology_destroy(topology);
