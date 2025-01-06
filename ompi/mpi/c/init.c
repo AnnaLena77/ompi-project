@@ -767,7 +767,7 @@ void get_assigned_cores() {
     }
     
     main_core = hwloc_bitmap_first(cpuset);
-    if(main_core = -1){
+    if(main_core == -1){
         fprintf(stderr, "No available cores found for main process\n");
         hwloc_bitmap_free(cpuset);
         hwloc_topology_destroy(topology);
