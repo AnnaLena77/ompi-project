@@ -62,8 +62,6 @@
 #define MPI_Init PMPI_Init
 #endif
 
-#ifdef ENABLE_ANALYSIS
-
 static struct timeval start;
 static struct timeval init_sql_finished;
 static struct timeval init_sql_start;
@@ -686,7 +684,8 @@ void openFile(){
 void initializeQueue()
 { 
     //gettimeofday(&init_sql_start, NULL);
-    
+
+#ifdef SEPERATE_THREAD_NO_HYPERTHREADING
     hwloc_topology_t topology;
     hwloc_cpuset_t cpuset;
     pthread_t threads[1];  // Nur ein zusätzlicher Thread (der Logging-Thread)
@@ -748,7 +747,8 @@ void initializeQueue()
     
     CPU_ZERO(&cpu_set_main);
     CPU_SET(core_ids[0], &cpu_set_main);
-    pthread_attr_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpu_set_main);
+    pthread_attr_setaffinity_np(&attr_main, sizeof(cpu_set_t), &cpu_set_main);
+#endif
     
     TAILQ_INIT(&head);
     
@@ -787,7 +787,8 @@ void initializeQueue()
     }*/
     
     //fclose(file);
-    
+
+#ifdef SEPERATE_THREAD_NO_HYPERTHREADING
     pthread_attr_init(&attr_logging);
     cpu_set_t cpu_set_logging;
     CPU_ZERO(&cpu_set_logging);
@@ -798,13 +799,14 @@ void initializeQueue()
     
     hwloc_bitmap_free(cpuset);
     hwloc_topology_destroy(topology);
+#else
+    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
+#endif
     
     //gettimeofday(&init_sql_finished, NULL);
     //float dif = timeDifference(init_sql_finished, init_sql_start);
     //printf("Lost time for initializing sql: %f\n", dif);
 }
-
-#endif
 
 
 static const char FUNC_NAME[] = "MPI_Init";
