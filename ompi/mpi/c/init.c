@@ -728,17 +728,29 @@ void initializeQueue()
 }
 
 #endif
+
+
+void get_assigned_cores() {
+    hwloc_topology_t topology;
+    hwloc_cpuset_t cpuset;
+
+    hwloc_topology_init(&topology);
+    hwloc_topology_load(topology);
+
+    cpuset = hwloc_get_cpubind(topology, HWLOC_CPUBIND_PROCESS);
+    char *str;
+    hwloc_bitmap_asprintf(&str, cpuset);
+    printf("Assigned cores: %s\n", str);
+    free(str);
+
+    hwloc_topology_destroy(topology);
+}
+
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
 #ifdef ENABLE_ANALYSIS
-    const char *local_rank_env = getenv("OMPI_COMM_WORLD_LOCAL_RANK");
-    if (!local_rank_env) {
-        fprintf(stderr, "Environment variable OMPI_COMM_WORLD_LOCAL_RANK not found.\n");
-        return EXIT_FAILURE;
-    }
-    int local_rank = atoi(local_rank_env);
-    printf("Core: %d\n", local_rank);
+    get_assigned_cores();
     
     run_thread = 1;
     counter = 0;
