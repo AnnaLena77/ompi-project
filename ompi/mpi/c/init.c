@@ -686,55 +686,12 @@ void openFile(){
 void initializeQueue()
 { 
     //gettimeofday(&init_sql_start, NULL);
-    TAILQ_INIT(&head);
     
-    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Comm_size(comm, &size);
-    MPI_Comm_rank(comm, &processrank);
-    MPI_Get_processor_name(proc_name, &proc_name_length);
-    
-    
-    //fprintf(file, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
-    
-    //fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-    //O_CREAT: Datei wird erstellt, wenn nicht vorhanden
-    //O_WRONLY: Es darf nur in die Datei geschrieben werden
-    //S_IRUSR | S_IWUSR: Eigentümer darf Datei lesen und schreiben (Permissions)
-    
-    /*if(fd == -1){
-    	perror("open");
-    	exit(EXIT_FAILURE);
-    }*/
-    
-    //file_size = 6*20000000; // Größe der Datei (kann angepasst werden)
-    
-    // Ändere die Größe der Datei auf file_size Bytes
-    /*if (ftruncate(fd, file_size) == -1) {
-        perror("ftruncate");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
-    
-    mapped_data = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (mapped_data == MAP_FAILED) {
-        perror("mmap");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }*/
-    
-    //fclose(file);
-    pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
-    //gettimeofday(&init_sql_finished, NULL);
-    //float dif = timeDifference(init_sql_finished, init_sql_start);
-    //printf("Lost time for initializing sql: %f\n", dif);
-}
-
-#endif
-
-
-void get_assigned_cores() {
     hwloc_topology_t topology;
     hwloc_cpuset_t cpuset;
+    pthread_t threads[1];  // Nur ein zusätzlicher Thread (der Logging-Thread)
+    int core_ids[2];  // Array, um die zugeordneten Cores zu speichern
+    pthread_attr_t attr_main, attr_logging; 
 
     // Topologie initialisieren
     hwloc_topology_init(&topology);
@@ -774,6 +731,8 @@ void get_assigned_cores() {
         return;
     }
     
+    core_ids[0] = main_core;
+    
     logging_core = hwloc_bitmap_next(cpuset, main_core);
     if (logging_core == -1) {
         fprintf(stderr, "No available cores found for logging thread\n");
@@ -782,27 +741,77 @@ void get_assigned_cores() {
         return;
     }
     
-    hwloc_cpuset_t main_core_set = hwloc_bitmap_alloc();
-    hwloc_bitmap_set(main_core_set, main_core);  // Bindet den Hauptprozess an den gefundenen Core
+    core_ids[1] = logging_core;
     
-    if (hwloc_set_cpubind(topology, main_core_set, HWLOC_CPUBIND_PROCESS) < 0) {
-        fprintf(stderr, "Failed to bind main MPI process to core %d\n", main_core);
-    } else {
-        printf("Main MPI process bound to core %d\n", main_core);
+    pthread_attr_init(&attr_main);
+    cpu_set_t cpu_set_main;
+    
+    CPU_ZERO(&cpu_set_main);
+    CPU_SET(core_ids[0], &cpu_set_main);
+    pthread_attr_setaffinity_np(&attr_main, sizeof(cpu_set_t), &cpu_set_main);
+    
+    TAILQ_INIT(&head);
+    
+    MPI_Comm comm = MPI_COMM_WORLD;
+    MPI_Comm_size(comm, &size);
+    MPI_Comm_rank(comm, &processrank);
+    MPI_Get_processor_name(proc_name, &proc_name_length);
+    
+    
+    //fprintf(file, "function,communicationType,count,datasize,communicationArea,processorname,processrank,partnerrank,time_start,time_db\n");
+    
+    //fd = open(filename, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    //O_CREAT: Datei wird erstellt, wenn nicht vorhanden
+    //O_WRONLY: Es darf nur in die Datei geschrieben werden
+    //S_IRUSR | S_IWUSR: Eigentümer darf Datei lesen und schreiben (Permissions)
+    
+    /*if(fd == -1){
+    	perror("open");
+    	exit(EXIT_FAILURE);
+    }*/
+    
+    //file_size = 6*20000000; // Größe der Datei (kann angepasst werden)
+    
+    // Ändere die Größe der Datei auf file_size Bytes
+    /*if (ftruncate(fd, file_size) == -1) {
+        perror("ftruncate");
+        close(fd);
+        exit(EXIT_FAILURE);
     }
-
-    // Speicher freigeben
+    
+    mapped_data = mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (mapped_data == MAP_FAILED) {
+        perror("mmap");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }*/
+    
+    //fclose(file);
+    
+    pthread_attr_init(&attr_logging);
+    cpu_set_t cpu_set_logging;
+    CPU_ZERO(&cpu_set_logging);
+    CPU_SET(core_ids[1], &cpu_set_logging);
+    pthread_attr_setaffinity_np(&attr_logging, sizeof(cpu_set_t), &cpu_set_logging);
+    
+    pthread_create(&MONITOR_THREAD, &attr_logging, SQLMonitorFunc, &core_ids[1]) != 0);
+    
     hwloc_bitmap_free(cpuset);
     hwloc_bitmap_free(main_core_set);
     hwloc_topology_destroy(topology);
+    
+    //gettimeofday(&init_sql_finished, NULL);
+    //float dif = timeDifference(init_sql_finished, init_sql_start);
+    //printf("Lost time for initializing sql: %f\n", dif);
 }
+
+#endif
+
 
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
 #ifdef ENABLE_ANALYSIS
-    get_assigned_cores();
-    
     run_thread = 1;
     counter = 0;
     ringbuffer = (qentry*)malloc(sizeof(qentry)*MAX_RINGSIZE);
