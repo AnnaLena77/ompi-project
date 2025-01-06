@@ -78,6 +78,8 @@ static int queue_length=0;
 static int lock = 0;
 //sem_t ENSURE_INIT;
 
+static int main_core, logging_core;
+
 static int size, processrank;
 static char processrank_arr[4];
 char proc_name[MPI_MAX_PROCESSOR_NAME];
@@ -746,20 +748,52 @@ void get_assigned_cores() {
         return;
     }
 
-    hwloc_get_cpus(topology, cpuset);
+    // CPU-Bindung abrufen
+    if (hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_PROCESS) < 0) {
+        fprintf(stderr, "Failed to get CPU binding\n");
+        hwloc_bitmap_free(cpuset);
+        hwloc_topology_destroy(topology);
+        return;
+    }
 
-    // Zeige alle verfügbaren Cores an
+    // CPU-Set in lesbaren String konvertieren
     char *str;
     hwloc_bitmap_asprintf(&str, cpuset);
     if (str) {
-        printf("Available cores: %s\n", str);
+        printf("Assigned cores: %s\n", str);
         free(str);
     } else {
         fprintf(stderr, "Failed to convert CPU set to string\n");
     }
+    
+    main_core = hwloc_bitmap_first(cpuset);
+    if(main_core = -1){
+        fprintf(stderr, "No available cores found for main process\n");
+        hwloc_bitmap_free(cpuset);
+        hwloc_topology_destroy(topology);
+        return;
+    }
+    
+    logging_core = hwloc_bitmap_next(cpuset, main_core);
+    if (logging_core == -1) {
+        fprintf(stderr, "No available cores found for logging thread\n");
+        hwloc_bitmap_free(cpuset);
+        hwloc_topology_destroy(topology);
+        return;
+    }
+    
+    hwloc_cpuset_t main_core_set = hwloc_bitmap_alloc();
+    hwloc_bitmap_set(main_core_set, main_core);  // Bindet den Hauptprozess an den gefundenen Core
+    
+    if (hwloc_set_cpubind(topology, main_core_set, HWLOC_CPUBIND_PROCESS) < 0) {
+        fprintf(stderr, "Failed to bind main MPI process to core %d\n", main_core);
+    } else {
+        printf("Main MPI process bound to core %d\n", main_core);
+    }
 
     // Speicher freigeben
     hwloc_bitmap_free(cpuset);
+    hwloc_bitmap_free(main_core_set);
     hwloc_topology_destroy(topology);
 }
 
