@@ -748,7 +748,7 @@ void initializeQueue()
     
     CPU_ZERO(&cpu_set_main);
     CPU_SET(core_ids[0], &cpu_set_main);
-    pthread_attr_setaffinity_np(&attr_main, sizeof(cpu_set_t), &cpu_set_main);
+    pthread_attr_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpu_set_main);
     
     TAILQ_INIT(&head);
     
