@@ -737,7 +737,7 @@ void get_assigned_cores() {
     hwloc_topology_init(&topology);
     hwloc_topology_load(topology);
 
-    cpuset = hwloc_get_cpubind(topology, HWLOC_CPUBIND_PROCESS);
+    cpuset = hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_PROCESS);
     char *str;
     hwloc_bitmap_asprintf(&str, cpuset);
     printf("Assigned cores: %s\n", str);
