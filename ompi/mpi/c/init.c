@@ -746,19 +746,13 @@ void get_assigned_cores() {
         return;
     }
 
-    // CPU-Bindung abrufen
-    if (hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_PROCESS) < 0) {
-        fprintf(stderr, "Failed to get CPU binding\n");
-        hwloc_bitmap_free(cpuset);
-        hwloc_topology_destroy(topology);
-        return;
-    }
+    hwloc_get_cpus(topology, cpuset);
 
-    // CPU-Set in lesbaren String konvertieren
+    // Zeige alle verfügbaren Cores an
     char *str;
     hwloc_bitmap_asprintf(&str, cpuset);
     if (str) {
-        printf("Assigned cores: %s\n", str);
+        printf("Available cores: %s\n", str);
         free(str);
     } else {
         fprintf(stderr, "Failed to convert CPU set to string\n");
