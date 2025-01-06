@@ -734,15 +734,38 @@ void get_assigned_cores() {
     hwloc_topology_t topology;
     hwloc_cpuset_t cpuset;
 
+    // Topologie initialisieren
     hwloc_topology_init(&topology);
     hwloc_topology_load(topology);
 
-    cpuset = hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_PROCESS);
+    // CPU-Set initialisieren
+    cpuset = hwloc_bitmap_alloc();
+    if (!cpuset) {
+        fprintf(stderr, "Failed to allocate CPU set\n");
+        hwloc_topology_destroy(topology);
+        return;
+    }
+
+    // CPU-Bindung abrufen
+    if (hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_PROCESS) < 0) {
+        fprintf(stderr, "Failed to get CPU binding\n");
+        hwloc_bitmap_free(cpuset);
+        hwloc_topology_destroy(topology);
+        return;
+    }
+
+    // CPU-Set in lesbaren String konvertieren
     char *str;
     hwloc_bitmap_asprintf(&str, cpuset);
-    printf("Assigned cores: %s\n", str);
-    free(str);
+    if (str) {
+        printf("Assigned cores: %s\n", str);
+        free(str);
+    } else {
+        fprintf(stderr, "Failed to convert CPU set to string\n");
+    }
 
+    // Speicher freigeben
+    hwloc_bitmap_free(cpuset);
     hwloc_topology_destroy(topology);
 }
 
