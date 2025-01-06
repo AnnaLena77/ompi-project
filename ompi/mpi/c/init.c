@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <semaphore.h>
 #include <string.h>
 #include <math.h>
@@ -37,6 +36,9 @@
 
 #ifdef ENABLE_ANALYSIS
 #include <libpq-fe.h>
+#include <pthread.h>
+#include <sched.h>
+#include <hwloc.h>
 #endif
 
 #include "opal/util/show_help.h"
@@ -60,8 +62,6 @@
 #define MPI_Init PMPI_Init
 #endif
 
-#ifdef ENABLE_ANALYSIS
-
 static struct timeval start;
 static struct timeval init_sql_finished;
 static struct timeval init_sql_start;
@@ -75,6 +75,8 @@ static TAILQ_HEAD(tailhead, qentry) head;
 static int queue_length=0;
 static int lock = 0;
 //sem_t ENSURE_INIT;
+
+static int main_core, logging_core;
 
 static int size, processrank;
 static char processrank_arr[4];
@@ -682,6 +684,72 @@ void openFile(){
 void initializeQueue()
 { 
     //gettimeofday(&init_sql_start, NULL);
+
+#ifdef SEPERATE_THREAD_NO_HYPERTHREADING
+    hwloc_topology_t topology;
+    hwloc_cpuset_t cpuset;
+    pthread_t threads[1];  // Nur ein zusätzlicher Thread (der Logging-Thread)
+    int core_ids[2];  // Array, um die zugeordneten Cores zu speichern
+    pthread_attr_t attr_main, attr_logging; 
+
+    // Topologie initialisieren
+    hwloc_topology_init(&topology);
+    hwloc_topology_load(topology);
+
+    // CPU-Set initialisieren
+    cpuset = hwloc_bitmap_alloc();
+    if (!cpuset) {
+        fprintf(stderr, "Failed to allocate CPU set\n");
+        hwloc_topology_destroy(topology);
+        return;
+    }
+
+    // CPU-Bindung abrufen
+    if (hwloc_get_cpubind(topology, cpuset, HWLOC_CPUBIND_PROCESS) < 0) {
+        fprintf(stderr, "Failed to get CPU binding\n");
+        hwloc_bitmap_free(cpuset);
+        hwloc_topology_destroy(topology);
+        return;
+    }
+
+    // CPU-Set in lesbaren String konvertieren
+    char *str;
+    hwloc_bitmap_asprintf(&str, cpuset);
+    if (str) {
+        printf("Assigned cores: %s\n", str);
+        free(str);
+    } else {
+        fprintf(stderr, "Failed to convert CPU set to string\n");
+    }
+    
+    main_core = hwloc_bitmap_first(cpuset);
+    if(main_core == -1){
+        fprintf(stderr, "No available cores found for main process\n");
+        hwloc_bitmap_free(cpuset);
+        hwloc_topology_destroy(topology);
+        return;
+    }
+    
+    core_ids[0] = main_core;
+    
+    logging_core = hwloc_bitmap_next(cpuset, main_core);
+    if (logging_core == -1) {
+        fprintf(stderr, "No available cores found for logging thread\n");
+        hwloc_bitmap_free(cpuset);
+        hwloc_topology_destroy(topology);
+        return;
+    }
+    
+    core_ids[1] = logging_core;
+    
+    pthread_attr_init(&attr_main);
+    cpu_set_t cpu_set_main;
+    
+    CPU_ZERO(&cpu_set_main);
+    CPU_SET(core_ids[0], &cpu_set_main);
+    pthread_attr_setaffinity_np(&attr_main, sizeof(cpu_set_t), &cpu_set_main);
+#endif
+    
     TAILQ_INIT(&head);
     
     MPI_Comm comm = MPI_COMM_WORLD;
@@ -719,13 +787,28 @@ void initializeQueue()
     }*/
     
     //fclose(file);
+
+#ifdef SEPERATE_THREAD_NO_HYPERTHREADING
+    pthread_attr_init(&attr_logging);
+    cpu_set_t cpu_set_logging;
+    CPU_ZERO(&cpu_set_logging);
+    CPU_SET(core_ids[1], &cpu_set_logging);
+    pthread_attr_setaffinity_np(&attr_logging, sizeof(cpu_set_t), &cpu_set_logging);
+    
+    pthread_create(&MONITOR_THREAD, &attr_logging, SQLMonitorFunc, &core_ids[1]);
+    
+    hwloc_bitmap_free(cpuset);
+    hwloc_topology_destroy(topology);
+#else
     pthread_create(&MONITOR_THREAD, NULL, SQLMonitorFunc, NULL);
+#endif
+    
     //gettimeofday(&init_sql_finished, NULL);
     //float dif = timeDifference(init_sql_finished, init_sql_start);
     //printf("Lost time for initializing sql: %f\n", dif);
 }
 
-#endif
+
 static const char FUNC_NAME[] = "MPI_Init";
 int MPI_Init(int *argc, char ***argv)
 {
